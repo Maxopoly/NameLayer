@@ -82,9 +82,11 @@ public class CreatePlayerType extends PlayerCommandMiddle {
 		int id = handler.getUnusedId();
 		if (id == -1) {
 			p.sendMessage(ChatColor.RED + "You have reached the allowed limit of player types, you'll have to delete some before creating new ones");
+			return true;
 		}
-		PlayerType added = new PlayerType(args [2], id, parent, group);
+		PlayerType added = new PlayerType(args [2], id, parent, group, handler.determineBlackListOrNot(parent));
 		handler.registerType(added, true);
+		p.sendMessage(ChatColor.GREEN + "Successfully created the player type " + added.getName() + " for " + group.getName());
 		checkRecacheGroup(group);
 		return true;
 	}

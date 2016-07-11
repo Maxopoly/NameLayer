@@ -8,7 +8,7 @@ public class Mercury {
 	 * Invalidates a group across all servers.
 	 * @param message- The message to send.
 	 */
-	public static void invalidateGroup(String message){
+	public static void invalidatGroup(String message){
 		MercuryAPI.sendGlobalMessage(message, "namelayer");
 	}
 }

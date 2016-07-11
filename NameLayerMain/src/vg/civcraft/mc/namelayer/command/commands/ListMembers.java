@@ -81,7 +81,7 @@ public class ListMembers extends PlayerCommandMiddle {
 				return true;
 			}
 			
-			uuids = group.getAllMembers(filterType);
+			uuids = group.getAllTracked(filterType);
 		} else {
 			uuids = group.getAllMembers();
 		}

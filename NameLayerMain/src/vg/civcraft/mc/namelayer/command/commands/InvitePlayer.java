@@ -23,9 +23,10 @@ import vg.civcraft.mc.namelayer.command.PlayerCommandMiddle;
 import vg.civcraft.mc.namelayer.command.TabCompleters.GroupTabCompleter;
 import vg.civcraft.mc.namelayer.command.TabCompleters.MemberTypeCompleter;
 import vg.civcraft.mc.namelayer.group.Group;
+import vg.civcraft.mc.namelayer.groupRequests.PlayerInteractionHandler;
+import vg.civcraft.mc.namelayer.groupRequests.RequestResult;
 import vg.civcraft.mc.namelayer.listeners.PlayerListener;
 import vg.civcraft.mc.namelayer.permission.PlayerType;
-import vg.civcraft.mc.namelayer.permission.PlayerTypeHandler;
 
 public class InvitePlayer extends PlayerCommandMiddle{
 
@@ -42,69 +43,14 @@ public class InvitePlayer extends PlayerCommandMiddle{
 		final String targetGroup = args[0];
 		final String targetPlayer = args[1];
 		final String targetType = args.length >= 3 ? args[2] : null;
-		final boolean isPlayer = s instanceof Player;
-		final Player p = isPlayer ? (Player)s : null;
-		final boolean isAdmin = !isPlayer || p.hasPermission("namelayer.admin");
-		final Group group = GroupManager.getGroup(targetGroup);
-		if (groupIsNull(s, targetGroup, group)) {
-			return true;
+		final UUID executorId = s instanceof Player ? ((Player) s).getUniqueId() : null;
+		RequestResult result = PlayerInteractionHandler.invitePlayer(executorId, targetGroup, targetPlayer, targetType);
+		if (result.wasSuccessfull()) {
+		    s.sendMessage(ChatColor.GREEN + result.getResultMessage());
 		}
-		if (!isAdmin && group.isDisciplined()) {
-			s.sendMessage(ChatColor.RED + "This group is disiplined.");
-			return true;
+		else {
+		    s.sendMessage(ChatColor.RED + result.getResultMessage());
 		}
-		final UUID targetAccount = NameAPI.getUUID(targetPlayer);
-		if (targetAccount == null) {
-			s.sendMessage(ChatColor.RED + "The player has never played before.");
-			return true;
-		}
-		if (group.isMember(targetAccount)) {
-			s.sendMessage(ChatColor.RED + "Player is already a member."
-					+ "Use /nlpp to change their PlayerType.");
-			return true;
-		}
-		if(NameLayerPlugin.getBlackList().isBlacklisted(group, targetAccount)) {
-			s.sendMessage(ChatColor.RED + "This player is currently blacklisted, you have to unblacklist him before inviting him to the group");
-			return true;
-		}
-		PlayerTypeHandler typeHandler = group.getPlayerTypeHandler();
-		final PlayerType pType = targetType != null ? typeHandler.getType(targetType) : typeHandler.getDefaultInvitationType();
-		if (pType == null) {
-			sendPlayerTypes(group, s, targetType);
-			return true;
-		}
-		if (pType == typeHandler.getBlacklistedType() || pType == typeHandler.getDefaultNonMemberType()) {
-			p.sendMessage(ChatColor.RED + "I think we both know that this shouldnt be possible");
-			return true;
-		}
-		if (!isAdmin) {
-			// Perform access check
-			final UUID executor = p.getUniqueId();
-			final PlayerType t = group.getPlayerType(executor); // playertype for the player running the command.
-			if (t == null) {
-				s.sendMessage(ChatColor.RED + "You are not on that group.");
-				return true;
-			}
-			//check whether player rank is above the one he wants to invite to
-			boolean allowed = canModifyRank(group, p, pType);
-			if (!allowed) {
-				s.sendMessage(ChatColor.RED + "You do not have permissions to modify this group.");
-				return true;
-			}
-			sendInvitation(group, pType, targetAccount, p.getUniqueId(), true);
-			
-			if(NameLayerPlugin.isMercuryEnabled()){
-				MercuryAPI.sendGlobalMessage("addInvitation " + group.getGroupId() + " " + pType.toString() + " " + targetAccount + " " + p.getUniqueId(), "namelayer");
-			}
-		} else {
-			sendInvitation(group, pType, targetAccount, null, true);
-			
-			if(NameLayerPlugin.isMercuryEnabled()){
-				MercuryAPI.sendGlobalMessage("addInvitation " + group.getGroupId() + " " + pType.toString() + " " + targetAccount, "namelayer");
-			}
-		}
-
-		s.sendMessage(ChatColor.GREEN + "The invitation has been sent." + "\n Use /nlri to Revoke an invite.");
 		return true;
 	}
 
@@ -116,7 +62,7 @@ public class InvitePlayer extends PlayerCommandMiddle{
 			if (shouldAutoAccept) {
 				// player auto accepts invite
 				if (saveToDB) {
-					group.addMember(invitedPlayer, pType);
+					group.addTracked(invitedPlayer, pType);
 				}
 				else {
 					NameAPI.getGroupManager().invalidateCache(group.getName());
@@ -145,7 +91,7 @@ public class InvitePlayer extends PlayerCommandMiddle{
 			// invitee is offline or on a different shard
 			if (shouldAutoAccept) {
 				if (saveToDB) {
-					group.addMember(invitedPlayer, pType);
+					group.addTracked(invitedPlayer, pType);
 				}
 				else {
 					NameAPI.getGroupManager().invalidateCache(group.getName());

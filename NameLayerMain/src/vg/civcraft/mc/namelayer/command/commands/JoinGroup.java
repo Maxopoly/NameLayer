@@ -57,7 +57,7 @@ public class JoinGroup extends PlayerCommandMiddle{
 			p.sendMessage(ChatColor.RED + "You are already a member.");
 			return true;
 		}
-		g.addMember(uuid, pType);
+		g.addTracked(uuid, pType);
 		p.sendMessage(ChatColor.GREEN + "You have successfully been added to this group.");
 		checkRecacheGroup(g);
 		return true;

@@ -59,10 +59,6 @@ public class PlayerTypeHandler {
 		return new ArrayList<PlayerType>(typesByName.values());
 	}
 	
-	public PlayerType getBlacklistedType() {
-		return typesById.get(5);
-	}
-	
 	public PlayerType getOwnerType() {
 		return typesById.get(0);
 	}
@@ -110,6 +106,18 @@ public class PlayerTypeHandler {
 		return false;
 	}
 	
+	public boolean determineBlackListOrNot(PlayerType parent) {
+		PlayerType current = parent;
+		while(current != null) {
+			if (current.equals(getDefaultNonMemberType())) {
+				//parent at some point is normal member, so it's a blacklist node
+				return true;
+			}
+			current = current.getParent();
+		}
+		return false;
+	}
+	
 	public void renameType(PlayerType type, String name) {
 		typesByName.remove(type.getName());
 		type.setName(name);
@@ -118,40 +126,40 @@ public class PlayerTypeHandler {
 	}
 	
 	public static PlayerTypeHandler createStandardTypes(Group g) {
-		PlayerType owner = new PlayerType("OWNER", 0, null, g);
+		PlayerType owner = new PlayerType("OWNER", 0, null, g, false);
 		PlayerTypeHandler handler = new PlayerTypeHandler(owner, g, true);
 		for(PermissionType perm : PermissionType.getAllPermissions()) {
 			owner.addPermission(perm, true);
 		}
-		PlayerType admin = new PlayerType("ADMINS", 1, owner, g);
+		PlayerType admin = new PlayerType("ADMINS", 1, owner, g, false);
 		handler.registerType(admin, true);
 		for(PermissionType perm : PermissionType.getAllPermissions()) {
 			if (perm.getDefaultPermLevels().contains(1)) {
 				admin.addPermission(perm, true);
 			}
 		}
-		PlayerType mod = new PlayerType("MODS", 2, admin, g);
+		PlayerType mod = new PlayerType("MODS", 2, admin, g, false);
 		handler.registerType(mod, true);
 		for(PermissionType perm : PermissionType.getAllPermissions()) {
 			if (perm.getDefaultPermLevels().contains(2)) {
 				mod.addPermission(perm, true);
 			}
 		}
-		PlayerType member = new PlayerType("MEMBERS", 3, mod, g);
+		PlayerType member = new PlayerType("MEMBERS", 3, mod, g, false);
 		handler.registerType(member, true);
 		for(PermissionType perm : PermissionType.getAllPermissions()) {
 			if (perm.getDefaultPermLevels().contains(3)) {
 				member.addPermission(perm, true);
 			}
 		}
-		PlayerType defaultNonMember = new PlayerType("DEFAULT", 4, owner, g);
+		PlayerType defaultNonMember = new PlayerType("DEFAULT", 4, owner, g, false);
 		handler.registerType(defaultNonMember, true);
 		for(PermissionType perm : PermissionType.getAllPermissions()) {
 			if (perm.getDefaultPermLevels().contains(4)) {
 				defaultNonMember.addPermission(perm, true);
 			}
 		}
-		PlayerType blacklisted = new PlayerType("BLACKLISTED", 5, defaultNonMember, g);
+		PlayerType blacklisted = new PlayerType("BLACKLISTED", 5, defaultNonMember, g, true);
 		handler.registerType(blacklisted, true);
 		for(PermissionType perm : PermissionType.getAllPermissions()) {
 			if (perm.getDefaultPermLevels().contains(5)) {

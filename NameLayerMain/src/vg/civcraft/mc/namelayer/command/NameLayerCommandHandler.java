@@ -1,15 +1,11 @@
 package vg.civcraft.mc.namelayer.command;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
-
 import vg.civcraft.mc.civmodcore.command.Command;
+import vg.civcraft.mc.civmodcore.command.CommandHandler;
 import vg.civcraft.mc.namelayer.command.commands.AcceptInvite;
-import vg.civcraft.mc.namelayer.command.commands.AddBlacklist;
 import vg.civcraft.mc.namelayer.command.commands.CreatePlayerType;
 import vg.civcraft.mc.namelayer.command.commands.DeletePlayerType;
 import vg.civcraft.mc.namelayer.command.commands.LinkGroups;
@@ -19,13 +15,11 @@ import vg.civcraft.mc.namelayer.command.commands.DeleteGroup;
 import vg.civcraft.mc.namelayer.command.commands.DisciplineGroup;
 import vg.civcraft.mc.namelayer.command.commands.GlobalStats;
 import vg.civcraft.mc.namelayer.command.commands.GroupStats;
-import vg.civcraft.mc.namelayer.command.commands.InfoDump;
 import vg.civcraft.mc.namelayer.command.commands.InvitePlayer;
 import vg.civcraft.mc.namelayer.command.commands.JoinGroup;
 import vg.civcraft.mc.namelayer.command.commands.LeaveGroup;
 import vg.civcraft.mc.namelayer.command.commands.NameLayerGroupGui;
 import vg.civcraft.mc.namelayer.command.commands.RenamePlayerType;
-import vg.civcraft.mc.namelayer.command.commands.ShowBlacklist;
 import vg.civcraft.mc.namelayer.command.commands.ListCurrentInvites;
 import vg.civcraft.mc.namelayer.command.commands.ListGroups;
 import vg.civcraft.mc.namelayer.command.commands.ListMembers;
@@ -34,7 +28,6 @@ import vg.civcraft.mc.namelayer.command.commands.ListPlayerTypes;
 import vg.civcraft.mc.namelayer.command.commands.ListSubGroups;
 import vg.civcraft.mc.namelayer.command.commands.MergeGroups;
 import vg.civcraft.mc.namelayer.command.commands.ModifyPermissions;
-import vg.civcraft.mc.namelayer.command.commands.RemoveBlacklist;
 import vg.civcraft.mc.namelayer.command.commands.RemoveMember;
 import vg.civcraft.mc.namelayer.command.commands.UnlinkGroups;
 import vg.civcraft.mc.namelayer.command.commands.SetPassword;
@@ -46,7 +39,7 @@ import vg.civcraft.mc.namelayer.command.commands.SetDefaultGroup;
 import vg.civcraft.mc.namelayer.command.commands.GetDefaultGroup;
 import vg.civcraft.mc.namelayer.command.commands.UpdateName;
 
-public class CommandHandler {
+public class NameLayerCommandHandler extends CommandHandler{
 	public Map<String, Command> commands = new HashMap<String, Command>();
 	
 	public void registerCommands(){
@@ -59,7 +52,6 @@ public class CommandHandler {
 		addCommands(new DisciplineGroup("DisiplineGroup"));
 		addCommands(new GlobalStats("GlobalStats"));
 		addCommands(new GroupStats("GroupStats"));
-		addCommands(new InfoDump("InfoDump"));
 		addCommands(new InvitePlayer("InvitePlayer"));
 		addCommands(new JoinGroup("JoinGroup"));
 		addCommands(new ListGroups("ListGroups"));
@@ -80,43 +72,9 @@ public class CommandHandler {
 		addCommands(new SetDefaultGroup("SetDefaultGroup"));
 		addCommands(new GetDefaultGroup("GetDefaultGroup"));
 		addCommands(new UpdateName("UpdateName"));
-		addCommands(new AddBlacklist("AddBlacklist"));
-		addCommands(new RemoveBlacklist("RemoveBlacklist"));
-		addCommands(new ShowBlacklist("ShowBlacklist"));
 		addCommands(new NameLayerGroupGui("OpenGUI"));
 		addCommands(new CreatePlayerType("CreatePlayerType"));
 		addCommands(new DeletePlayerType("DeletePlayerType"));
 		addCommands(new RenamePlayerType("RenamePlayerType"));
-	}
-	
-	public void addCommands(Command command){
-			commands.put(command.getIdentifier().toLowerCase(), command);
-	}
-	
-	public boolean execute(CommandSender sender, org.bukkit.command.Command cmd, String[] args){
-		if (commands.containsKey(cmd.getName().toLowerCase())){
-			Command command = commands.get(cmd.getName().toLowerCase());
-			if (args.length < command.getMinArguments() || args.length > command.getMaxArguments()){
-				helpPlayer(command, sender);
-				return true;
-			}
-			command.execute(sender, args);
-		}
-		return true;
-	}
-
-	public List<String> complete(CommandSender sender, org.bukkit.command.Command cmd, String[] args){
-		if (commands.containsKey(cmd.getName().toLowerCase())){
-			Command command = commands.get(cmd.getName().toLowerCase());
-			return command.tabComplete(sender, args);
-		}
-		return null;
-	}
-
-	
-	public void helpPlayer(Command command, CommandSender sender){
-		sender.sendMessage(new StringBuilder().append(ChatColor.RED + "Command: " ).append(command.getName()).toString());
-		sender.sendMessage(new StringBuilder().append(ChatColor.RED + "Description: " ).append(command.getDescription()).toString());
-		sender.sendMessage(new StringBuilder().append(ChatColor.RED + "Usage: ").append(command.getUsage()).toString());
 	}
 }

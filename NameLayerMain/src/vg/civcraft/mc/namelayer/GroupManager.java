@@ -119,7 +119,7 @@ public class GroupManager{
 			NameLayerPlugin.log(Level.INFO, "Group transfer event was cancelled for group: " + g.getName());
 			return;
 		}
-		g.addMember(uuid, g.getPlayerTypeHandler().getOwnerType());
+		g.addTracked(uuid, g.getPlayerTypeHandler().getOwnerType());
 		g.setOwner(uuid);
 		if (NameLayerPlugin.isMercuryEnabled()){
 			String message = "transfer " + g.getName();
@@ -358,7 +358,6 @@ public class GroupManager{
 			g.setValid(false);
 			List<Integer>k = g.getGroupIds();
 			groupsByName.remove(group.toLowerCase());
-			NameLayerPlugin.getBlackList().removeFromCache(g.getName());
 			
 			boolean fail = true;
 			// You have a freaking hashmap, use it.

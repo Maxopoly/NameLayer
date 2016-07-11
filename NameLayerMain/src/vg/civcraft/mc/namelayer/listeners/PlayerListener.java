@@ -113,7 +113,6 @@ public class PlayerListener implements Listener{
 			return null;
 		}
 		g.setGroupId(id);
-		NameLayerPlugin.getBlackList().initEmptyBlackList(name);
 		if (NameLayerPlugin.isMercuryEnabled()){
 			String message = "recache " + g.getName();
 			Mercury.invalidateGroup(message);

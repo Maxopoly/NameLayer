@@ -13,7 +13,7 @@ import vg.civcraft.mc.namelayer.GroupManager;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.command.commands.InvitePlayer;
 import vg.civcraft.mc.namelayer.NameAPI;
-import vg.civcraft.mc.namelayer.events.GroupAddInvitation;
+import vg.civcraft.mc.namelayer.events.GroupMembershipInvitationEvent;
 import vg.civcraft.mc.namelayer.events.GroupInvalidationEvent;
 import vg.civcraft.mc.namelayer.events.GroupRemoveInvitation;
 import vg.civcraft.mc.namelayer.group.Group;
@@ -73,7 +73,7 @@ public class MercuryMessageListener implements Listener{
 			if(message.length >= 5){
 				inviterUUID = UUID.fromString(message[4]);
 			}
-			GroupAddInvitation e = new GroupAddInvitation(playerGroup.getName(), pType, invitedPlayerUUID, inviterUUID);
+			GroupMembershipInvitationEvent e = new GroupMembershipInvitationEvent(playerGroup.getName(), pType, invitedPlayerUUID, inviterUUID);
 			Bukkit.getPluginManager().callEvent(e);
 			if (playerGroup != null) {
 				InvitePlayer.sendInvitation(playerGroup, pType, invitedPlayerUUID, inviterUUID, false);

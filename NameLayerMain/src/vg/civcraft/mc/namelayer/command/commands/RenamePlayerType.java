@@ -81,7 +81,7 @@ public class RenamePlayerType extends PlayerCommandMiddle {
 		}
 		String oldName = type.getName();
 		handler.renameType(type, name);
-		p.sendMessage(ChatColor.GREEN +"Changed name of player type " + oldName + " to " + name);
+		p.sendMessage(ChatColor.GREEN +"Changed name of player type " + oldName + " to " + name + " for " + group.getName());
 		checkRecacheGroup(group);
 		return true;
 	}

@@ -2,6 +2,7 @@ package vg.civcraft.mc.namelayer.group;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,7 +84,16 @@ public class Group {
 	 * @return Returns all the uuids.
 	 */
 	public List<UUID> getAllMembers() {
-		return Lists.newArrayList(players.keySet());
+		List <UUID> mems = new LinkedList<UUID>();
+		/*for(Entry <PlayerType, UUID> entry : m) {
+			
+		} */
+		//TODO
+		return null;
+	}
+	
+	public List <UUID> getAllTracked() {
+		return null; //TODO
 	}
 	
 	/**
@@ -91,7 +101,7 @@ public class Group {
 	 * @param type- The PlayerType of a group that you want the UUIDs of.
 	 * @return Returns all the UUIDS of the specific PlayerType.
 	 */
-	public List<UUID> getAllMembers(PlayerType type) {
+	public List<UUID> getAllTracked(PlayerType type) {
 		List<UUID> uuids = Lists.newArrayList();;
 		for (Map.Entry<UUID, PlayerType> entry : players.entrySet()) {
 			if (entry.getValue() == type) {
@@ -138,25 +148,6 @@ public class Group {
 			if (name.compareToIgnoreCase(lowerLimit) >= 0 
 					&& name.compareToIgnoreCase(upperLimit) <= 0) {
 				uuids.add(member);
-			}
-		}
-		return uuids;
-	}
-	
-	/**
-	 * Gives a list of the members of this group, excluding the inherited members.
-	 * @return List of UUIDs of the current players in this group
-	 */
-	public List<UUID> getCurrentMembers() {
-		return Lists.newArrayList(players.keySet());
-	}
-	
-	public List<UUID> getCurrentMembers(PlayerType rank) {
-		List<UUID> uuids = Lists.newArrayList();
-		
-		for (Map.Entry<UUID, PlayerType> entry : players.entrySet()) {
-			if (entry.getValue() == rank) {
-				uuids.add(entry.getKey());
 			}
 		}
 		return uuids;
@@ -262,24 +253,22 @@ public class Group {
 		}
 	}
 	/**
-	 * Checks if the player is in the Group or not.
+	 * Checks if the player is tracked explicitly in this group or not
 	 * @param uuid- The UUID of the player.
-	 * @return Returns true if the player is a member, false otherwise.
+	 * @return Returns true if the player is tracked, false otherwise.
 	 */
-	public boolean isMember(UUID uuid) {
+	public boolean isTracked(UUID uuid) {
 		return players.containsKey(uuid);
 	}
-
+	
 	/**
-	 * Checks if the player is in the Group's PlayerType or not.
+	 * Checks if the player is a member of this group, which means he has a member player type
 	 * @param uuid- The UUID of the player.
-	 * @param type- The PlayerType wanted.
-	 * @return Returns true if the player is a member of the specific playertype, otherwise false.
+	 * @return Returns true if the player is tracked, false otherwise.
 	 */
-	public boolean isMember(UUID uuid, PlayerType type) {
-		if (players.containsKey(uuid))
-			return players.get(uuid).equals(type);
-		return false;
+	public boolean isMember(UUID uuid) {
+		PlayerType pType = players.get(uuid);
+		return pType != null && !pType.isBlacklistType();
 	}
 	
 	/**
@@ -291,23 +280,21 @@ public class Group {
 		if (member != null) {
 			return member;
 		}
-		if (NameLayerPlugin.getBlackList().isBlacklisted(this, uuid)) {
-			return playerTypeHandler.getBlacklistedType();
-		}
 		return playerTypeHandler.getDefaultNonMemberType();
 	}
 
 	/**
-	 * Adds a member to a group.
+	 * Adds a player that is now tracked for this group. This may be either a member of the group or a non-member, who was added to a blacklist player type
 	 * @param uuid- The uuid of the player.
 	 * @param type- The PlayerType to add. If a preexisting PlayerType is found, 
 	 * it will be overwritten.
 	 */
-	public void addMember(UUID uuid, PlayerType type) {
-		if (type == playerTypeHandler.getBlacklistedType() || type == playerTypeHandler.getDefaultNonMemberType()) {
+	public void addTracked(UUID uuid, PlayerType type) {
+		if (type == playerTypeHandler.getDefaultNonMemberType()) {
+			NameLayerPlugin.log(Level.WARNING, "Tried to add " + uuid.toString() + " as " + type.getName() + " to " + getName() +" as non member playertype" );
 			return;
 		}
-		if (isMember(uuid, type)) {
+		if (isTracked(uuid)) {
 			db.removeMember(uuid, name);
 		}
 		players.put(uuid, type);
@@ -315,10 +302,10 @@ public class Group {
 	}
 
 	/**
-	 * Removes the Player from the Group.
+	 * Removes the Player from this groups tracking
 	 * @param uuid- The UUID of the Player.
 	 */
-	public void removeMember(UUID uuid) {
+	public void removeTracked(UUID uuid) {
 		db.removeMember(uuid, name);
 		players.remove(uuid);
 	}

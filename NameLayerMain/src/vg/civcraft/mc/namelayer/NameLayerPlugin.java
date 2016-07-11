@@ -1,22 +1,18 @@
 package vg.civcraft.mc.namelayer;
 
-import java.util.List;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 
 import vg.civcraft.mc.civmodcore.ACivMod;
 import vg.civcraft.mc.civmodcore.Config;
 import vg.civcraft.mc.civmodcore.annotations.CivConfig;
 import vg.civcraft.mc.civmodcore.annotations.CivConfigType;
 import vg.civcraft.mc.civmodcore.annotations.CivConfigs;
-import vg.civcraft.mc.namelayer.command.CommandHandler;
+import vg.civcraft.mc.namelayer.command.NameLayerCommandHandler;
 import vg.civcraft.mc.namelayer.database.AssociationList;
 import vg.civcraft.mc.namelayer.database.Database;
 import vg.civcraft.mc.namelayer.database.GroupManagerDao;
-import vg.civcraft.mc.namelayer.group.BlackList;
 import vg.civcraft.mc.namelayer.group.DefaultGroupHandler;
 import vg.civcraft.mc.namelayer.listeners.AssociationListener;
 import vg.civcraft.mc.namelayer.listeners.MercuryMessageListener;
@@ -27,11 +23,9 @@ import vg.civcraft.mc.namelayer.permission.PermissionType;
 
 public class NameLayerPlugin extends ACivMod{
 	private static AssociationList associations;
-	private static BlackList blackList;
 	private static GroupManagerDao groupManagerDao;
 	private static DefaultGroupHandler defaultGroupHandler;
 	private static NameLayerPlugin instance;
-	private CommandHandler handle;
 	private static Database db;
 	private static boolean loadGroups = true;
 	private static int groupLimit = 10;
@@ -57,18 +51,11 @@ public class NameLayerPlugin extends ACivMod{
 		registerListeners();
 		if (loadGroups){
 			PermissionType.initialize();
-			blackList = new BlackList();
 			groupManagerDao.loadGroupsInvitations();
 			defaultGroupHandler = new DefaultGroupHandler();
-			handle = new CommandHandler();
+			handle = new NameLayerCommandHandler();
 			handle.registerCommands();
 		}
-	}
-	
-	// Calling this for ACivMod
-	@Override
-	public void onLoad(){
-		super.onLoad();
 	}
 	
 	public void registerListeners(){
@@ -77,18 +64,6 @@ public class NameLayerPlugin extends ACivMod{
 		if (isMercuryEnabled()){
 			getServer().getPluginManager().registerEvents(new MercuryMessageListener(), this);
 		}
-	}
-	
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		if (!loadGroups)
-			return false;
-		return handle.execute(sender, cmd, args);
-	}
-
-	public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args){
-		if (!loadGroups)
-			return null;
-		return handle.complete(sender, cmd, args);
 	}
 
 	public void onDisable() {
@@ -195,10 +170,6 @@ public class NameLayerPlugin extends ACivMod{
 	
 	public int getGroupLimit(){
 		return groupLimit;
-	}
-	
-	public static BlackList getBlackList() {
-		return blackList;
 	}
 	
 	public static DefaultGroupHandler getDefaultGroupHandler() {

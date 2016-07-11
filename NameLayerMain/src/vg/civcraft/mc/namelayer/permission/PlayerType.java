@@ -12,6 +12,7 @@ public class PlayerType {
 	private Group group;
 	private String name;
 	private int id;
+	private boolean blacklistType;
 	private List<PlayerType> children;
 	private PlayerType parent;
 	private List<PermissionType> perms;
@@ -19,11 +20,12 @@ public class PlayerType {
 	/**
 	 * For creating completly new types
 	 */
-	public PlayerType(String name, int id, PlayerType parent, Group group) {
+	public PlayerType(String name, int id, PlayerType parent, Group group, boolean blacklistType) {
 		this.name = name;
 		this.parent = parent;
 		this.id = id;
 		this.group = group;
+		this.blacklistType = blacklistType;
 		this.children = new LinkedList<PlayerType>();
 		if (parent != null) {
 			// flat copy perms
@@ -41,10 +43,11 @@ public class PlayerType {
 	 * For loading existing types
 	 */
 	public PlayerType(String name, int id, PlayerType parent,
-			List<PermissionType> perms, Group group) {
+			List<PermissionType> perms, Group group, boolean blacklistType) {
 		this.name = name;
 		this.parent = parent;
 		this.id = id;
+		this.blacklistType = blacklistType;
 		this.group = group;
 		this.children = new LinkedList<PlayerType>();
 		this.perms = perms;
@@ -87,6 +90,10 @@ public class PlayerType {
 			return false;
 		}
 	}
+	
+	public boolean isBlacklistType() {
+		return blacklistType;
+	}
 
 	public boolean addPermission(PermissionType perm, boolean saveToDb) {
 		if (perms.contains(perm)) {
@@ -105,6 +112,15 @@ public class PlayerType {
 					this, permList);
 		}
 		return true;
+	}
+	
+	public PermissionType getEditPermission() {
+	    PermissionType perm = PermissionType.getPermission("PLAYERTYPEEDITPERM" + id);
+	    if (perm == null) {
+		PermissionType.registerPermission("PLAYERTYPEEDITPERM" + id, new LinkedList<Integer>());
+		perm = PermissionType.getPermission("PLAYERTYPEEDITPERM" + id);
+	    }
+	    return perm;
 	}
 
 	public List<PlayerType> getRecursiveChildren() {

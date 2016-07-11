@@ -18,7 +18,7 @@ import vg.civcraft.mc.namelayer.command.TabCompleters.MemberTypeCompleter;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.permission.PlayerType;
 import vg.civcraft.mc.namelayer.permission.PlayerTypeHandler;
-import vg.civcraft.mc.namelayer.events.PromotePlayerEvent;
+import vg.civcraft.mc.namelayer.events.GroupPromotePlayerEvent;
 
 public class PromotePlayer extends PlayerCommandMiddle{
 
@@ -67,8 +67,8 @@ public class PromotePlayer extends PlayerCommandMiddle{
 		if(promoteeTargetType == null){
 			sendPlayerTypes(group, sender, args [2]);
 		}
-		if(promoteeCurrentType == ptHandler.getBlacklistedType() || promoteeCurrentType == ptHandler.getDefaultNonMemberType()) {
-			p.sendMessage(ChatColor.RED + "Nice try");
+		if(promoteeCurrentType == ptHandler.getDefaultNonMemberType()) {
+			p.sendMessage(ChatColor.RED + "You can't demote to this rank, because it's not an explicit member rank");
 			return true;
 		}
 		
@@ -78,8 +78,14 @@ public class PromotePlayer extends PlayerCommandMiddle{
 		}
 		
 		
-		if (!group.isMember(promotee)){ //can't edit a player who isn't in the group
-			p.sendMessage(ChatColor.RED + NameAPI.getCurrentName(promotee) + " is not a member of this group.");
+		if (promoteeCurrentType.equals(ptHandler.getDefaultNonMemberType()) && !promoteeTargetType.isBlacklistType()){ //can't edit a player who isn't in the group
+			p.sendMessage(ChatColor.RED + NameAPI.getCurrentName(promotee) + " is not a member of this group, you have to invite this player instead of directly setting his rank");
+			return true;
+		}
+		
+		if (promoteeCurrentType.isBlacklistType() && !promoteeTargetType.isBlacklistType()) {
+			p.sendMessage(ChatColor.RED + "You can't promote this player directly to a member rank, because he is currently blacklisted. Remove him from the blacklisted player type and"
+					+ "then invite him instead");
 			return true;
 		}
 		
@@ -102,13 +108,13 @@ public class PromotePlayer extends PlayerCommandMiddle{
 		OfflinePlayer prom = Bukkit.getOfflinePlayer(promotee);
 		if(prom.isOnline()){
 			Player oProm = (Player) prom;
-			PromotePlayerEvent event = new PromotePlayerEvent(oProm, group, promoteeCurrentType, promoteeTargetType);
+			GroupPromotePlayerEvent event = new GroupPromotePlayerEvent(oProm, group, promoteeCurrentType, promoteeTargetType);
 			Bukkit.getPluginManager().callEvent(event);
 			if(event.isCancelled()){
 				return false;
 			}
-			group.removeMember(promotee);
-			group.addMember(promotee, promoteeTargetType);
+			group.removeTracked(promotee);
+			group.addTracked(promotee, promoteeTargetType);
 			p.sendMessage(ChatColor.GREEN + NameAPI.getCurrentName(promotee) + " has been added as (PlayerType) " +
 					promoteeTargetType.toString() + " to " + group.getName());
 			oProm.sendMessage(ChatColor.GREEN + "You have been promoted to (PlayerType) " +
@@ -116,8 +122,8 @@ public class PromotePlayer extends PlayerCommandMiddle{
 		}
 		else{
 			//player is offline change their perms
-			group.removeMember(promotee);
-			group.addMember(promotee, promoteeTargetType);
+			group.removeTracked(promotee);
+			group.addTracked(promotee, promoteeTargetType);
 			p.sendMessage(ChatColor.GREEN + NameAPI.getCurrentName(promotee) + " has been added as (PlayerType) " +
 					promoteeTargetType.getName() + " to " + group.getName());
 		}

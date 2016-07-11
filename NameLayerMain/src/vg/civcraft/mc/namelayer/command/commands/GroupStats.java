@@ -77,7 +77,7 @@ public class GroupStats extends PlayerCommandMiddle {
 			String message = ChatColor.GREEN + "This group is: " + g.getName() + ".\n";
 			for (PlayerType type: g.getPlayerTypeHandler().getAllTypes()){
 				String names = "";
-				for (UUID uu: g.getAllMembers(type))
+				for (UUID uu: g.getAllTracked(type))
 					names += NameAPI.getCurrentName(uu) + ", ";
 				if (!names.equals("")){
 					names = names.substring(0, names.length()-2);

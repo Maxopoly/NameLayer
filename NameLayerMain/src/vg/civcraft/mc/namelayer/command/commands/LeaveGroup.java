@@ -43,7 +43,7 @@ public class LeaveGroup extends PlayerCommandMiddle{
 			p.sendMessage(ChatColor.RED + "This group is disciplined.");
 			return true;
 		}
-		g.removeMember(uuid);
+		g.removeTracked(uuid);
 		p.sendMessage(ChatColor.GREEN + "You have been removed from the group.");
 		checkRecacheGroup(g);
 		return true;

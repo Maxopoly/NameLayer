@@ -34,36 +34,7 @@ public class AcceptInvite extends PlayerCommandMiddle{
 			return true;
 		}
 		Player p = (Player) sender;
-		Group group = GroupManager.getGroup(args[0]);
-		if (groupIsNull(sender, args[0], group)) {
-			return true;
-		}
-		UUID uuid = NameAPI.getUUID(p.getName());
-		PlayerType type = group.getInvite(uuid);
-		if (type == null){
-			p.sendMessage(ChatColor.RED + "You were not invited to that group.");
-			return true;
-		}
-		if (group.isDisciplined()){
-			p.sendMessage(ChatColor.RED + "That Group is disiplined.");
-			return true;
-		}
-		if (group.isMember(uuid)){
-			p.sendMessage(ChatColor.RED + "You are already a member you cannot join again.");
-			group.removeInvite(uuid, true);
-			return true;
-		}
-		group.addMember(uuid, type);
-		group.removeInvite(uuid, true);
-		checkRecacheGroup(group);
-		PlayerListener.removeNotification(uuid, group);
 		
-		if(NameLayerPlugin.isMercuryEnabled()){
-			MercuryAPI.sendGlobalMessage("removeInvitation " + group.getGroupId() + " " + uuid, "namelayer");
-		}
-		
-		p.sendMessage(ChatColor.GREEN + "You have successfully been added to " + group.getName() +" as " + type.getName() +".");
-		checkRecacheGroup(group);
 		return true;
 	}
 	@Override

@@ -49,24 +49,24 @@ public class DeletePlayerType extends PlayerCommandMiddle {
 					+ "You don't have the required permissions to do this");
 			return true;
 		}
-		if (group.getAllMembers(type).size() != 0) {
+		if (!type.isBlacklistType() && group.getAllTracked(type).size() != 0) {
 			p.sendMessage(ChatColor.RED
 					+ "You can't delete this type, because it still has members");
 			return true;
 		}
 		List<PlayerType> children = type.getRecursiveChildren();
 		for (PlayerType child : children) {
-			if (group.getAllMembers(child).size() != 0) {
+			if (!child.isBlacklistType() && group.getAllTracked(child).size() != 0) {
 				p.sendMessage(ChatColor.RED
 						+ "You can't delete this type, because the sub type "
 						+ child.getName() + " still has members");
 				return true;
 			}
 		}
-		if (type.equals(handler.getBlacklistedType())
-				|| type.equals(handler.getOwnerType())
+		if (type.equals(handler.getOwnerType())
 				|| type.equals(handler.getDefaultNonMemberType())) {
 			p.sendMessage(ChatColor.RED + "You can't delete this type");
+			return true;
 		}
 		PlayerType parent = type.getParent();
 		parent.removeChild(type);

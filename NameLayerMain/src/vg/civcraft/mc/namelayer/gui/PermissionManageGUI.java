@@ -32,7 +32,7 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 	}
 
 	public void showScreen() {
-		ClickableInventory ci = new ClickableInventory(27, g.getName());
+		ClickableInventory ci = new ClickableInventory(36, g.getName());
 		if (!validGroup()) {
 			return;
 		}
@@ -52,7 +52,7 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 			public void clicked(Player arg0) {
 				parent.showScreen();
 			}
-		}, 0);
+		}, 27);
 		ci.showInventory(p);
 	}
 
@@ -134,8 +134,8 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 									PermissionType.getPermission("PERMS"))) {
 								NameLayerPlugin.log(Level.INFO, p.getName()
 										+ (hasPerm ? " removed " : " added ")
-										+ "the permission " + perm.toString()
-										+ "for player type" + pType.toString()
+										+ "the permission " + perm.getName()
+										+ "for player type" + pType.getName()
 										+ " for " + g.getName() + "via gui");
 								if (hasPerm) {
 									pType.removePermission(perm, true);

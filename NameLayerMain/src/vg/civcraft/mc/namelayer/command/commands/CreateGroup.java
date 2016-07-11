@@ -81,7 +81,6 @@ public class CreateGroup extends PlayerCommandMiddle{
 			return true;
 		}
 		g.setGroupId(id);
-		NameLayerPlugin.getBlackList().initEmptyBlackList(name);
 		p.sendMessage(ChatColor.GREEN + "The group " + g.getName() + " was successfully created.");
 		if (NameLayerPlugin.getInstance().getGroupLimit() == gm.countGroups(p.getUniqueId())){
 			p.sendMessage(ChatColor.YELLOW + "You have reached the group limit with " + NameLayerPlugin.getInstance().getGroupLimit() + " groups! Please delete un-needed groups if you wish to create more.");

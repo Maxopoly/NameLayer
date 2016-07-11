@@ -29,7 +29,7 @@ import vg.civcraft.mc.civmodcore.itemHandling.ISUtils;
 import vg.civcraft.mc.mercury.MercuryAPI;
 import vg.civcraft.mc.namelayer.NameAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
-import vg.civcraft.mc.namelayer.events.PromotePlayerEvent;
+import vg.civcraft.mc.namelayer.events.GroupPromotePlayerEvent;
 import vg.civcraft.mc.namelayer.group.BlackList;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.listeners.PlayerListener;
@@ -149,56 +149,6 @@ public class MainGroupGUI extends AbstractGroupGUI {
 			if (g.hasSuperGroup()) {
 				clicks.addAll(getRecursiveInheritedMembers(g.getSuperGroup()));
 			}
-		}
-		if (showBlacklist) {
-			final BlackList black = NameLayerPlugin.getBlackList();
-			for (final UUID uuid : black.getBlacklist(g)) {
-				ItemStack is = new ItemStack(Material.LEATHER_CHESTPLATE);
-				LeatherArmorMeta meta = (LeatherArmorMeta) is.getItemMeta();
-				meta.setColor(Color.BLACK);
-				meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-				is.setItemMeta(meta);
-				ISUtils.setName(is, NameAPI.getCurrentName(uuid));
-				Clickable c;
-				if (gm.hasAccess(g, p.getUniqueId(),
-						PermissionType.getPermission("BLACKLIST"))) {
-					ISUtils.addLore(is, ChatColor.GREEN + "Click to remove "
-							+ NameAPI.getCurrentName(uuid), ChatColor.GREEN
-							+ "from the blacklist");
-					c = new Clickable(is) {
-
-						@Override
-						public void clicked(Player arg0) {
-							if (gm.hasAccess(g, p.getUniqueId(),
-									PermissionType.getPermission("BLACKLIST"))) {
-								NameLayerPlugin.log(
-										Level.INFO,
-										arg0.getName() + " removed "
-												+ NameAPI.getCurrentName(uuid)
-												+ " from the blacklist of "
-												+ g.getName() + "via gui");
-								black.removeBlacklistMember(g, uuid, true);
-								checkRecacheGroup();
-								p.sendMessage(ChatColor.GREEN + "You removed "
-										+ NameAPI.getCurrentName(uuid)
-										+ " from the blacklist");
-							} else {
-								p.sendMessage(ChatColor.RED
-										+ "You lost permission to remove this player from the blacklist");
-							}
-							showScreen();
-						}
-					};
-				} else {
-					ISUtils.addLore(is, ChatColor.RED
-							+ "You dont have permission to remove",
-							ChatColor.RED + NameAPI.getCurrentName(uuid)
-									+ "from the blacklist");
-					c = new DecorationStack(is);
-				}
-				clicks.add(c);
-			}
-
 		}
 		if (showInvites) {
 			Map<UUID, PlayerType> invites = NameLayerPlugin
@@ -486,7 +436,7 @@ public class MainGroupGUI extends AbstractGroupGUI {
 							+ " for group " + g.getName() + "via gui");
 			if (prom.isOnline()) {
 				Player oProm = (Player) prom;
-				PromotePlayerEvent event = new PromotePlayerEvent(oProm, g,
+				GroupPromotePlayerEvent event = new GroupPromotePlayerEvent(oProm, g,
 						oldRank, newRank);
 				Bukkit.getPluginManager().callEvent(event);
 				if (event.isCancelled()) {
