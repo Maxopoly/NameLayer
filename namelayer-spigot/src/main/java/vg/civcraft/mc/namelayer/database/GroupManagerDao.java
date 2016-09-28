@@ -136,7 +136,7 @@ public class GroupManagerDao {
 		
 	private static final String loadGroupsInvitations = "select uuid, groupName, role from group_invitation";
 		
-	private static final String addGroupInvitation = "insert into group_invitation(uuid, groupName, role) values(?, ?, ?) on duplicate key update role=values(role), date=now();";
+	private static final String addGroupInvitation = "insert into group_invitation(uuid, groupName, role) values(?, ?, ?) on duplicate key update role=values(role)";
 		
 	private static final String removeGroupInvitation = "delete from group_invitation where uuid = ? and groupName = ?";
 		
@@ -149,14 +149,7 @@ public class GroupManagerDao {
 								+ "inner join faction_id on faction_member.group_id = faction_id.group_id "
 								+ "WHERE member_name = ? "
 								+ "AND role = ?;";
-		
-		// Gets the "most recent" updated group from all groups that share the name.
-	private static final String getTimestamp = "SELECT MAX(faction.last_timestamp) FROM faction "
-								+ "WHERE group_name = ?;";
-		
-		// updates "most recent" of all groups with a given name.
-	private static final String updateLastTimestamp = "UPDATE faction SET faction.last_timestamp = NOW() "
-								+ "WHERE group_name = ?;";
+
 		
 		// Breaking the pattern. Here we directly access a role based on _group ID_ rather then group_name. TODO: evaluate safety.
 	private static final String getPlayerType = "SELECT role FROM faction_member "
@@ -323,11 +316,11 @@ public class GroupManagerDao {
 					"uuid varchar(36) NOT NULL," +
 					"groupName varchar(255) NOT NULL,"+
 					"role varchar(10) NOT NULL default 'MEMBERS'," +
-					"date datetime NOT NULL default NOW()," +
+					"date datetime," +
 					"constraint UQ_uuid_groupName unique(uuid, groupName))");
 
 		db.registerMigration(8, false,
-				"alter table faction add last_timestamp datetime NOT NULL default NOW();");
+				"alter table faction add last_timestamp datetime");
 
 		db.registerMigration(9, false,
 				"alter table blacklist modify column group_id int;",
@@ -638,6 +631,8 @@ public class GroupManagerDao {
 	}
 	
 	public Timestamp getTimestamp(String group){
+		return new Timestamp(System.currentTimeMillis());
+		/*
 		Timestamp timestamp = null;
 		try (Connection connection = db.getConnection();
 				PreparedStatement getTimestamp = connection.prepareStatement(GroupManagerDao.getTimestamp)){
@@ -653,7 +648,7 @@ public class GroupManagerDao {
 			logger.log(Level.WARNING, "Problem preparing to get group timestamp " + group, e);
 		}
 		
-		return timestamp;
+		return timestamp; */
 	}
 	
 	public PlayerType getPlayerType(int groupid, UUID uuid){
@@ -687,13 +682,14 @@ public class GroupManagerDao {
 	}
 	
 	public void updateTimestamp(String group){
+		/*
 		try (Connection connection = db.getConnection();
 				PreparedStatement updateLastTimestamp = connection.prepareStatement(GroupManagerDao.updateLastTimestamp)){
 			updateLastTimestamp.setString(1, group);
 			updateLastTimestamp.executeUpdate();
 		} catch (SQLException e) {
 			logger.log(Level.WARNING, "Problem updating timestamp for group " + group, e);
-		}
+		} */
 	}
 	
 	public void deleteGroupAsync(final String groupName){
