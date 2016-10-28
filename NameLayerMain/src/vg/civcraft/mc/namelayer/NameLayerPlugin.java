@@ -38,11 +38,6 @@ public class NameLayerPlugin extends ACivMod{
 	private static boolean createGroupOnFirstJoin;
 	private Config config;
 	
-	@CivConfigs({
-		@CivConfig(name = "groups.enable", def = "true", type = CivConfigType.Bool),
-		@CivConfig(name = "groups.grouplimit", def = "10", type = CivConfigType.Int),
-		@CivConfig(name = "groups.creationOnFirstJoin", def = "true", type = CivConfigType.Bool)
-	})
 	@Override
 	public void onEnable() {
 		super.onEnable(); // Need to call this to properly initialize this mod
@@ -100,13 +95,6 @@ public class NameLayerPlugin extends ACivMod{
 		return instance;
 	}
 	
-	@CivConfigs({
-		@CivConfig(name = "sql.hostname", def = "localhost", type = CivConfigType.String),
-		@CivConfig(name = "sql.username", def = "", type = CivConfigType.String),
-		@CivConfig(name = "sql.password", def = "", type = CivConfigType.String),
-		@CivConfig(name = "sql.port", def = "3306", type = CivConfigType.Int),
-		@CivConfig(name = "sql.dbname", def = "namelayer", type = CivConfigType.String)
-	})
 	public void loadDatabases(){
 		String host = config.get("sql.hostname").getString();
 		int port = config.get("sql.port").getInt();
