@@ -8,11 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-import vg.civcraft.mc.civmodcore.ACivMod;
-import vg.civcraft.mc.civmodcore.Config;
-import vg.civcraft.mc.civmodcore.annotations.CivConfig;
-import vg.civcraft.mc.civmodcore.annotations.CivConfigType;
-import vg.civcraft.mc.civmodcore.annotations.CivConfigs;
 import vg.civcraft.mc.civmodcore.dao.ManagedDatasource;
 import vg.civcraft.mc.namelayer.command.CommandHandler;
 import vg.civcraft.mc.namelayer.database.AssociationList;
@@ -47,11 +42,6 @@ public class NameLayerPlugin extends ACivMod{
 	private Config config;
 	private boolean mercuryEnabled;
 	
-	@CivConfigs({
-		@CivConfig(name = "groups.enable", def = "true", type = CivConfigType.Bool),
-		@CivConfig(name = "groups.grouplimit", def = "10", type = CivConfigType.Int),
-		@CivConfig(name = "groups.creationOnFirstJoin", def = "true", type = CivConfigType.Bool)
-	})
 	@Override
 	public void onEnable() {
 		super.onEnable(); // Need to call this to properly initialize this mod
@@ -116,17 +106,6 @@ public class NameLayerPlugin extends ACivMod{
 		return instance;
 	}
 	
-	@CivConfigs({
-		@CivConfig(name = "sql.hostname", def = "localhost", type = CivConfigType.String),
-		@CivConfig(name = "sql.username", def = "", type = CivConfigType.String),
-		@CivConfig(name = "sql.password", def = "", type = CivConfigType.String),
-		@CivConfig(name = "sql.port", def = "3306", type = CivConfigType.Int),
-		@CivConfig(name = "sql.dbname", def = "namelayer", type = CivConfigType.String),
-		@CivConfig(name = "sql.poolsize", def = "10", type = CivConfigType.Int),
-		@CivConfig(name = "sql.connection_timeout", def = "10000", type = CivConfigType.Long),
-		@CivConfig(name = "sql.idle_timeout", def = "600000", type = CivConfigType.Long),
-		@CivConfig(name = "sql.max_lifetime", def = "7200000", type = CivConfigType.Long)
-	})
 	public void loadDatabases(){
 		String host = config.get("sql.hostname").getString();
 		int port = config.get("sql.port").getInt();
