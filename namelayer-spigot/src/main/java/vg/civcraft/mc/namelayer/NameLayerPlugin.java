@@ -1,12 +1,12 @@
 package vg.civcraft.mc.namelayer;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import vg.civcraft.mc.civmodcore.ACivMod;
 import vg.civcraft.mc.civmodcore.dao.ManagedDatasource;
@@ -40,16 +40,18 @@ public class NameLayerPlugin extends ACivMod{
 	private static boolean loadGroups = true;
 	private static int groupLimit = 10;
 	private static boolean createGroupOnFirstJoin;
-	private Config config;
+	private FileConfiguration config;
 	private boolean mercuryEnabled;
 	
 	@Override
 	public void onEnable() {
 		super.onEnable(); // Need to call this to properly initialize this mod
-		config = GetConfig();
-		loadGroups = config.get("groups.enable").getBool();
-		groupLimit = config.get("groups.grouplimit").getInt();
-		createGroupOnFirstJoin = config.get("groups.creationOnFirstJoin").getBool();
+		saveDefaultConfig();
+		reloadConfig();
+		config = getConfig();
+		loadGroups = config.getBoolean("groups.enable");
+		groupLimit = config.getInt("groups.grouplimit");
+		createGroupOnFirstJoin = config.getBoolean("groups.creationOnFirstJoin");
 		instance = this;
 		mercuryEnabled = Bukkit.getPluginManager().isPluginEnabled("Mercury");
 		loadDatabases();
@@ -108,15 +110,15 @@ public class NameLayerPlugin extends ACivMod{
 	}
 	
 	public void loadDatabases(){
-		String host = config.get("sql.hostname").getString();
-		int port = config.get("sql.port").getInt();
-		String dbname = config.get("sql.dbname").getString();
-		String username = config.get("sql.username").getString();
-		String password = config.get("sql.password").getString();
-		int poolsize = config.get("sql.poolsize").getInt();
-		long connectionTimeout = config.get("sql.connection_timeout").getLong();
-		long idleTimeout = config.get("sql.idle_timeout").getLong();
-		long maxLifetime = config.get("sql.max_lifetime").getLong();
+		String host = config.getString("sql.hostname");
+		int port = config.getInt("sql.port");
+		String dbname = config.getString("sql.dbname");
+		String username = config.getString("sql.username");
+		String password = config.getString("sql.password");
+		int poolsize = config.getInt("sql.poolsize");
+		long connectionTimeout = config.getLong("sql.connection_timeout");
+		long idleTimeout = config.getLong("sql.idle_timeout");
+		long maxLifetime = config.getLong("sql.max_lifetime");
 		try {
 			db = new ManagedDatasource(this, username, password, host, port, dbname,
 					poolsize, connectionTimeout, idleTimeout, maxLifetime);
