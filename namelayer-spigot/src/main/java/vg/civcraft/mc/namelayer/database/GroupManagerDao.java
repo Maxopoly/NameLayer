@@ -1,6 +1,5 @@
 package vg.civcraft.mc.namelayer.database;
 
-import java.util.concurrent.Callable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,13 +9,13 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.Map.Entry;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,13 +23,13 @@ import org.bukkit.Bukkit;
 
 import com.google.common.collect.Lists;
 
+import vg.civcraft.mc.civmodcore.dao.ManagedDatasource;
 import vg.civcraft.mc.namelayer.GroupManager;
 import vg.civcraft.mc.namelayer.GroupManager.PlayerType;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.listeners.PlayerListener;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
-import vg.civcraft.mc.civmodcore.dao.ManagedDatasource;
 /**
  * First guinea pig of conversion to ManagedDatasource.
  *
@@ -341,12 +340,12 @@ public class GroupManagerDao {
 						try (Connection connection = db.getConnection();
 								PreparedStatement permInit = connection.prepareStatement(addPermissionById);
 								PreparedStatement permReg = connection.prepareStatement(registerPermission); ) {
-							Map <String, Integer> permIds = new HashMap<String, Integer>();
+							Map <String, Integer> permIds = new HashMap<>();
 
-							LinkedList<Object[]> unspool = new LinkedList<Object[]>();
+							List<Object[]> unspool = new ArrayList<>();
 							int maximumId = 0;
 							try (Statement getOldPerms = connection.createStatement();
-									ResultSet res = getOldPerms.executeQuery("select * from permissions");) {
+									ResultSet res = getOldPerms.executeQuery("SELECT * FROM permissions")) {
 								while(res.next()) {
 									unspool.add(new Object[]{res.getInt(1), res.getString(2), res.getString(3)});
 									if (res.getInt(1) > maximumId) maximumId = res.getInt(1);
@@ -928,7 +927,7 @@ public class GroupManagerDao {
 		});
 	}
 
-	public void addPermission(String groupName, String role, List <PermissionType> perms){
+	public void addPermission(String groupName, String role, List <PermissionType> perms) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement addPermission = connection.prepareStatement(GroupManagerDao.addPermission)){
 			for(PermissionType perm : perms) {
@@ -1057,7 +1056,7 @@ public class GroupManagerDao {
 	
 	public void addNewDefaultPermission(List <PlayerType> playerTypes, PermissionType perm) {
 		try (Connection connection = db.getConnection();) {
-			List <Integer> groups = new LinkedList<Integer>();
+			List <Integer> groups = new ArrayList<>();
 			try (Statement getAllGroupIds = connection.createStatement();
 					ResultSet set = getAllGroupIds.executeQuery(GroupManagerDao.getAllGroupIds);) {
 				// unpack ids;
@@ -1224,7 +1223,7 @@ public class GroupManagerDao {
 	
 	/**
 	 * Adds the uuid to the db if they should auto accept groups when invited.
-	 * @param uuid
+	 * @param uuid sets up this player by uuid to accept groups async
 	 */
 	public void autoAcceptGroupsAsync(final UUID uuid){
 		plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable(){
@@ -1680,8 +1679,8 @@ public class GroupManagerDao {
 	 * we arbitrarily define primacy as the one with the most members for ease of accounting
 	 * and backwards compatibility.
 	 *  
-	 * @param groupName
-	 * @return
+	 * @param groupName the group name to get IDs for
+	 * @return the list of IDs for this group name
 	 */
 	public List<Integer> getAllIDs(String groupName) {
 		if (groupName == null) {
@@ -1691,7 +1690,7 @@ public class GroupManagerDao {
 				PreparedStatement getGroupIDs = connection.prepareStatement(GroupManagerDao.getGroupIDs);){
 			getGroupIDs.setString(1, groupName);
 			try (ResultSet set = getGroupIDs.executeQuery();) {
-				LinkedList<Integer> ids = new LinkedList<Integer>();
+				List<Integer> ids = new ArrayList<>();
 			
 				while (set.next()) {
 					ids.add(set.getInt(1));

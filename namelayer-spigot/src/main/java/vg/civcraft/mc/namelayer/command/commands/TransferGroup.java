@@ -2,6 +2,7 @@ package vg.civcraft.mc.namelayer.command.commands;
 
 import java.util.List;
 import java.util.UUID;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -31,7 +32,7 @@ public class TransferGroup extends PlayerCommandMiddle{
 			return true;
 		}
 		Player p = (Player) sender;
-		Group g = gm.getGroup(args[0]);
+		Group g = GroupManager.getGroup(args[0]);
 		if (groupIsNull(sender, args[0], g)) {
 			return true;
 		}

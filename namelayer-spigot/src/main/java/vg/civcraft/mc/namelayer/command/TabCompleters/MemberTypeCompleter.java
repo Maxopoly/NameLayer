@@ -1,9 +1,12 @@
 package vg.civcraft.mc.namelayer.command.TabCompleters;
 
+import org.bukkit.util.StringUtil;
 import vg.civcraft.mc.namelayer.GroupManager;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
+
+import vg.civcraft.mc.namelayer.GroupManager;
 
 /**
  * Created by isaac on 2/2/2015.
@@ -11,26 +14,17 @@ import java.util.List;
  * Used by tab completers to get a list of user types
  */
 public class MemberTypeCompleter {
-
-
     public static List<String> complete(String lastArg) {
         GroupManager.PlayerType[] types = GroupManager.PlayerType.values();
-        List<String> type_strings = new LinkedList<>();
-        List<String> result = new LinkedList<>();
-
-        for (GroupManager.PlayerType type: types){
-            type_strings.add(type.toString());
+        List<String> typeStrings = new ArrayList<>(types.length);
+        for (GroupManager.PlayerType type : types){
+          typeStrings.add(type.toString());
         }
 
-        if (lastArg != null) {
-            for(String type: type_strings){
-                if (type.toLowerCase().startsWith(lastArg.toLowerCase()))
-                    result.add(type);
-            }
-        } else {
-            result = type_strings;
+        if (lastArg == null) {
+          return typeStrings;
         }
 
-        return result;
+		    return StringUtil.copyPartialMatches(lastArg, typeStrings, new ArrayList<>());
     }
 }

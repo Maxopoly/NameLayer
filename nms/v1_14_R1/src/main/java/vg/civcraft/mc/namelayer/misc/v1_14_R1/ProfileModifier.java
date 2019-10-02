@@ -1,14 +1,14 @@
-package vg.civcraft.mc.namelayer.misc.v1_13_R2;
+package vg.civcraft.mc.namelayer.misc.v1_14_R1;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.logging.Logger;
 
-import net.minecraft.server.v1_13_R2.EntityHuman;
+import net.minecraft.server.v1_14_R1.EntityHuman;
 
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_13_R2.CraftServer;
-import org.bukkit.craftbukkit.v1_13_R2.entity.CraftHumanEntity;
+import org.bukkit.craftbukkit.v1_14_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_14_R1.entity.CraftHumanEntity;
 import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.namelayer.misc.ProfileInterface;
@@ -41,8 +41,11 @@ public class ProfileModifier implements ProfileInterface {
 			
 			((CraftServer)Bukkit.getServer()).getServer().getUserCache().a(prof);
 			// end
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException e) {
-			// TODO Auto-generated catch block
+		} catch (NoSuchFieldException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
 			e.printStackTrace();
 		}
 		player.setDisplayName(name);
@@ -64,17 +67,7 @@ public class ProfileModifier implements ProfileInterface {
 					.setInt(field, field.getModifiers() & ~Modifier.FINAL);
 
 			field.set(prof, newValue);
-		} catch (NoSuchFieldException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
+		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
 		}
 	}
