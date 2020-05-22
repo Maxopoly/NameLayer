@@ -2,82 +2,236 @@ name: NameLayer
 main: vg.civcraft.mc.namelayer.NameLayerPlugin
 version: ${releaseVersion}
 author: Rourke750
-authors: [BlackXnt, Maxopoly, ProgrammerDan, Tyrothalos, Scuwr, Mr_Little_Kitty]
-depend: [CivModCore]
+authors:
+- BlackXnt
+- Maxopoly
+- ProgrammerDan
+- Tyrothalos
+- Scuwr
+- Mr_Little_Kitty
+depend:
+- CivModCore
 api-version: 1.14
-description: NameLayer handles groups creation and management, in addition to name changes. Once you have connected to Civcraft with a name, it is permanently yours. If a name is already taken, then NameLayer will add a number to the name.
+description: NameLayer handles groups creation and management, in addition to name changes. Once you have connected to Civcraft
+   with a name, it is permanently yours. If a name is already taken, then NameLayer will add a number to the name.
 commands:
-   nlag:
-    aliases: [nlacceptinvite, nlacceptgroup, acceptinvite, acceptgroup, accept, join, ctjoin, ctj, ag]
-   nlcg:
-    aliases: [nlcreategroup, creategroup, create, ctcreate, creategroup, cg]
-   nldg:
-    aliases: [nldeletegroup, deletegroup, dg, delete, deletegroup, ctdelete]
-   nldig:
-    aliases: [nldisiplinegroup, nldisablegroup, nldisable]
+  nlag:
+    aliases:
+      - nlacceptinvite
+      - nlacceptgroup
+      - acceptinvite
+      - acceptgroup
+      - accept
+      - join
+      - ctjoin
+      - ctj
+      - ag
+    usage: /nlag [group]
+    description: Accept an invite to a group
+    min-args: 1
+    max-args: 1
+    player-only: true
+  nlcg:
+    aliases:
+      - nlcreategroup
+      - creategroup
+      - create
+      - ctcreate
+      - creategroup
+      - cg
+    usage: /nlcg [groupName]
+    description: Creates a new group with the given name
+    min-args: 1
+    max-args: 1
+    player-only: true
+  nlcpn:
     permission: namelayer.admin
-   nlgls:
-    aliases: [nlglobalstats]
-   nlgs:
-    aliases: [nlgroupstats]
-   nlid:
-    aliases: [nlinfodump]
-   nlip:
-    aliases: [nlinviteplayer, nlinvite, invite, ctinvite, allow, cta]
-   nljg:
-    aliases: [nljoingroup, nljoin, join]
+    usage: /nlcpn [oldName] [newName]
+    description: Change a players name
+    min-args: 2
+    max-args: 2
+    player-only: false
+  nldg:
+    aliases:
+      - nldeletegroup
+      - deletegroup
+      - dg
+      - delete
+      - deletegroup
+      - ctdelete
+      - removegroup
+    usage: /nldg [groupName] [CONFIRM]
+    description: Deletes a group
+    min-args: 1
+    max-args: 2
+    player-only: true
+  nlgs:
+    aliases:
+      - nlgroupstats
+      - groupstats
+    usage: /nls [groupName]
+    description: Dumps all available information for a group
+    min-args: 1
+    max-args: 1
+    player-only: true
+  nlip:
+    aliases:
+      - nlinviteplayer
+      - nlinvite
+      - invite
+      - ctinvite
+      - allow
+      - cta
+      - addgroup
+      - invitegroup
+    usage: /nlip [groupName] [player] <rank>
+    description: Invites a player into a group
+    min-args: 2
+    max-args: 3
+    player-only: true
+  nljg:
+    aliases:
+      - nljoingroup
+      - nljoin
+      - join
+    usage: /nljg [groupName] [password]
+    description: Joins a group via password
+    min-args: 2
+    max-args: 2
+    player-only: true
    nllg:
-    aliases: [nllistgroups, nllistg, listgroups, ctlist, lg]
+      aliases:
+      - nllistgroups
+      - nllistg
+      - listgroups
+      - ctlist
+      - lg
    nllm:
-    aliases: [nllistmembers, nllistm, listmembers, ctmembers, lm, members]
-   nllcm:
+      aliases:
+      - nllistmembers
+      - nllistm
+      - listmembers
+      - ctmembers
+      - lm
+      - members
+   nllcm: null
    nllp:
-    aliases: [nllistpermissions, nllistperms, listpermissions]
+      aliases:
+      - nllistpermissions
+      - nllistperms
+      - listpermissions
    nlpp:
-    aliases: [nlpromoteplayer, nlpromote, promoteplayer, ctpromote, ctaddmod, ctam, addmod]
+      aliases:
+      - nlpromoteplayer
+      - nlpromote
+      - promoteplayer
+      - ctpromote
+      - ctaddmod
+      - ctam
+      - addmod
    nlmg:
-    aliases: [nlmergegroups, nlmerge, mergegroup, mergegroups, merge]
+      aliases:
+      - nlmergegroups
+      - nlmerge
+      - mergegroup
+      - mergegroups
+      - merge
    nlmp:
-    aliases: [nlmodifyperms, nlmodifypermissions, nlmodperms, modifypermissions]
+      aliases:
+      - nlmodifyperms
+      - nlmodifypermissions
+      - nlmodperms
+      - modifypermissions
    nlrm:
-    aliases: [nlremovemember, nlremove, nlkick, kickmember, removemember, remove, kickmember, ctremove, ctkick]
+      aliases:
+      - nlremovemember
+      - nlremove
+      - nlkick
+      - kickmember
+      - removemember
+      - remove
+      - kickmember
+      - ctremove
+      - ctkick
    nlrg:
-    aliases: [nlrejectinvite, nldeclineinvite]
+      aliases:
+      - nlrejectinvite
+      - nldeclineinvite
    nlri:
-    aliases: [nlrevokeinvite, nluninvite, revoke, uninvite, revokeinvite, uninvite]
-   #nllink:
-   #nlunlink:
-   #nllsg:
+      aliases:
+      - nlrevokeinvite
+      - nluninvite
+      - revoke
+      - uninvite
+      - revokeinvite
+      - uninvite
    nlsp:
-    aliases: [nlsetpassword, nlsetpass, setpass, setpassword]
+      aliases:
+      - nlsetpassword
+      - nlsetpass
+      - setpass
+      - setpassword
    nltg:
-    aliases: [nltransfergroup, nltransfer, transfergroup]
+      aliases:
+      - nltransfergroup
+      - nltransfer
+      - transfergroup
    nlleg:
-    aliases: [nlleavegroup, nlleave, leavegroup, ctleave]
+      aliases:
+      - nlleavegroup
+      - nlleave
+      - leavegroup
+      - ctleave
    nllgt:
-    aliases: [nllistgrouptypes, nllistgtypes, listgrouptypes]
+      aliases:
+      - nllistgrouptypes
+      - nllistgtypes
+      - listgrouptypes
    nllpt:
-    aliases: [nllistplayertypes, nllistptypes, listplayertypes]
+      aliases:
+      - nllistplayertypes
+      - nllistptypes
+      - listplayertypes
    nllci:
-    aliases: [nllistcurrentinvites, nllistinvites, invites, listinvites, ctinvites]
+      aliases:
+      - nllistcurrentinvites
+      - nllistinvites
+      - invites
+      - listinvites
+      - ctinvites
    nltaai:
-    aliases: [nlautoacceptinvites, nlautoaccept, autoaccept]
-   nlcpn:
-    permission: namelayer.admin
+      aliases:
+      - nlautoacceptinvites
+      - nlautoaccept
+      - autoaccept
    nlsdg:
-    aliases: [nlsetdefaultgroup, nlsetdefault, setdefault, setdefaultgroup, default]
+      aliases:
+      - nlsetdefaultgroup
+      - nlsetdefault
+      - setdefault
+      - setdefaultgroup
+      - default
    nlgdg:
-    aliases: [nlgetdefaultgroup, nlgetdefault, getdefaultgroup]
+      aliases:
+      - nlgetdefaultgroup
+      - nlgetdefault
+      - getdefaultgroup
    nlun:
-    aliases: [updatename]
+      aliases:
+      - updatename
    nlsbl:
-    aliases: [showblacklist, listblacklist]
+      aliases:
+      - showblacklist
+      - listblacklist
    nlbl:
-    aliases: [blacklist, addblacklist]
+      aliases:
+      - blacklist
+      - addblacklist
    nlubl:
-    aliases: [removeblacklist, unblacklist]
-   nl:
-
+      aliases:
+      - removeblacklist
+      - unblacklist
+   nl: null
 permissions:
    namelayer.admin:
       default: op

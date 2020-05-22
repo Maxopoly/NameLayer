@@ -11,11 +11,9 @@ public class GroupDeleteEvent extends Event implements Cancellable{
 	
 	private Group group;
 	private boolean cancelled;
-	private boolean finished;
 	
-	public GroupDeleteEvent(Group group, boolean finished){
+	public GroupDeleteEvent(Group group){
 		this.group = group;
-		this.finished = finished;
 	}
 	/**
 	 * Sets the group to be deleted.
@@ -47,13 +45,5 @@ public class GroupDeleteEvent extends Event implements Cancellable{
 	
 	public static HandlerList getHandlerList() {
 	    return handlers;
-	}
-	
-	public void setHasFinished(boolean value){
-		finished = value;
-	}
-	
-	public boolean hasFinished(){
-		return finished;
 	}
 }

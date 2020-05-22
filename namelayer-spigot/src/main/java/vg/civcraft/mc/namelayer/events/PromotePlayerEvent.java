@@ -1,48 +1,42 @@
 package vg.civcraft.mc.namelayer.events;
 
-import java.util.logging.Level;
-
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-import vg.civcraft.mc.namelayer.GroupManager.PlayerType;
-import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
+import vg.civcraft.mc.namelayer.permission.PlayerType;
 
 public class PromotePlayerEvent extends Event implements Cancellable{
 	private static final HandlerList handlers = new HandlerList();
-	
-	private boolean finished;
 	private boolean cancelled;
-	private Player p;
-	private Group g;
-	private PlayerType c;
-	private PlayerType f;
+	private Player player;
+	private Group group;
+	private PlayerType currentType;
+	private PlayerType futureType;
 
-	public PromotePlayerEvent(Player p, Group g, PlayerType currentType, PlayerType futureType){
-		this.p = p;
-		this.g = g;
-		this.c = currentType;
-		this.f = futureType;
-		NameLayerPlugin.log(Level.WARNING, "Promote Player Event Occured");
+	public PromotePlayerEvent(Player player, Group group, PlayerType currentType, PlayerType futureType){
+		this.player = player;
+		this.group = group;
+		this.currentType = currentType;
+		this.futureType = futureType;
 	}
 	
 	public Player getPlayer(){
-		return p;
+		return player;
 	}
 	
 	public Group getGroup(){
-		return g;
+		return group;
 	}
 	
 	public PlayerType getCurrentPlayerType(){
-		return c;
+		return currentType;
 	}
 	
 	public PlayerType getFuturePlayerType(){
-		return f;
+		return futureType;
 	}
 	
 	public boolean isCancelled() {
@@ -61,13 +55,4 @@ public class PromotePlayerEvent extends Event implements Cancellable{
 	public static HandlerList getHandlerList() {
 	    return handlers;
 	}
-	
-	public void setHasFinished(boolean value){
-		finished = value;
-	}
-	
-	public boolean hasFinished(){
-		return finished;
-	}
-
 }

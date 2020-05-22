@@ -12,40 +12,26 @@ public class GroupCreateEvent extends Event implements Cancellable{
 	private static final HandlerList handlers = new HandlerList();
 	
 	private String groupName;
-	private UUID uuid;
+	private UUID creator;
 	private boolean cancelled = false;
-	private String password;
 	
-	public GroupCreateEvent(String groupName, UUID uuid, String password){
+	public GroupCreateEvent(String groupName, UUID creator){
 		this.groupName = groupName;
-		this.uuid = uuid;
-		this.password = password;
+		this.creator = creator;
 	}
-	/**
-	 * Overrides the group name and changes it to something else.
-	 * @param groupName- The new name of the group.
-	 */
-	public void setGroupName(String groupName){
-		this.groupName = groupName;
-	}
-	/**
-	 * Set the new owner of the group.
-	 * @param owner- The new Owner.
-	 */
-	public void setOwner(UUID owner){
-		uuid = owner;
-	}
+
 	/**
 	 * @return Returns the GroupName.
 	 */
 	public String getGroupName(){
 		return groupName;
 	}
+	
 	/**
-	 * @return UUID- The Owner's UUID..
+	 * @return UUID- The creators UUID
 	 */
-	public UUID getOwner(){
-		return uuid;
+	public UUID getCreator(){
+		return creator;
 	}
 	
 	public boolean isCancelled(){
@@ -62,13 +48,5 @@ public class GroupCreateEvent extends Event implements Cancellable{
 
 	public void setCancelled(boolean cancel) {
 		cancelled = cancel;
-	}
-	
-	public void setPassword(String password){
-		this.password = password;
-	}
-	
-	public String getPassword(){
-		return password;
 	}
 }

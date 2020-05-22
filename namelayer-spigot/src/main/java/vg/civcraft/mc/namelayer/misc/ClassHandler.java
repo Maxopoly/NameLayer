@@ -13,7 +13,7 @@ public class ClassHandler {
 
 	public static boolean properlyEnabled;
 
-	public static boolean Initialize(Server server) {
+	public static boolean initialize(Server server) {
 		ch = new ClassHandler();
 		String packageName = server.getClass().getPackage().getName();
 		ch.version = packageName.substring(packageName.lastIndexOf('.') + 1);

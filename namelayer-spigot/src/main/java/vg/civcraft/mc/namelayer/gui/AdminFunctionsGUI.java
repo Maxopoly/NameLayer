@@ -21,7 +21,7 @@ import vg.civcraft.mc.civmodcore.inventorygui.DecorationStack;
 
 import vg.civcraft.mc.namelayer.NameAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
-import vg.civcraft.mc.namelayer.command.commands.TransferGroup;
+import vg.civcraft.mc.namelayer.commands.TransferGroup;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
 

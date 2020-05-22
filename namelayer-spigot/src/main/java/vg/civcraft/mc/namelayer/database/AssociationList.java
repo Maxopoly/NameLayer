@@ -167,8 +167,8 @@ public class AssociationList {
 	 * @return the player mapping info is possible
 	 */
 	public PlayerMappingInfo getAllPlayerInfo(){
-		Map<String, UUID> nameMapping = new HashMap<String, UUID>();
-		Map<UUID, String> uuidMapping = new HashMap<UUID, String>();
+		Map<String, UUID> nameMapping = new HashMap<>();
+		Map<UUID, String> uuidMapping = new HashMap<>();
 		try (Connection connection = db.getConnection();
 				PreparedStatement getAllPlayerInfo = connection.prepareStatement(AssociationList.getAllPlayerInfo);
 				ResultSet set = getAllPlayerInfo.executeQuery();) {

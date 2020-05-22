@@ -41,17 +41,17 @@ public class AssociationListener implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	public void OnPlayerJoin(PlayerJoinEvent event) {
+	public void onPlayerJoin(PlayerJoinEvent event) {
 		String playername = event.getPlayer().getName();
-		if(NameCleanser.isDirty(playername)) {
-			if(NameCleanser.isAlertOps()) {
+		if (NameCleanser.isDirty(playername)) {
+			if (NameCleanser.isAlertOps()) {
 				String msg = playername + " has a dirty name";
-				if(NameCleanser.isCleanNames()) {
+				if (NameCleanser.isCleanNames()) {
 					msg += ", this will be fixed";
 				}
 				Bukkit.broadcast(msg, NameCleanser.getAlertPerm());
 			}
-			if(NameCleanser.isCleanNames()) {
+			if (NameCleanser.isCleanNames()) {
 				playername = NameCleanser.cleanName(playername);
 			}
 		}
@@ -61,15 +61,15 @@ public class AssociationListener implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	public void OnPlayerLogin(PlayerLoginEvent event) {
+	public void onPlayerLogin(PlayerLoginEvent event) {
 		String name = associations.getCurrentName(event.getPlayer().getUniqueId());
-		if (name == null)
-		{
+		if (name == null) {
 			associations.addPlayer(event.getPlayer().getName(), event.getPlayer().getUniqueId());
 			name = associations.getCurrentName(event.getPlayer().getUniqueId());
 		}
 
-		if (game != null)
+		if (game != null) {
 			game.setPlayerProfle(event.getPlayer(), name);
+		}
 	}
 }
