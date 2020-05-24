@@ -2,8 +2,6 @@ package vg.civcraft.mc.namelayer.group.meta;
 
 import com.google.gson.JsonObject;
 
-import vg.civcraft.mc.namelayer.events.GroupCreateEvent;
-
 public abstract class GroupMetaData {
 	
 	private boolean dirty;	

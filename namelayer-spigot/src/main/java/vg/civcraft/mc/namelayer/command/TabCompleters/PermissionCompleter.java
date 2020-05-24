@@ -1,10 +1,9 @@
 package vg.civcraft.mc.namelayer.command.TabCompleters;
 
-import org.bukkit.util.StringUtil;
-import vg.civcraft.mc.namelayer.permission.PermissionType;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.bukkit.util.StringUtil;
 
 import vg.civcraft.mc.namelayer.permission.PermissionType;
 

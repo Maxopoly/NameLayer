@@ -13,11 +13,17 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Consumer;
 
 import com.google.common.base.Preconditions;
 
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import vg.civcraft.mc.civmodcore.command.MailBoxAPI;
 import vg.civcraft.mc.namelayer.database.GroupManagerDao;
 import vg.civcraft.mc.namelayer.events.GroupCreateEvent;
 import vg.civcraft.mc.namelayer.events.GroupLinkEvent;
@@ -50,10 +56,34 @@ public class GroupManager {
 			}
 		}
 	}
-	
-	
+
 	public Set<Group> getGroupsForPlayer(UUID player) {
 		return groupsByMember.get(player);
+	}
+
+	public void invitePlayer(UUID inviterUUID, UUID toInvite, PlayerType rank, Group group) {
+		Player player = Bukkit.getPlayer(toInvite);
+		if (NameLayerPlugin.getInstance().getSettingsManager().getAutoAcceptInvites().getValue(toInvite)) {
+			if (player != null) {
+				player.sendMessage(ChatColor.GREEN + "You have auto-accepted an invite to " + group.getColoredName()
+						+ ChatColor.GREEN + " from " + ChatColor.YELLOW + NameAPI.getCurrentName(inviterUUID));
+			} else {
+				MailBoxAPI.addMail(toInvite, ChatColor.GREEN + "While gone you auto accepted an invite to "
+						+ group.getColoredName() + ChatColor.GREEN + " from " + ChatColor.YELLOW + NameAPI.getCurrentName(inviterUUID));
+			}
+			group.addToTracking(toInvite, rank);
+		} else {
+			if (player != null) {
+				TextComponent message = new TextComponent(ChatColor.GREEN + "You have been invited to the group "
+						+ group.getColoredName() + ChatColor.GREEN + " by " + ChatColor.YELLOW + NameAPI.getCurrentName(inviterUUID)
+						+ ChatColor.GREEN + ".\nClick this message to accept.");
+				message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/nlag " + group.getName()));
+				message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+						new ComponentBuilder("  ---  Click to accept").create()));
+				player.spigot().sendMessage(message);
+			}
+			group.addInvite(toInvite, rank, true);
+		}
 	}
 
 	/**
@@ -122,12 +152,14 @@ public class GroupManager {
 							() -> {
 								PostGroupMergeEvent postEvent = new PostGroupMergeEvent(toKeep, notToKeep);
 								Bukkit.getPluginManager().callEvent(postEvent);
+								undergoingMerge.remove(toKeep.getGroupId());
+								undergoingMerge.remove(notToKeep.getGroupId());
 							});
 				});
 	}
-	
+
 	public void deleteGroup(Group group) {
-		
+
 	}
 
 	public Group getGroup(String name) {

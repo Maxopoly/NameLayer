@@ -1,29 +1,22 @@
 package vg.civcraft.mc.namelayer.database;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.bukkit.Bukkit;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -35,7 +28,7 @@ import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.group.GroupLink;
 import vg.civcraft.mc.namelayer.group.NameLayerMetaData;
-import vg.civcraft.mc.namelayer.group.meta.GroupMetaData;
+import vg.civcraft.mc.namelayer.group.log.LoggedGroupAction;
 import vg.civcraft.mc.namelayer.group.meta.GroupMetaDataAPI;
 import vg.civcraft.mc.namelayer.listeners.PlayerListener;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
@@ -267,7 +260,25 @@ public class GroupManagerDao {
 				+ "originating_group_id int not null, originating_type_id int not null, target_group_id int not null, "
 				+ "target_type_id int not null, foreign key (originating_group_id, originating_type_id) references groupPlayerTypes(group_id, rank_id) on delete cascade,"
 				+ "foreign key (target_group_id, target_type_id) references groupPlayerTypes(group_id, rank_id) on delete cascade, "
-				+ "unique (originating_group_id, originating_type_id, target_group_id, target_type_id), index(originating_group_id), index(target_group_id))");
+				+ "unique (originating_group_id, originating_type_id, target_group_id, target_type_id), index(originating_group_id), index(target_group_id))",
+				"create table if not exists nl_action_log (action_id int not null primary key auto_increment, "
+				+ "player varchar(36) not null, group_id int not null references faction_id(group_id) on delete cascade, "
+				+ "time datetime not null default current_timestamp, rank varchar(255) not null, name varchar(255) default null,"
+				+ "extra text default null)");
+	}
+	
+	public void insertActionLog(LoggedGroupAction change) {
+		try (Connection connection = db.getConnection();
+				PreparedStatement addMember = connection
+						.prepareStatement("insert into nl_group_links(group_id, rank_id, member_name) values(?,?,?)")) {
+			addMember.setInt(1, group.getGroupId());
+			addMember.setInt(2, role.getId());
+			addMember.setString(3, member.toString());
+			addMember.executeUpdate();
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem adding " + member + " as " + role.toString() + " to group " + group.getName(), e);
+		}
 	}
 
 	public int createGroup(String group) {
@@ -305,6 +316,20 @@ public class GroupManagerDao {
 		} catch (SQLException e) {
 			logger.log(Level.WARNING,
 					"Problem adding " + member + " as " + role.toString() + " to group " + group.getName(), e);
+		}
+	}
+	
+	public void updateMember(UUID member, Group group, PlayerType role) {
+		try (Connection connection = db.getConnection();
+				PreparedStatement updateMember = connection
+						.prepareStatement("update faction_member set rank_id = ? where group_id = ? and member_name = ?")) {
+			updateMember.setInt(1, role.getId());
+			updateMember.setInt(2, group.getGroupId());
+			updateMember.setString(3, member.toString());
+			updateMember.executeUpdate();
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem updating " + member + " as " + role.toString() + " for group " + group.getName(), e);
 		}
 	}
 
@@ -506,72 +531,6 @@ public class GroupManagerDao {
 			logger.log(Level.WARNING, "Problem updating player type name " + type.getName() + " from " + g.getName(),
 					e);
 		}
-	}
-
-	/**
-	 * Loads all player types for the given group from the database and initializes
-	 * them with empty permissions
-	 * 
-	 * @param g Group to load types for
-	 * @return Complete playertypehandler with all playertypes, but no permissions
-	 *         if everything worked or null if something went wrong
-	 */
-	public PlayerTypeHandler getPlayerTypes(Group g) {
-		Map<Integer, PlayerType> retrievedTypes = new TreeMap<>();
-		Map<Integer, List<PlayerType>> pendingParents = new TreeMap<>();
-		try (Connection connection = db.getConnection();
-				PreparedStatement renameType = connection.prepareStatement(
-						"select rank_id, type_name, parent_rank_id from groupPlayerTypes where group_id = ?;");) {
-			renameType.setInt(1, g.getGroupId());
-			try (ResultSet rs = renameType.executeQuery()) {
-				while (rs.next()) {
-					int id = rs.getInt(1);
-					String name = rs.getString(2);
-					int parent = rs.getInt(3);
-					PlayerType type = new PlayerType(name, id, null, new LinkedList<PermissionType>(), g);
-					retrievedTypes.put(id, type);
-					List<PlayerType> brothers = pendingParents.get(parent);
-					if (brothers == null) {
-						brothers = new LinkedList<>();
-						pendingParents.put(parent, brothers);
-					}
-					brothers.add(type);
-				}
-			}
-		} catch (SQLException e) {
-			logger.log(Level.WARNING, "Problem loading player types for " + g.getName(), e);
-			return null;
-		}
-		PlayerType root = retrievedTypes.get(PlayerTypeHandler.OWNER_ID);
-		if (root == null) {
-			logger.log(Level.WARNING, "Could not load root node for group " + g.getName() + "; Failed to load group");
-			return null;
-		}
-		PlayerTypeHandler handler = new PlayerTypeHandler(retrievedTypes.get(PlayerTypeHandler.OWNER_ID), g);
-		Queue<PlayerType> toHandle = new LinkedList<>();
-		toHandle.add(root);
-		while (!toHandle.isEmpty()) {
-			PlayerType parent = toHandle.poll();
-			List<PlayerType> children = pendingParents.get(parent.getId());
-			if (children == null) {
-				continue;
-			}
-			for (PlayerType child : children) {
-				// parent is intentionally non modifiable, so we create a new instance
-				PlayerType type = new PlayerType(child.getName(), child.getId(), parent, g);
-				parent.addChild(type);
-				handler.loadPlayerType(type);
-				toHandle.add(type);
-				retrievedTypes.remove(type.getId());
-			}
-		}
-		if (!retrievedTypes.isEmpty()) {
-			// a type exists for this group, which is not part of the tree rooted at perm 0
-			logger.log(Level.WARNING,
-					"A total of " + retrievedTypes.values().size() + " player types could not be loaded for group "
-							+ g.getName() + ", because they arent part of the normal tree structure");
-		}
-		return handler;
 	}
 
 	public void mergeGroup(Group groupThatStays, Group groupToMerge) {

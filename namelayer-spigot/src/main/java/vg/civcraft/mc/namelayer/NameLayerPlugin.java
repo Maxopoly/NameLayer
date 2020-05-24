@@ -26,6 +26,7 @@ public class NameLayerPlugin extends ACivMod {
 	private NameLayerSettingManager settingManager;
 	private GroupManager groupManager;
 	private NameLayerPermissionManager permissionManager;
+	private GroupInteractionManager groupInteractManager;
 
 	@Override
 	public void onEnable() {
@@ -52,6 +53,7 @@ public class NameLayerPlugin extends ACivMod {
 		nameLayerMeta = GroupMetaDataAPI.registerGroupMetaData(this.getName(), NameLayerMetaData::createNew,
 				NameLayerMetaData::load);
 		settingManager = new NameLayerSettingManager();
+		groupInteractManager =new GroupInteractionManager();
 	}
 
 	public void registerListeners() {
@@ -73,6 +75,10 @@ public class NameLayerPlugin extends ACivMod {
 
 	public NameLayerSettingManager getSettingsManager() {
 		return settingManager;
+	}
+	
+	public GroupInteractionManager getGroupInteractionManager() {
+		return groupInteractManager;
 	}
 
 	public GroupMetaDataView<NameLayerMetaData> getNameLayerMeta() {

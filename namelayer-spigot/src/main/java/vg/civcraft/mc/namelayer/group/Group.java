@@ -88,10 +88,10 @@ public class Group {
 	public List<UUID> getAllTracked() {
 		return Lists.newArrayList(players.keySet());
 	}
-	
+
 	public List<UUID> getAllMembers() {
 		List<UUID> members = new ArrayList<>();
-		for(Entry<UUID, PlayerType> entry : players.entrySet()) {
+		for (Entry<UUID, PlayerType> entry : players.entrySet()) {
 			if (playerTypeHandler.isBlackListedType(entry.getValue())) {
 				continue;
 			}
@@ -175,15 +175,16 @@ public class Group {
 	/**
 	 * Adds the player to be allowed to join a group into a specific PlayerType.
 	 * 
-	 * @param uuid     - The UUID of the player.
-	 * @param type     - The PlayerType they will be joining.
+	 * @param uuid - The UUID of the player.
+	 * @param type - The PlayerType they will be joining.
 	 */
 	public void addInvite(UUID uuid, PlayerType type, boolean saveToDB) {
 		invites.put(uuid, type);
 		if (saveToDB) {
-			Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> db.addGroupInvitation(uuid, this, type));
+			Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(),
+					() -> db.addGroupInvitation(uuid, this, type));
 		}
-		
+
 	}
 
 	/**
@@ -199,11 +200,12 @@ public class Group {
 	/**
 	 * Removes the invite of a Player
 	 * 
-	 * @param uuid     - The UUID of the player.
+	 * @param uuid - The UUID of the player.
 	 */
 	public void removeInvite(UUID uuid) {
 		invites.remove(uuid);
-		Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> db.removeGroupInvitation(uuid, this));
+		Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(),
+				() -> db.removeGroupInvitation(uuid, this));
 	}
 
 	/**
@@ -255,16 +257,13 @@ public class Group {
 		return playerTypeHandler.getDefaultNonMemberType();
 	}
 
-	/**
-	 * Adds a member to a group.
-	 * 
-	 * @param uuid - The uuid of the player.
-	 * @param type - The PlayerType to add. If a preexisting PlayerType is found, it
-	 *             will be overwritten.
-	 */
-
-	public void addToTracking(UUID uuid, PlayerType type) {
-		addToTracking(uuid, type, true);
+	public void updateTracking(UUID uuid, PlayerType type) {
+		if (!isTracked(uuid)) {
+			return;
+		}
+		Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> {
+			db.updateMember(uuid, this, type);
+		});
 	}
 
 	public void addToTracking(UUID uuid, PlayerType type, boolean savetodb) {
@@ -272,7 +271,9 @@ public class Group {
 			return;
 		}
 		if (savetodb) {
-			db.addMember(uuid, this, type);
+			Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> {
+				db.addMember(uuid, this, type);
+			});
 		}
 		players.put(uuid, type);
 	}

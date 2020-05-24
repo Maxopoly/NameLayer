@@ -12,9 +12,14 @@ authors:
 depend:
 - CivModCore
 api-version: 1.14
-description: NameLayer handles groups creation and management, in addition to name changes. Once you have connected to Civcraft
-   with a name, it is permanently yours. If a name is already taken, then NameLayer will add a number to the name.
+description: NameLayer is a general purpose group and permission api to enable players to govern themselves
 commands:
+  nl:
+    usage: /nl <group>
+    description: Opens a GUI to inspect and edit your groups
+    min-args: 0
+    max-args: 1
+    player-only: true
   nlag:
     aliases:
       - nlacceptinvite
@@ -60,7 +65,7 @@ commands:
       - deletegroup
       - ctdelete
       - removegroup
-    usage: /nldg [groupName] [CONFIRM]
+    usage: /nldg [group] [CONFIRM]
     description: Deletes a group
     min-args: 1
     max-args: 2
@@ -69,7 +74,7 @@ commands:
     aliases:
       - nlgroupstats
       - groupstats
-    usage: /nls [groupName]
+    usage: /nls [group]
     description: Dumps all available information for a group
     min-args: 1
     max-args: 1
@@ -84,7 +89,7 @@ commands:
       - cta
       - addgroup
       - invitegroup
-    usage: /nlip [groupName] [player] <rank>
+    usage: /nlip [group] [player] <rank>
     description: Invites a player into a group
     min-args: 2
     max-args: 3
@@ -94,56 +99,130 @@ commands:
       - nljoingroup
       - nljoin
       - join
-    usage: /nljg [groupName] [password]
+    usage: /nljg [group] [password]
     description: Joins a group via password
     min-args: 2
-    max-args: 2
+    max-args: 50
     player-only: true
-   nllg:
-      aliases:
+  nllci:
+    aliases:
+      - nllistcurrentinvites
+      - nllistinvites
+      - invites
+      - listinvites
+      - ctinvites
+    usage: /nllci
+    description: Lists all of your pending invites
+    min-args: 0
+    max-args: 0
+    player-only: true
+  nlleg:
+    aliases:
+      - nlleavegroup
+      - nlleave
+      - leavegroup
+      - ctleave
+    usage: /nlleg [group]
+    description: Leaves a group
+    min-args: 1
+    max-args: 1
+    player-only: true
+  nllg:
+    aliases:
       - nllistgroups
       - nllistg
       - listgroups
       - ctlist
       - lg
-   nllm:
-      aliases:
+    usage: /nllg <page>
+    description: Lists all groups you are a member of
+    min-args: 0
+    max-args: 1
+    player-only: true
+  nllm:
+    aliases:
       - nllistmembers
       - nllistm
       - listmembers
       - ctmembers
       - lm
       - members
-   nllcm: null
-   nllp:
-      aliases:
+    usage: /nllm [group]
+    description: Lists all members of a group
+    min-args: 1
+    max-args: 1
+    player-only: true
+  nllp:
+    aliases:
       - nllistpermissions
       - nllistperms
       - listpermissions
-   nlpp:
-      aliases:
-      - nlpromoteplayer
-      - nlpromote
-      - promoteplayer
-      - ctpromote
-      - ctaddmod
-      - ctam
-      - addmod
-   nlmg:
-      aliases:
+    usage: /nllg
+    description: Lists all groups you are a member of
+    min-args: 0
+    max-args: 0
+    player-only: true
+  nlmg:
+    aliases:
       - nlmergegroups
       - nlmerge
       - mergegroup
       - mergegroups
       - merge
-   nlmp:
-      aliases:
+    usage: /nlmg [groupToKeep] [groupToRemove]
+    description: Merges a group into a different one, transferring all blocks tied to it over
+    min-args: 2
+    max-args: 2
+    player-only: true
+  nlmp:
+    aliases:
       - nlmodifyperms
       - nlmodifypermissions
       - nlmodperms
       - modifypermissions
-   nlrm:
-      aliases:
+    usage: /nlmp [group] [rank] [add|remove] [permission]
+    description: Adds or removes a permission from a rank
+    min-args: 4
+    max-args: 4
+    player-only: true
+  nlpp:
+    aliases:
+      - nlpromoteplayer
+      - nlpromote
+      - promoteplayer
+      - ctpromote
+      - ctam
+    usage: /nlpp [group] [player] []newRank]
+    description: Changes a players rank in a group
+    min-args: 3
+    max-args: 3
+    player-only: true
+  nlrg:
+    aliases:
+      - nlrejectinvite
+      - nldeclineinvite
+      - rejectinvite
+      - declineinvite
+    usage: /nlrg [group]
+    description: Rejects an invite to a group
+    min-args: 1
+    max-args: 1
+    player-only: true
+  nlri:
+    aliases:
+      - nlrevokeinvite
+      - nluninvite
+      - revoke
+      - uninvite
+      - revokeinvite
+      - uninvite
+    usage: /nlri [group] [player]
+    description: Revokes a pending invite to a group
+    min-args: 1
+    max-args: 1
+    player-only: true
+  nlrm:
+    aliases:
       - nlremovemember
       - nlremove
       - nlkick
@@ -153,85 +232,61 @@ commands:
       - kickmember
       - ctremove
       - ctkick
-   nlrg:
-      aliases:
-      - nlrejectinvite
-      - nldeclineinvite
-   nlri:
-      aliases:
-      - nlrevokeinvite
-      - nluninvite
-      - revoke
-      - uninvite
-      - revokeinvite
-      - uninvite
-   nlsp:
-      aliases:
-      - nlsetpassword
-      - nlsetpass
-      - setpass
-      - setpassword
-   nltg:
-      aliases:
-      - nltransfergroup
-      - nltransfer
-      - transfergroup
-   nlleg:
-      aliases:
-      - nlleavegroup
-      - nlleave
-      - leavegroup
-      - ctleave
-   nllgt:
-      aliases:
-      - nllistgrouptypes
-      - nllistgtypes
-      - listgrouptypes
-   nllpt:
-      aliases:
-      - nllistplayertypes
-      - nllistptypes
-      - listplayertypes
-   nllci:
-      aliases:
-      - nllistcurrentinvites
-      - nllistinvites
-      - invites
-      - listinvites
-      - ctinvites
-   nltaai:
-      aliases:
-      - nlautoacceptinvites
-      - nlautoaccept
-      - autoaccept
-   nlsdg:
-      aliases:
-      - nlsetdefaultgroup
+    usage: /nlrm [group] [player]
+    description: Removes a player from a group
+    min-args: 2
+    max-args: 2
+    player-only: true
+  nlsdg:
+    aliases:
+      - setdefaultgroup
       - nlsetdefault
       - setdefault
       - setdefaultgroup
       - default
-   nlgdg:
-      aliases:
-      - nlgetdefaultgroup
-      - nlgetdefault
-      - getdefaultgroup
-   nlun:
-      aliases:
-      - updatename
-   nlsbl:
-      aliases:
+    usage: /nlsdg [group]
+    description: Sets your default group
+    min-args: 1
+    max-args: 1
+    player-only: true
+  nlsp:
+    aliases:
+      - nlsetpassword
+      - nlsetpass
+      - setpass
+      - setpassword
+    usage: /nlsp [group] [password]
+    description: Sets a groups password
+    min-args: 1
+    max-args: 50
+    player-only: true
+  nllbl:
+    aliases:
       - showblacklist
       - listblacklist
-   nlbl:
-      aliases:
+    usage: /nllbl [group]
+    description: Lists all players blacklisted for a group
+    min-args: 1
+    max-args: 1
+    player-only: true
+  nlbl:
+    aliases:
       - blacklist
       - addblacklist
-   nlubl:
-      aliases:
+    usage: /nlbl [group] [player] [rank]
+    description: Adds a player to a blacklist rank
+    min-args: 3
+    max-args: 3
+    player-only: true
+  nlubl:
+    aliases:
       - removeblacklist
       - unblacklist
-   nl: null
+    usage: /nlubl [group] [player]
+    description: Removes a player from a blacklist rank
+    min-args: 2
+    max-args: 2
+    player-only: true
 permissions:
    namelayer.admin:
       default: op

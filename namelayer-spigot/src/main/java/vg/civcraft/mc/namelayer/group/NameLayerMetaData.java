@@ -7,7 +7,6 @@ import org.bukkit.ChatColor;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 
-import vg.civcraft.mc.namelayer.events.GroupCreateEvent;
 import vg.civcraft.mc.namelayer.group.meta.GroupMetaData;
 
 public final class NameLayerMetaData extends GroupMetaData {
