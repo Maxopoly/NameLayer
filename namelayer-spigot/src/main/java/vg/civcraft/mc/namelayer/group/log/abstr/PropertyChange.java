@@ -1,10 +1,10 @@
-package vg.civcraft.mc.namelayer.group.log;
+package vg.civcraft.mc.namelayer.group.log.abstr;
 
 import java.util.UUID;
 
-import org.bukkit.inventory.ItemStack;
+import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 
-public class PropertyChange extends LoggedGroupAction {
+public abstract class PropertyChange extends LoggedGroupAction {
 
 	protected final String oldValue;
 	protected final String newValue;
@@ -27,17 +27,4 @@ public class PropertyChange extends LoggedGroupAction {
 	public String getNewValue() {
 		return newValue;
 	}
-
-	@Override
-	public ItemStack getGUIRepresentation() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String getChatRepresentation() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

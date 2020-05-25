@@ -1,4 +1,4 @@
-package vg.civcraft.mc.namelayer.group.log;
+package vg.civcraft.mc.namelayer.group.log.impl;
 
 import java.util.UUID;
 
@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import vg.civcraft.mc.civmodcore.api.ItemAPI;
+import vg.civcraft.mc.namelayer.group.log.abstr.MemberRankChange;
 
 public class AcceptInvitation extends MemberRankChange {
 

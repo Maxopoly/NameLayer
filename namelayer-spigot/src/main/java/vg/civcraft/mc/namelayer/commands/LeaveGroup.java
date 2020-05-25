@@ -1,18 +1,14 @@
 package vg.civcraft.mc.namelayer.commands;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
-import vg.civcraft.mc.namelayer.group.Group;
-import vg.civcraft.mc.namelayer.permission.PlayerType;
 
 @CivCommand(id = "nlleg")
 public class LeaveGroup extends StandaloneCommand {

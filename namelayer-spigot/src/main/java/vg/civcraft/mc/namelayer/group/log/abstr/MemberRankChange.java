@@ -1,10 +1,10 @@
-package vg.civcraft.mc.namelayer.group.log;
+package vg.civcraft.mc.namelayer.group.log.abstr;
 
 import java.util.UUID;
 
-import org.bukkit.inventory.ItemStack;
-
 import com.google.common.base.Preconditions;
+
+import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 
 public abstract class MemberRankChange extends LoggedGroupAction {
 

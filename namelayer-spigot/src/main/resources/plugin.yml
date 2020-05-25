@@ -148,19 +148,9 @@ commands:
       - lm
       - members
     usage: /nllm [group]
-    description: Lists all members of a group
+    description: Lists members of a group
     min-args: 1
     max-args: 1
-    player-only: true
-  nllp:
-    aliases:
-      - nllistpermissions
-      - nllistperms
-      - listpermissions
-    usage: /nllg
-    description: Lists all groups you are a member of
-    min-args: 0
-    max-args: 0
     player-only: true
   nlmg:
     aliases:

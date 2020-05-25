@@ -19,7 +19,7 @@ import vg.civcraft.mc.namelayer.NameLayerPlugin;
  * PermissionType with a given name or id always maximum one instance will exist
  *
  */
-public class PermissionType {
+public final class PermissionType {
 
 	private static Map<String, PermissionType> permissionByName;
 	private static Map<Integer, PermissionType> permissionById;
@@ -29,7 +29,7 @@ public class PermissionType {
 		permissionByName = new HashMap<>();
 		permissionById = new TreeMap<>();
 		maximumExistingId = 0;
-		registerNameLayerPermissions();
+		registerRankPermissions();
 	}
 
 	/**
@@ -80,14 +80,14 @@ public class PermissionType {
 	 * @param defaultPermLevels
 	 * @param description
 	 */
-	public static void registerPermission(String name, DefaultPermissionLevel defaultPermLevel, String description) {
+	public static PermissionType registerPermission(String name, DefaultPermissionLevel defaultPermLevel, String description) {
 		if (name == null) {
 			Bukkit.getLogger().severe("Could not register permission, name was null");
-			return;
+			return null;
 		}
 		if (permissionByName.get(name) != null) {
 			Bukkit.getLogger().severe("Could not register permission " + name + ". It was already registered");
-			return;
+			return null;
 		}
 		int id = -1;
 		Map<Integer, String> dbRegisteredPerms = NameLayerPlugin.getInstance().getGroupManagerDao().getPermissionMapping();
@@ -98,7 +98,7 @@ public class PermissionType {
 			}
 		}
 		List<Integer> defaultPermLevels = defaultPermLevel.getAllowedRankIds();
-		PermissionType p;
+		PermissionType perm;
 		if (id == -1) {
 			// not in db yet
 			id = maximumExistingId + 1;
@@ -106,14 +106,15 @@ public class PermissionType {
 				id++;
 			}
 			maximumExistingId = id;
-			p = new PermissionType(name, id, defaultPermLevels, description);
-			NameLayerPlugin.getInstance().getGroupManagerDao().registerPermission(p);
+			perm = new PermissionType(name, id, defaultPermLevels, description);
+			NameLayerPlugin.getInstance().getGroupManagerDao().registerPermission(perm);
 		} else {
 			// already in db, so use existing id
-			p = new PermissionType(name, id, defaultPermLevels, description);
+			perm = new PermissionType(name, id, defaultPermLevels, description);
 		}
-		permissionByName.put(name, p);
-		permissionById.put(id, p);
+		permissionByName.put(name, perm);
+		permissionById.put(id, perm);
+		return perm;
 	}
 
 	/**
@@ -280,36 +281,9 @@ public class PermissionType {
 	}
 
 	/**
-	 * Initializes all the permissions NameLayer uses internally
+	 * Initializes all the permissions ranks use internally
 	 */
-	private static void registerNameLayerPermissions() {
-		// allows adding/modifying a password for the group
-		registerPermission("PASSWORD", DefaultPermissionLevel.ADMIN,
-				"Allows viewing this groups password and changing or removing it");
-		// allows to list the permissions for each permission group
-		registerPermission("LIST_PERMS", DefaultPermissionLevel.ADMIN,
-				"Allows viewing how permission for this group are set up");
-		// allows to see general group stats
-		registerPermission("GROUPSTATS", DefaultPermissionLevel.ADMIN,
-				"Gives access to various group statistics such as member "
-						+ "counts by permission type, who owns the group etc.");
-		// allows to modify the permissions for different permissions groups
-		registerPermission("PERMS", DefaultPermissionLevel.OWNER, "Allows modifying permissions for this group");
-		// allows deleting the group
-		registerPermission("DELETE", DefaultPermissionLevel.OWNER, "Allows deleting this group");
-		// allows merging the group with another one
-		registerPermission("MERGE", DefaultPermissionLevel.OWNER,
-				"Allows merging this group into another or merging another group into this one");
-		// allows creating player types
-		registerPermission("CREATE_PLAYERTYPE", DefaultPermissionLevel.OWNER,
-				"Allows creating new player types for this group");
-		// allows deleting player types
-		registerPermission("DELETE_PLAYERTYPE", DefaultPermissionLevel.OWNER,
-				"Allows deleting player types for this group");
-		// allows deleting player types
-		registerPermission("RENAME_PLAYERTYPE", DefaultPermissionLevel.OWNER,
-				"Allows renaming player types for this group");;
-		
+	private static void registerRankPermissions() {		
 		for(int i = 0; i < PlayerTypeHandler.getMaximumTypeCount(); i++) {
 			//a get call will ensure all of them are initiated both in cache and the database
 			getListPermission(i);

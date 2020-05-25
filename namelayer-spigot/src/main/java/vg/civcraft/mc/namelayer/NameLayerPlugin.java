@@ -49,11 +49,12 @@ public class NameLayerPlugin extends ACivMod {
 		groupManager = groupManagerDao.loadAllGroups();
 		registerListeners();
 		PermissionType.initialize();
+		permissionManager = new NameLayerPermissionManager();
 		groupManagerDao.loadGroupsInvitations();
 		nameLayerMeta = GroupMetaDataAPI.registerGroupMetaData(this.getName(), NameLayerMetaData::createNew,
 				NameLayerMetaData::load);
 		settingManager = new NameLayerSettingManager();
-		groupInteractManager =new GroupInteractionManager();
+		groupInteractManager =new GroupInteractionManager(groupManager, permissionManager, settingManager, nameLayerMeta);
 	}
 
 	public void registerListeners() {

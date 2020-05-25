@@ -25,7 +25,7 @@ public class PlayerTypeHandler {
 	// storage in lookup map by name is only done in lower case
 	private Map<String, PlayerType> typesByName;
 	private Map<Integer, PlayerType> typesById;
-	private static final int MAXIMUM_TYPE_COUNT = 27;
+	public static final int MAXIMUM_TYPE_COUNT = 27;
 	public static final int OWNER_ID = 0;
 	private static final int DEFAULT_NON_MEMBER_ID = 4;
 

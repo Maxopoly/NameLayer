@@ -1,10 +1,8 @@
 package vg.civcraft.mc.namelayer;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -31,17 +29,19 @@ import vg.civcraft.mc.namelayer.events.PostGroupMergeEvent;
 import vg.civcraft.mc.namelayer.events.PreGroupMergeEvent;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.group.GroupLink;
+import vg.civcraft.mc.namelayer.group.log.impl.AcceptInvitation;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
 import vg.civcraft.mc.namelayer.permission.PlayerType;
 
 public class GroupManager {
+
+	private static final String hiddenDeletedGroupName = "Name_Layer_Special";
 
 	private GroupManagerDao groupManagerDao;
 
 	private Map<String, Group> groupsByName = new HashMap<>();
 	private Map<Integer, Group> groupsById = new HashMap<>();
 	private Map<UUID, Set<Group>> groupsByMember;
-
 	private Set<Integer> undergoingMerge;
 
 	public GroupManager(GroupManagerDao groupManagerDao, Map<String, Group> groupsByName,
@@ -61,6 +61,14 @@ public class GroupManager {
 		return groupsByMember.get(player);
 	}
 
+	public void renameGroup(Group group, String newName) {
+		groupsByName.remove(group.getName().toLowerCase());
+		String oldName = group.getName();
+		group.setName(newName);
+		groupsByName.put(newName.toLowerCase(), group);
+		groupManagerDao.renameGroup(oldName, newName);
+	}
+
 	public void invitePlayer(UUID inviterUUID, UUID toInvite, PlayerType rank, Group group) {
 		Player player = Bukkit.getPlayer(toInvite);
 		if (NameLayerPlugin.getInstance().getSettingsManager().getAutoAcceptInvites().getValue(toInvite)) {
@@ -68,15 +76,18 @@ public class GroupManager {
 				player.sendMessage(ChatColor.GREEN + "You have auto-accepted an invite to " + group.getColoredName()
 						+ ChatColor.GREEN + " from " + ChatColor.YELLOW + NameAPI.getCurrentName(inviterUUID));
 			} else {
-				MailBoxAPI.addMail(toInvite, ChatColor.GREEN + "While gone you auto accepted an invite to "
-						+ group.getColoredName() + ChatColor.GREEN + " from " + ChatColor.YELLOW + NameAPI.getCurrentName(inviterUUID));
+				MailBoxAPI.addMail(toInvite,
+						ChatColor.GREEN + "While gone you auto accepted an invite to " + group.getColoredName()
+								+ ChatColor.GREEN + " from " + ChatColor.YELLOW + NameAPI.getCurrentName(inviterUUID));
 			}
-			group.addToTracking(toInvite, rank);
+			group.getActionLog().addAction(new AcceptInvitation(System.currentTimeMillis(), toInvite, rank.getName()),
+					true);
+			group.addToTracking(toInvite, rank, true);
 		} else {
 			if (player != null) {
 				TextComponent message = new TextComponent(ChatColor.GREEN + "You have been invited to the group "
-						+ group.getColoredName() + ChatColor.GREEN + " by " + ChatColor.YELLOW + NameAPI.getCurrentName(inviterUUID)
-						+ ChatColor.GREEN + ".\nClick this message to accept.");
+						+ group.getColoredName() + ChatColor.GREEN + " by " + ChatColor.YELLOW
+						+ NameAPI.getCurrentName(inviterUUID) + ChatColor.GREEN + ".\nClick this message to accept.");
 				message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/nlag " + group.getName()));
 				message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
 						new ComponentBuilder("  ---  Click to accept").create()));
@@ -130,6 +141,10 @@ public class GroupManager {
 		Preconditions.checkNotNull(toKeep, "Group to keep may not be null");
 		Preconditions.checkNotNull(notToKeep, "Group not to keep may not be null");
 		if (toKeep.equals(notToKeep)) {
+			return;
+		}
+
+		if (undergoingMerge.contains(toKeep.getGroupId()) || undergoingMerge.contains(notToKeep.getGroupId())) {
 			return;
 		}
 
@@ -230,24 +245,6 @@ public class GroupManager {
 			}
 		}
 		return false;
-	}
-
-	private void deleteGroupPerms(Group group) {
-		if (group == null) {
-			NameLayerPlugin.getInstance().getLogger().log(Level.INFO, "deleteGroupPerms failed, caller passed in null",
-					new Exception());
-			return;
-		}
-		permhandle.deletePerms(group);
-	}
-
-	public List<String> getAllGroupNames(UUID uuid) {
-		if (uuid == null) {
-			NameLayerPlugin.getInstance().getLogger().log(Level.INFO, "getAllGroupNames failed, caller passed in null",
-					new Exception());
-			return new ArrayList<>();
-		}
-		return groupManagerDao.getGroupNames(uuid);
 	}
 
 	/**

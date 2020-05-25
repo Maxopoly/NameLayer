@@ -4,14 +4,12 @@ import java.util.Collections;
 import java.util.List;
 
 import org.bukkit.ChatColor;
-import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
-import vg.civcraft.mc.namelayer.group.Group;
 
 @CivCommand(id = "nldg")
 public class DeleteGroup extends StandaloneCommand {

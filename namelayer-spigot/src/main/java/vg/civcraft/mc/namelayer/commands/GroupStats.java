@@ -10,31 +10,22 @@ import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import vg.civcraft.mc.civmodcore.command.CivCommand;
+import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
+import vg.civcraft.mc.namelayer.GroupAPI;
 import vg.civcraft.mc.namelayer.NameAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.group.GroupLink;
+import vg.civcraft.mc.namelayer.permission.PermissionType;
 import vg.civcraft.mc.namelayer.permission.PlayerType;
 import vg.civcraft.mc.namelayer.permission.PlayerTypeHandler;
 
-public class GroupStats extends AbstractGroupCommand {
-
-	@Override
-	public boolean execute(Player player, Group group, String[] args) {
-		if (!permsCheck(group, player, NameLayerPlugin.getInstance().getNLPermissionManager().getGroupStats())) {
-			return true;
-		}
-		player.sendMessage(ChatColor.GREEN + "Generating information, this may take a moment...");
-		Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> {
-			String s = buildGroupInformation(group);
-			Bukkit.getScheduler().runTask(NameLayerPlugin.getInstance(), () -> {
-				player.sendMessage(s);
-			});
-		});
-		return true;
-	}
+@CivCommand(id = "nlgs")
+public class GroupStats extends StandaloneCommand {
 
 	private static String buildGroupInformation(Group group) {
 		StringBuilder sb = new StringBuilder();
@@ -98,15 +89,14 @@ public class GroupStats extends AbstractGroupCommand {
 		Map<UUID, PlayerType> invites = group.dumpInvites();
 		if (invites.isEmpty()) {
 			sb.append("There are no pending invites\n");
-		}
-		else {
+		} else {
 			sb.append("Pending invites:\n");
-			for(Entry<UUID, PlayerType> entry : invites.entrySet()) {
-			sb.append(" - ");
-			sb.append(NameAPI.getCurrentName(entry.getKey()));
-			sb.append(" (");
-			sb.append(entry.getValue().getName());
-			sb.append(")\n");
+			for (Entry<UUID, PlayerType> entry : invites.entrySet()) {
+				sb.append(" - ");
+				sb.append(NameAPI.getCurrentName(entry.getKey()));
+				sb.append(" (");
+				sb.append(entry.getValue().getName());
+				sb.append(")\n");
 			}
 		}
 		return sb.toString();
@@ -146,7 +136,34 @@ public class GroupStats extends AbstractGroupCommand {
 	}
 
 	@Override
-	public List<String> tabCompleteFurther(Player player, String[] args) {
+	public boolean execute(CommandSender sender, String[] args) {
+		Group group = GroupAPI.getGroupByName(args[0]);
+		if (group == null) {
+			sender.sendMessage(String.format("%sThe group %s does not exist", ChatColor.RED, args[0]));
+			return true;
+		}
+		Player player = (Player) sender;
+		PermissionType perm = NameLayerPlugin.getInstance().getNLPermissionManager().getGroupStats();
+		if (!GroupAPI.hasPermission(player, group, perm)) {
+			sender.sendMessage(String.format(
+					"%sTo do this you need the permission %s%s %sfor the group %s%s which you do not have",
+					ChatColor.RED, ChatColor.YELLOW, perm.getName(), ChatColor.RED, group.getColoredName(),
+					ChatColor.RED));
+			return true;
+		}
+		player.sendMessage(ChatColor.GREEN + "Generating information, this may take a moment...");
+		Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> {
+			String s = buildGroupInformation(group);
+			Bukkit.getScheduler().runTask(NameLayerPlugin.getInstance(), () -> player.sendMessage(s));
+		});
+		return true;
+	}
+
+	@Override
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (args.length == 1) {
+			return NameLayerTabCompletion.completeGroupName(args[0], (Player) sender);
+		}
 		return Collections.emptyList();
 	}
 }

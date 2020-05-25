@@ -17,6 +17,7 @@ import com.google.common.collect.Lists;
 import vg.civcraft.mc.namelayer.NameAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.database.GroupManagerDao;
+import vg.civcraft.mc.namelayer.group.log.GroupActionLog;
 import vg.civcraft.mc.namelayer.permission.PlayerType;
 import vg.civcraft.mc.namelayer.permission.PlayerTypeHandler;
 
@@ -25,13 +26,15 @@ public class Group {
 	private static GroupManagerDao db;
 
 	private String name;
-	private int id;
+	private final int id;
 
 	private Map<UUID, PlayerType> players;
 	private Map<UUID, PlayerType> invites;
 
 	private List<GroupLink> incomingLinks;
 	private List<GroupLink> outgoingLinks;
+	
+	private final GroupActionLog groupActionLog;
 
 	private PlayerTypeHandler playerTypeHandler;
 
@@ -47,6 +50,15 @@ public class Group {
 		this.invites = new TreeMap<>();
 		this.incomingLinks = new ArrayList<>();
 		this.outgoingLinks = new ArrayList<>();
+		this.groupActionLog = new GroupActionLog(this);
+	}
+	
+	public void setName(String newName) {
+		this.name = newName;
+	}
+	
+	public GroupActionLog getActionLog() {
+		return groupActionLog;
 	}
 
 	public void addIncomingLink(GroupLink link) {

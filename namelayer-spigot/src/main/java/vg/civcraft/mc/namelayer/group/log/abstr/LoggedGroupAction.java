@@ -1,4 +1,4 @@
-package vg.civcraft.mc.namelayer.group.log;
+package vg.civcraft.mc.namelayer.group.log.abstr;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -15,6 +15,7 @@ import com.google.common.base.Preconditions;
 
 import vg.civcraft.mc.civmodcore.api.ItemAPI;
 import vg.civcraft.mc.namelayer.NameAPI;
+import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 
 public abstract class LoggedGroupAction {
 
