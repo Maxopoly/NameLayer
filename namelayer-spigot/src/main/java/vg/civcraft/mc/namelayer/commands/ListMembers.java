@@ -9,24 +9,18 @@ import org.bukkit.entity.Player;
 
 import com.google.common.collect.Lists;
 
+import vg.civcraft.mc.civmodcore.command.CivCommand;
+import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.GroupManager;
 import vg.civcraft.mc.namelayer.NameAPI;
-import vg.civcraft.mc.namelayer.command.PlayerCommandMiddle;
 import vg.civcraft.mc.namelayer.command.TabCompleters.GroupTabCompleter;
 import vg.civcraft.mc.namelayer.command.TabCompleters.MemberTypeCompleter;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
 import vg.civcraft.mc.namelayer.permission.PlayerType;
 
-public class ListMembers extends PlayerCommandMiddle {
-
-	public ListMembers(String name) {
-		super(name);
-		setIdentifier("nllm");
-		setDescription("List the members in a group");
-		setUsage("/nllm <group> (PlayerType)");
-		setArguments(1,3);
-	}
+@CivCommand(id="nllm")
+public class ListMembers extends StandaloneCommand {
 
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {

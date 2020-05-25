@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import com.google.common.base.Preconditions;
 
+import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
+
 public abstract class PermissionEdit extends MemberRankChange {
 
 	protected final String permission;
@@ -12,6 +14,11 @@ public abstract class PermissionEdit extends MemberRankChange {
 		super(time, player, rank);
 		Preconditions.checkNotNull(permission);
 		this.permission = permission;
+	}
+	
+	@Override
+	public LoggedGroupActionPersistence getPersistence() {
+		return new LoggedGroupActionPersistence(time, player, rank, permission, null);
 	}
 	
 	public String getPermission() {

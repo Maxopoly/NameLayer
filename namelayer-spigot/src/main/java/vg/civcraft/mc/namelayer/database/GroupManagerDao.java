@@ -241,30 +241,66 @@ public class GroupManagerDao {
 				// foreign keys will do everything else
 				// need to update group creation as well
 				"drop procedure if exists createGroup;",
-				"create definer=current_user procedure createGroup(in group_name varchar(255)) "
+				"create definer=current_user procedure createGroup(in group_name varchar(255), in creator varchar(255)) "
 						+ "sql security invoker begin"
 						+ " if (select (count(*) = 0) from faction_id q where q.group_name = group_name) is true then"
 						+ "  insert into faction_id(group_name) values (group_name); "
 						+ "  insert into faction_member (member_name, rank_id, group_id) select founder, 0, f.group_id from faction_id f where f.group_name = group_name; "
 						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 0, 'OWNER', null from faction_id f where f.group_name = group_name;"
 						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 1, 'ADMINS', 0 from faction_id f where f.group_name = group_name;"
-						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 2, 'MODS', null from faction_id f where f.group_name = group_name;"
-						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 3, 'MEMBERS', null from faction_id f where f.group_name = group_name;"
+						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 2, 'MODS', 1 from faction_id f where f.group_name = group_name;"
+						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 3, 'MEMBERS', 2 from faction_id f where f.group_name = group_name;"
 						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 4, 'DEFAULT', 0 from faction_id f where f.group_name = group_name;"
 						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 5, 'BLACKLISTED', 4 from faction_id f where f.group_name = group_name;"
+						+ "  insert into faction_member (group_id, rank_id, member_name) select f.group_id, 0, creator from faction_id f where f.group_name = group_name;"
 						+ " end if; " + "end;",
 				// add tables for new group linking
 				// old one is broken af and worked differently, just get rid of it
 				"drop table if exists subgroup",
-				"create table nl_group_links (link_id int not null primary key auto_increment, "
+				"create table if not exists nl_group_links (link_id int not null primary key auto_increment, "
 						+ "originating_group_id int not null, originating_type_id int not null, target_group_id int not null, "
 						+ "target_type_id int not null, foreign key (originating_group_id, originating_type_id) references groupPlayerTypes(group_id, rank_id) on delete cascade,"
 						+ "foreign key (target_group_id, target_type_id) references groupPlayerTypes(group_id, rank_id) on delete cascade, "
 						+ "unique (originating_group_id, originating_type_id, target_group_id, target_type_id), index(originating_group_id), index(target_group_id))",
-				"create table if not exists nl_action_log (action_id int not null primary key auto_increment, type_id int not null,"
+				"create table if not exists nl_group_actions(id int not null auto_increment primary key, name varchar(255) not null,"
+						+ "constraint unique_name unique(name));",
+				"create table if not exists nl_action_log (action_id int not null primary key auto_increment, "
+				+ "type_id int not null references nl_group_actions(id),"
 						+ "player varchar(36) not null, group_id int not null references faction_id(group_id) on delete cascade, "
-						+ "time datetime not null default current_timestamp, rank varchar(255) not null, name varchar(255) default null,"
+						+ "time datetime not null default current_timestamp, rank varchar(255) default null, name varchar(255) default null,"
 						+ "extra text default null)");
+	}
+
+	public int getOrCreateActionID(String name) {
+		try (Connection insertConn = db.getConnection();
+				PreparedStatement selectId = insertConn
+						.prepareStatement("select id from nl_group_actions where name = ?;")) {
+			selectId.setString(1, name);
+			try (ResultSet rs = selectId.executeQuery()) {
+				if (rs.next()) {
+					return rs.getInt(1);
+				}
+			}
+		} catch (SQLException e) {
+			logger.log(Level.SEVERE, "Failed to check for existence of action type in db: " + e);
+			return -1;
+		}
+		try (Connection insertConn = db.getConnection();
+				PreparedStatement insertAction = insertConn.prepareStatement(
+						"insert into nl_group_actions (name) values(?);", Statement.RETURN_GENERATED_KEYS);) {
+			insertAction.setString(1, name);
+			insertAction.execute();
+			try (ResultSet rs = insertAction.getGeneratedKeys()) {
+				if (!rs.next()) {
+					logger.info("Failed to insert group log acion type");
+					return -1;
+				}
+				return rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			logger.log(Level.SEVERE, "Failed to insert action type into db:", e);
+			return -1;
+		}
 	}
 
 	public void insertActionLog(Group group, LoggedGroupAction change) {

@@ -11,12 +11,18 @@ import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.group.log.abstr.LoggedGroupAction;
 
 public class MergeGroup extends LoggedGroupAction {
+	
+	public static final String ID = "MERGE_GROUP";
 
 	private String groupMergedIn;
 	
 	public MergeGroup(long time, UUID player, String groupMergedIn) {
 		super(time, player);
 		this.groupMergedIn = groupMergedIn;
+	}
+	
+	public MergeGroup(LoggedGroupActionPersistence persist) {
+		this(persist.getTimeStamp(), persist.getPlayer(), persist.getRank());
 	}
 	
 	public String getGroupMergedIn() {
@@ -42,6 +48,11 @@ public class MergeGroup extends LoggedGroupAction {
 	@Override
 	public LoggedGroupActionPersistence getPersistence() {
 		return new LoggedGroupActionPersistence(time, player, groupMergedIn, null, null);
+	}
+
+	@Override
+	public String getIdentifier() {
+		return ID;
 	}
 
 }

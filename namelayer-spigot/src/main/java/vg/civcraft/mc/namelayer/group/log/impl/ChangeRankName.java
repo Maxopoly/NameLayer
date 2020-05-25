@@ -11,13 +11,15 @@ import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.group.log.abstr.PropertyChange;
 
 public class ChangeRankName extends PropertyChange {
+	
+	public static final String ID = "RENAME_RANK";
 
 	public ChangeRankName(long time, UUID player, String oldValue, String newValue) {
 		super(time, player, oldValue, newValue);
 	}
-
-	public ChangeGroupName deserialize(LoggedGroupActionPersistence persist) {
-		return new ChangeGroupName(time, player, persist.getName(), persist.getRank());
+	
+	public ChangeRankName(LoggedGroupActionPersistence persist) {
+		this(persist.getTimeStamp(), persist.getPlayer(), persist.getRank(), persist.getName());
 	}
 
 	@Override
@@ -35,6 +37,11 @@ public class ChangeRankName extends PropertyChange {
 	public String getChatRepresentation() {
 		return String.format("%s%s%s changed a rank name from %s to %s", ChatColor.GOLD, getPlayerName(), ChatColor.GREEN,
 				oldValue, newValue);
+	}
+
+	@Override
+	public String getIdentifier() {
+		return ID;
 	}
 
 }

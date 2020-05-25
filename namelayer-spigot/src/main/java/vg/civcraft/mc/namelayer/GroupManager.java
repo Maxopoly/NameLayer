@@ -32,6 +32,7 @@ import vg.civcraft.mc.namelayer.group.GroupLink;
 import vg.civcraft.mc.namelayer.group.log.impl.AcceptInvitation;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
 import vg.civcraft.mc.namelayer.permission.PlayerType;
+import vg.civcraft.mc.namelayer.permission.PlayerTypeHandler;
 
 public class GroupManager {
 
@@ -128,8 +129,11 @@ public class GroupManager {
 			if (groupId == -1) {
 				return;
 			}
-			// TODO TODO
-			Group group = groupManagerDao.getGroup(groupId);
+			Group group = new Group(name, groupId);
+			group.setPlayerTypeHandler(PlayerTypeHandler.createStandardTypes(group));
+			group.addToTracking(creator, group.getPlayerTypeHandler().getOwnerType(), false);
+			//force instanciation of meta data time stamp
+			NameLayerPlugin.getInstance().getNameLayerMeta().getMetaData(group);
 			Bukkit.getScheduler().runTask(NameLayerPlugin.getInstance(), () -> {
 				postCreate.accept(group);
 			});
@@ -147,14 +151,10 @@ public class GroupManager {
 		if (undergoingMerge.contains(toKeep.getGroupId()) || undergoingMerge.contains(notToKeep.getGroupId())) {
 			return;
 		}
-
-		// TODO TODO
-		// TODO check for any linking and cancel if any exists in group not to keep
-
 		PreGroupMergeEvent event = new PreGroupMergeEvent(toKeep, notToKeep);
 		Bukkit.getPluginManager().callEvent(event);
 		if (event.isCancelled()) {
-			NameLayerPlugin.getInstance().log(Level.INFO,
+			NameLayerPlugin.getInstance().getLogger().log(Level.INFO,
 					"Group merge event was cancelled for groups: " + toKeep.getName() + " and " + notToKeep.getName());
 			return;
 		}
@@ -187,14 +187,12 @@ public class GroupManager {
 	}
 
 	public boolean hasAccess(Group group, UUID player, PermissionType perm) {
+		Preconditions.checkNotNull(group, "Group may not be null");
+		Preconditions.checkNotNull(player, "Player may not be null");
+		Preconditions.checkNotNull(perm, "Permission may not be null");
 		Player p = Bukkit.getPlayer(player);
 		if (p != null && (p.isOp() || p.hasPermission("namelayer.admin"))) {
 			return true;
-		}
-		if (group == null || perm == null) {
-			NameLayerPlugin.getInstance().getLogger().log(Level.INFO, "hasAccess failed, caller passed in null",
-					new Exception());
-			return false;
 		}
 		return hasPlayerInheritsPerms(group, player, perm);
 	}
@@ -210,7 +208,7 @@ public class GroupManager {
 	 */
 	private boolean hasPlayerInheritsPerms(Group group, UUID uuid, PermissionType perm) {
 		PlayerType rank = group.getPlayerType(uuid);
-		if (rank.hasPermission(perm)) {
+		if (rank == group.getPlayerTypeHandler().getOwnerType() || rank.hasPermission(perm)) {
 			return true;
 		}
 		// check group links
@@ -232,7 +230,7 @@ public class GroupManager {
 		return false;
 	}
 
-	private boolean checkUpwardsLinks(Group group, UUID player) {
+	private static boolean checkUpwardsLinks(Group group, UUID player) {
 		for (GroupLink link : group.getIncomingLinks()) {
 			Group originatingGroup = link.getOriginatingGroup();
 			PlayerType rankInOgGroup = originatingGroup.getPlayerType(player);

@@ -7,12 +7,19 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import vg.civcraft.mc.civmodcore.api.ItemAPI;
+import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.group.log.abstr.PermissionEdit;
 
 public class RemovePermission extends PermissionEdit {
+	
+	public static final String ID = "REMOVE_PERMISSION";
 
 	public RemovePermission(long time, UUID player, String rank, String permission) {
 		super(time, player, rank, permission);
+	}
+	
+	public RemovePermission(LoggedGroupActionPersistence persist) {
+		this(persist.getTimeStamp(), persist.getPlayer(), persist.getRank(), persist.getName());
 	}
 
 	@Override
@@ -30,6 +37,11 @@ public class RemovePermission extends PermissionEdit {
 	public String getChatRepresentation() {
 		return String.format("%s%s%s removed perm %s%s%s from %s%s", ChatColor.GOLD, getPlayerName(),
 				ChatColor.GREEN, ChatColor.GOLD, permission, ChatColor.GREEN, ChatColor.YELLOW, rank);
+	}
+
+	@Override
+	public String getIdentifier() {
+		return ID;
 	}
 
 }

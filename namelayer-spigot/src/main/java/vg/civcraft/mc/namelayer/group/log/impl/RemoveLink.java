@@ -7,13 +7,21 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import vg.civcraft.mc.civmodcore.api.ItemAPI;
+import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.group.log.abstr.LinkStateChange;
 
 public class RemoveLink extends LinkStateChange {
+	
+	public static final String ID = "REMOVE_LINK";
 
 	public RemoveLink(long time, UUID player, String ownRankLinked, String otherGroup, String otherGroupRank,
 			boolean isSelfOrigin) {
 		super(time, player, ownRankLinked, otherGroup, otherGroupRank, isSelfOrigin);
+	}
+	
+	public RemoveLink(LoggedGroupActionPersistence persist) {
+		this(persist.getTimeStamp(), persist.getPlayer(), persist.getRank(), persist.getName(),
+				extractOtherRank(persist.getExtraText()), extractIsOrigin(persist.getExtraText()));
 	}
 
 	@Override
@@ -55,5 +63,10 @@ public class RemoveLink extends LinkStateChange {
 					ChatColor.GREEN, ChatColor.YELLOW, otherGroupRank, ChatColor.GREEN, ChatColor.YELLOW,
 					otherGroup, ChatColor.GREEN, ChatColor.GOLD, ownRankLinked);
 		}
+	}
+
+	@Override
+	public String getIdentifier() {
+		return ID;
 	}
 }

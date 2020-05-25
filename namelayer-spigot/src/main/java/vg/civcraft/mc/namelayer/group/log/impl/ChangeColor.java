@@ -7,12 +7,19 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import vg.civcraft.mc.civmodcore.api.ItemAPI;
+import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.group.log.abstr.PropertyChange;
 
 public class ChangeColor extends PropertyChange {
+	
+	public static final String ID = "CHANGE_COLOR";
 
 	public ChangeColor(long time, UUID player, String oldValue, String newValue) {
 		super(time, player, oldValue, newValue);
+	}
+	
+	public ChangeColor(LoggedGroupActionPersistence persist) {
+		this(persist.getTimeStamp(), persist.getPlayer(), persist.getRank(), persist.getName());
 	}
 
 	@Override
@@ -30,6 +37,11 @@ public class ChangeColor extends PropertyChange {
 	public String getChatRepresentation() {
 		return String.format("%s%s%s changed group color from %s%s to %s", ChatColor.GOLD, getPlayerName(), ChatColor.GREEN,
 				oldValue, ChatColor.GREEN, newValue);
+	}
+
+	@Override
+	public String getIdentifier() {
+		return ID;
 	}
 
 }

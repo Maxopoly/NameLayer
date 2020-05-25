@@ -74,5 +74,7 @@ public abstract class LoggedGroupAction {
 	public abstract ItemStack getGUIRepresentation();
 
 	public abstract String getChatRepresentation();
+	
+	public abstract String getIdentifier();
 
 }

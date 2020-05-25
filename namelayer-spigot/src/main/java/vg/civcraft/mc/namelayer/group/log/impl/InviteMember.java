@@ -7,12 +7,19 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import vg.civcraft.mc.civmodcore.api.ItemAPI;
+import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.group.log.abstr.OtherMemberRankChange;
 
 public class InviteMember extends OtherMemberRankChange {
+	
+	public static final String ID = "INVITE_MEMBER";
 
 	public InviteMember(long time, UUID player, String rank, UUID affectedPlayer) {
 		super(time, player, rank, affectedPlayer);
+	}
+	
+	public InviteMember(LoggedGroupActionPersistence persist) {
+		this(persist.getTimeStamp(), persist.getPlayer(), persist.getRank(), UUID.fromString(persist.getName()));
 	}
 
 	@Override
@@ -31,4 +38,9 @@ public class InviteMember extends OtherMemberRankChange {
 		return String.format("%s%s%s invited %s%s%s as %s%s", ChatColor.GOLD, getPlayerName(),
 				ChatColor.GREEN, ChatColor.GOLD, getAffectedPlayerName(), ChatColor.GREEN, ChatColor.YELLOW, rank);
 	}
+
+	@Override
+	public String getIdentifier() {
+		return ID;
+	}	
 }

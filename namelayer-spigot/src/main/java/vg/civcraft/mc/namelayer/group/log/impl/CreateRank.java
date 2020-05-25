@@ -9,9 +9,12 @@ import org.bukkit.inventory.ItemStack;
 import com.google.common.base.Preconditions;
 
 import vg.civcraft.mc.civmodcore.api.ItemAPI;
+import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.group.log.abstr.MemberRankChange;
 
 public class CreateRank extends MemberRankChange {
+	
+	public static final String ID = "CREATE_RANK";
 
 	private String parent;
 
@@ -19,6 +22,10 @@ public class CreateRank extends MemberRankChange {
 		super(time, player, rank);
 		Preconditions.checkNotNull(parent);
 		this.parent = parent;
+	}
+	
+	public CreateRank(LoggedGroupActionPersistence persist) {
+		this(persist.getTimeStamp(), persist.getPlayer(), persist.getRank(), persist.getName());
 	}
 
 	public String getParentRank() {
@@ -40,5 +47,10 @@ public class CreateRank extends MemberRankChange {
 	public String getChatRepresentation() {
 		return String.format("%s%s%s created rank %s%s%s (under %s%s)", ChatColor.GOLD, getPlayerName(),
 				ChatColor.GREEN, ChatColor.YELLOW, rank, ChatColor.GREEN, ChatColor.YELLOW, parent);
+	}
+
+	@Override
+	public String getIdentifier() {
+		return ID;
 	}
 }

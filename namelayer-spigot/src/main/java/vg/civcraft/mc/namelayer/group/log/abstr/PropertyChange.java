@@ -17,7 +17,7 @@ public abstract class PropertyChange extends LoggedGroupAction {
 
 	@Override
 	public LoggedGroupActionPersistence getPersistence() {
-		return new LoggedGroupActionPersistence(time, player, newValue, oldValue, null);
+		return new LoggedGroupActionPersistence(time, player, oldValue, newValue, null);
 	}
 	
 	public String getOldValue() {

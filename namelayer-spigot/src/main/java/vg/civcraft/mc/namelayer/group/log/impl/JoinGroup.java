@@ -7,12 +7,19 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import vg.civcraft.mc.civmodcore.api.ItemAPI;
+import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.group.log.abstr.MemberRankChange;
 
 public class JoinGroup extends MemberRankChange {
+	
+	public static final String ID = "JOIN_GROUP";
 
 	public JoinGroup(long time, UUID player, String rank) {
 		super(time, player, rank);
+	}
+	
+	public JoinGroup(LoggedGroupActionPersistence persist) {
+		this(persist.getTimeStamp(), persist.getPlayer(), persist.getRank());
 	}
 
 	@Override
@@ -29,4 +36,8 @@ public class JoinGroup extends MemberRankChange {
 		return String.format("%s%s%s joined via password %s(%s)", ChatColor.GOLD, getPlayerName(), ChatColor.GREEN, ChatColor.YELLOW, rank);
 	}
 
+	@Override
+	public String getIdentifier() {
+		return ID;
+	}
 }

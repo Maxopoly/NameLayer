@@ -12,12 +12,14 @@ import vg.civcraft.mc.namelayer.group.log.abstr.PropertyChange;
 
 public class SetPassword extends PropertyChange {
 
+	public static final String ID = "SET_PASSWORD";
+	
 	public SetPassword(long time, UUID player, String oldValue, String newValue) {
 		super(time, player, oldValue, newValue);
 	}
 	
-	public SetPassword deserialize(LoggedGroupActionPersistence persist) {
-		return new SetPassword(time, player, persist.getName(), persist.getRank());
+	public SetPassword(LoggedGroupActionPersistence persist) {
+		this(persist.getTimeStamp(), persist.getPlayer(), persist.getRank(), persist.getName());
 	}
 	
 	private String getStateChange() {
@@ -42,6 +44,11 @@ public class SetPassword extends PropertyChange {
 	@Override
 	public String getChatRepresentation() {
 		return String.format("%s%s%s %s group password", ChatColor.GOLD, getPlayerName(), ChatColor.GREEN, getStateChange());
+	}
+
+	@Override
+	public String getIdentifier() {
+		return ID;
 	}
 
 }

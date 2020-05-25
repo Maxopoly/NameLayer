@@ -3,11 +3,14 @@ package vg.civcraft.mc.namelayer.group.log.abstr;
 import java.util.UUID;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 
 public abstract class LinkStateChange extends LoggedGroupAction {
 
+	protected static final JsonParser jsonParser = new JsonParser();
 	protected final String ownRankLinked;
 	protected final String otherGroup;
 	protected final String otherGroupRank;
@@ -39,9 +42,22 @@ public abstract class LinkStateChange extends LoggedGroupAction {
 	public boolean isSelfOrigin() {
 		return isSelfOrigin;
 	}
+	
+	protected static String extractOtherRank(String extra) {
+		JsonObject json = (JsonObject) jsonParser.parse(extra);
+		return json.get("otherRank").getAsString();
+	}
+	
+	protected static boolean extractIsOrigin(String extra) {
+		JsonObject json = (JsonObject) jsonParser.parse(extra);
+		return json.get("isOrigin").getAsBoolean();
+	}
 
 	@Override
 	public LoggedGroupActionPersistence getPersistence() {
-		return new LoggedGroupActionPersistence(time, player, ownRankLinked, otherGroup, otherGroupRank);
+		JsonObject extra = new JsonObject();
+		extra.addProperty("otherRank", otherGroupRank);
+		extra.addProperty("isOrigin", isSelfOrigin);
+		return new LoggedGroupActionPersistence(time, player, ownRankLinked, otherGroup, extra.toString());
 	}
 }

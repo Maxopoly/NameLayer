@@ -29,6 +29,10 @@ public class GroupActionLog {
 		}
 	}
 
+	public void sortLog() {
+		Collections.sort(changes, (l1, l2) -> Long.compare(l1.getTimeStamp(), l2.getTimeStamp()));
+	}
+
 	public List<LoggedGroupAction> getActions() {
 		return Collections.unmodifiableList(changes);
 	}

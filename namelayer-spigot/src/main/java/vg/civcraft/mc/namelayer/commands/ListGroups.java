@@ -17,7 +17,7 @@ public class ListGroups extends StandaloneCommand {
 
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
-		Player p = null;
+		Player player = (Player) sender;
 		UUID uuid = null;
 		boolean autopages = false;
 		

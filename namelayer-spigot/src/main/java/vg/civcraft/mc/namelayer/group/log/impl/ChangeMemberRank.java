@@ -13,6 +13,8 @@ import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.group.log.abstr.OtherMemberRankChange;
 
 public class ChangeMemberRank extends OtherMemberRankChange {
+	
+	public static final String ID = "PROMOTE_MEMBER";
 
 	private String oldRank;
 
@@ -20,6 +22,10 @@ public class ChangeMemberRank extends OtherMemberRankChange {
 		super(time, player, rank, affectedPlayer);
 		Preconditions.checkNotNull(oldRank, "Previous rank may not be null");
 		this.oldRank = oldRank;
+	}
+	
+	public ChangeMemberRank(LoggedGroupActionPersistence persist) {
+		this(persist.getTimeStamp(), persist.getPlayer(), persist.getRank(), UUID.fromString(persist.getName()), persist.getExtraText());
 	}
 
 	public String getOldRank() {
@@ -47,5 +53,10 @@ public class ChangeMemberRank extends OtherMemberRankChange {
 	@Override
 	public LoggedGroupActionPersistence getPersistence() {
 		return new LoggedGroupActionPersistence(time, player, rank, affectedPlayer.toString(), oldRank);
+	}
+
+	@Override
+	public String getIdentifier() {
+		return ID;
 	}
 }

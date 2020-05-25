@@ -131,7 +131,7 @@ public class PlayerTypeHandler {
 	 * @return Owner player type
 	 */
 	public PlayerType getOwnerType() {
-		return typesById.get(OWNER_ID);
+		return root;
 	}
 
 	/**
@@ -350,9 +350,6 @@ public class PlayerTypeHandler {
 		Map<PlayerType, List<PermissionType>> permsToSave = new HashMap<>();
 		PlayerType owner = new PlayerType("OWNER", OWNER_ID, null, g);
 		PlayerTypeHandler handler = new PlayerTypeHandler(owner, g);
-		List<PermissionType> ownerPerms = new ArrayList<>();
-		ownerPerms.addAll(PermissionType.getAllPermissions());
-		permsToSave.put(owner, ownerPerms);
 		PlayerType admin = new PlayerType("ADMINS", 1, owner, g);
 		handler.registerType(admin, false);
 		PlayerType mod = new PlayerType("MODS", 2, admin, g);
