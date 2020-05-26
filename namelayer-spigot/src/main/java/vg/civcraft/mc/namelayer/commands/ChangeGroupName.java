@@ -3,29 +3,21 @@ package vg.civcraft.mc.namelayer.commands;
 import java.util.Collections;
 import java.util.List;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
-import vg.civcraft.mc.namelayer.GroupAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
-import vg.civcraft.mc.namelayer.group.Group;
 
-@CivCommand(id="nlsdg")
-public class SetDefaultGroup extends StandaloneCommand {
+@CivCommand(id = "nlrg")
+public class ChangeGroupName extends StandaloneCommand {
 
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
-		Group group = GroupAPI.getGroup(args [0]);
-		if (group == null) {
-			sender.sendMessage(String.format("%sThe group %s does not exist", ChatColor.RED, args [0]));
-			return true;
-		}
-		//no permission check needed, this doesn't actually enable anything special
-		NameLayerPlugin.getInstance().getSettingsManager().getDefaultGroup().setGroup((Player) sender, group);
-		sender.sendMessage(ChatColor.GREEN + "Set your default group to " + group.getColoredName());
+		Player player = (Player) sender;
+		NameLayerPlugin.getInstance().getGroupInteractionManager().renameGroup(player.getUniqueId(), args[0], args[1],
+				player::sendMessage);
 		return true;
 	}
 
@@ -36,4 +28,5 @@ public class SetDefaultGroup extends StandaloneCommand {
 		}
 		return Collections.emptyList();
 	}
+
 }

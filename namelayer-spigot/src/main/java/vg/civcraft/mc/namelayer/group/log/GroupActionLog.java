@@ -23,9 +23,7 @@ public class GroupActionLog {
 	public void addAction(LoggedGroupAction action, boolean saveToDb) {
 		changes.add(action);
 		if (saveToDb) {
-			Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> {
-				NameLayerPlugin.getInstance().getGroupManagerDao().insertActionLog(group, action);
-			});
+			NameLayerPlugin.getInstance().getLoggedGroupActionFactory().persist(group, action);
 		}
 	}
 

@@ -25,6 +25,7 @@ public class AssociationList {
 	public AssociationList(Logger logger, ManagedDatasource db){
 		this.db = db;
 		this.logger = logger;
+		registerMigrations();
 	}
 
 	public void registerMigrations(){

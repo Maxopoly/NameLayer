@@ -34,7 +34,7 @@ public class AssociationListener implements Listener {
 				if (ClassHandler.properlyEnabled)
 					game = ch.getProfileClass();
 
-				associations = NameAPI.getAssociationList();
+				associations = NameAPI.getInstance().getDatabase();
 			}
 
 		}, 1);

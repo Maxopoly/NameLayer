@@ -36,7 +36,7 @@ public class ModifyPermissions extends StandaloneCommand {
 		case 1:
 			return NameLayerTabCompletion.completeGroupName(args [0], (Player) sender);
 		case 2:
-			//TOD complete rank
+			return NameLayerTabCompletion.completePlayerType(args[1], (Player) sender, args[0]);
 		case 3:
 			return NameLayerTabCompletion.staticComplete(args[2], "add", "remove");
 		case 4:

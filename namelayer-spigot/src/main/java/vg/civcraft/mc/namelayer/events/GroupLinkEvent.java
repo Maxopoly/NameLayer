@@ -5,18 +5,18 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 import vg.civcraft.mc.namelayer.group.Group;
-import vg.civcraft.mc.namelayer.permission.PlayerType;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
 
 public class GroupLinkEvent extends Event implements Cancellable {
 	private static final HandlerList handlers = new HandlerList();
 
 	private Group originating;
-	private PlayerType originatingType;
+	private GroupRank originatingType;
 	private Group target;
-	private PlayerType targetType;
+	private GroupRank targetType;
 	private boolean cancelled;
 
-	public GroupLinkEvent(Group originating, PlayerType originatingType, Group target, PlayerType targetType) {
+	public GroupLinkEvent(Group originating, GroupRank originatingType, Group target, GroupRank targetType) {
 		this.originating = originating;
 		this.originatingType = originatingType;
 		this.target = target;
@@ -40,14 +40,14 @@ public class GroupLinkEvent extends Event implements Cancellable {
 	/**
 	 * @return Player type in the target group the link will point to
 	 */
-	public PlayerType getTargetType() {
+	public GroupRank getTargetType() {
 		return targetType;
 	}
 
 	/**
 	 * @return Player type in the originating group the link will point away from
 	 */
-	public PlayerType getOriginatingType() {
+	public GroupRank getOriginatingType() {
 		return originatingType;
 	}
 

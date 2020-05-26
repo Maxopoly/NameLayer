@@ -6,18 +6,18 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-import vg.civcraft.mc.namelayer.permission.PlayerType;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
 
 public class GroupAddInvitation extends Event implements Cancellable{
 	private static final HandlerList handlers = new HandlerList();
 	
 	private String groupName;
-	private PlayerType type;
+	private GroupRank type;
 	private UUID invitedPlayer;
 	private UUID inviter; 
 	private boolean cancelled = false;
 	
-	public GroupAddInvitation(String groupName, PlayerType type, UUID invitedPlayer, UUID inviter){
+	public GroupAddInvitation(String groupName, GroupRank type, UUID invitedPlayer, UUID inviter){
 		this.groupName = groupName;
 		this.type = type;
 		this.invitedPlayer = invitedPlayer;
@@ -34,7 +34,7 @@ public class GroupAddInvitation extends Event implements Cancellable{
 	/**
 	 * @return The player type in the group the player was invited to.
 	 */
-	public PlayerType getPlayerType(){
+	public GroupRank getPlayerType(){
 		return type;
 	}
 

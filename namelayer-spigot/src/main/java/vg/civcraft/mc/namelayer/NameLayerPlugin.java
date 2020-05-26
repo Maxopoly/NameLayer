@@ -7,12 +7,16 @@ import org.bukkit.Bukkit;
 import vg.civcraft.mc.civmodcore.ACivMod;
 import vg.civcraft.mc.namelayer.database.AssociationList;
 import vg.civcraft.mc.namelayer.database.GroupManagerDao;
+import vg.civcraft.mc.namelayer.group.GroupInteractionManager;
+import vg.civcraft.mc.namelayer.group.GroupManager;
 import vg.civcraft.mc.namelayer.group.NameLayerMetaData;
+import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionFactory;
 import vg.civcraft.mc.namelayer.group.meta.GroupMetaDataAPI;
 import vg.civcraft.mc.namelayer.group.meta.GroupMetaDataView;
 import vg.civcraft.mc.namelayer.listeners.AssociationListener;
 import vg.civcraft.mc.namelayer.listeners.PlayerListener;
 import vg.civcraft.mc.namelayer.misc.ClassHandler;
+import vg.civcraft.mc.namelayer.misc.NameCleanser;
 import vg.civcraft.mc.namelayer.misc.NameLayerSettingManager;
 import vg.civcraft.mc.namelayer.permission.NameLayerPermissionManager;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
@@ -27,6 +31,7 @@ public class NameLayerPlugin extends ACivMod {
 	private GroupManager groupManager;
 	private NameLayerPermissionManager permissionManager;
 	private GroupInteractionManager groupInteractManager;
+	private LoggedGroupActionFactory logActionFactory;
 
 	@Override
 	public void onEnable() {
@@ -39,22 +44,26 @@ public class NameLayerPlugin extends ACivMod {
 			return;
 		}
 		groupManagerDao = new GroupManagerDao(this, configManager.getDatabase());
+		associations = new AssociationList(this.getLogger(), configManager.getDatabase());
 		if (!groupManagerDao.updateDatabase()) {
 			getLogger().log(Level.SEVERE, "Database update failed, terminating");
 			Bukkit.shutdown();
 			return;
 		}
 		ClassHandler.initialize(Bukkit.getServer());
+		PermissionType.initialize();
 		new NameAPI(associations);
 		groupManager = groupManagerDao.loadAllGroups();
+		logActionFactory = new LoggedGroupActionFactory(groupManagerDao);
 		registerListeners();
-		PermissionType.initialize();
 		permissionManager = new NameLayerPermissionManager();
 		groupManagerDao.loadGroupsInvitations();
 		nameLayerMeta = GroupMetaDataAPI.registerGroupMetaData(this.getName(), NameLayerMetaData::createNew,
 				NameLayerMetaData::load);
 		settingManager = new NameLayerSettingManager();
-		groupInteractManager =new GroupInteractionManager(groupManager, permissionManager, settingManager, nameLayerMeta);
+		NameCleanser.load(getConfig());
+		groupInteractManager = new GroupInteractionManager(groupManager, permissionManager, settingManager,
+				nameLayerMeta);
 	}
 
 	public void registerListeners() {
@@ -69,15 +78,19 @@ public class NameLayerPlugin extends ACivMod {
 	public AssociationList getAssociationList() {
 		return associations;
 	}
-	
+
 	public NameLayerPermissionManager getNLPermissionManager() {
 		return permissionManager;
+	}
+
+	public LoggedGroupActionFactory getLoggedGroupActionFactory() {
+		return logActionFactory;
 	}
 
 	public NameLayerSettingManager getSettingsManager() {
 		return settingManager;
 	}
-	
+
 	public GroupInteractionManager getGroupInteractionManager() {
 		return groupInteractManager;
 	}

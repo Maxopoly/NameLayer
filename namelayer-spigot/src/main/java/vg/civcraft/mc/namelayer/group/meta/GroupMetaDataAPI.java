@@ -26,7 +26,7 @@ public class GroupMetaDataAPI {
 	}
 	
 	public static void offerRawMeta(Map<Integer, JsonObject> rawJsons) {
-		if (rawJsons != null) {
+		if (GroupMetaDataAPI.rawJsons != null) {
 			throw new IllegalStateException("Jsons were already loaded");
 		}
 		GroupMetaDataAPI.rawJsons = rawJsons;
@@ -35,7 +35,7 @@ public class GroupMetaDataAPI {
 	static JsonObject hitJsonCache(int groupId, String identifier) {
 		JsonObject groupJson = rawJsons.get(groupId);
 		if (groupJson == null) {
-			throw new IllegalStateException("No group meta data existed");
+			return null;
 		}
 		if (!groupJson.has(identifier)) {
 			return null;

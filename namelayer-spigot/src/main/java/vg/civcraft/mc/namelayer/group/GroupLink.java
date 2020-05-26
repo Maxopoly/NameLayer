@@ -1,16 +1,16 @@
 package vg.civcraft.mc.namelayer.group;
 
-import vg.civcraft.mc.namelayer.permission.PlayerType;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
 
 public class GroupLink {
 
 	private Group originating;
-	private PlayerType originatingType;
+	private GroupRank originatingType;
 	private Group target;
-	private PlayerType targetType;
+	private GroupRank targetType;
 	private int id;
 	
-	public GroupLink(Group originating, PlayerType originatingType, Group target, PlayerType targetType) {
+	public GroupLink(Group originating, GroupRank originatingType, Group target, GroupRank targetType) {
 		this.originating = originating;
 		this.originatingType = originatingType;
 		this.target = target;
@@ -33,7 +33,7 @@ public class GroupLink {
 		return originating;
 	}
 
-	public PlayerType getOriginatingType() {
+	public GroupRank getOriginatingType() {
 		return originatingType;
 	}
 
@@ -41,7 +41,7 @@ public class GroupLink {
 		return target;
 	}
 
-	public PlayerType getTargetType() {
+	public GroupRank getTargetType() {
 		return targetType;
 	}
 	

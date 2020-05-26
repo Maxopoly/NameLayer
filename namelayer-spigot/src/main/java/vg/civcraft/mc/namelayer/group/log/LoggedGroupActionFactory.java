@@ -1,10 +1,14 @@
 package vg.civcraft.mc.namelayer.group.log;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Function;
+
+import org.bukkit.Bukkit;
 
 import vg.civcraft.mc.namelayer.GroupAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
@@ -37,17 +41,47 @@ public class LoggedGroupActionFactory {
 	private Map<String, Function<LoggedGroupActionPersistence, LoggedGroupAction>> logInstanciators;
 	private Map<String, Integer> identifierToInternalId;
 	private Map<String, Map<Integer, List<LoggedGroupActionPersistence>>> unloadedLogs;
+	private GroupManagerDao dao;
 
 	public LoggedGroupActionFactory(GroupManagerDao dao) {
+		this.dao = dao;
 		this.logInstanciators = new HashMap<>();
 		this.identifierToInternalId = new HashMap<>();
 		this.unloadedLogs = new HashMap<>();
 		registerNameLayerProviders();
 		loadLogs();
 	}
-	
+
 	private void loadLogs() {
-		//TODO TODO load and shit
+		unloadedLogs = dao.loadAllGroupsLogs();
+		Set<Group> groupsModified = new HashSet<>();
+		for (Entry<String, Function<LoggedGroupActionPersistence, LoggedGroupAction>> entry : logInstanciators
+				.entrySet()) {
+			Map<Integer, List<LoggedGroupActionPersistence>> actionToLoad = unloadedLogs.get(entry.getKey());
+			if (actionToLoad == null) {
+				return;
+			}
+			for (Entry<Integer, List<LoggedGroupActionPersistence>> groupEntry : actionToLoad.entrySet()) {
+				Group group = GroupAPI.getGroup(groupEntry.getKey());
+				if (group == null) {
+					continue;
+				}
+				boolean addedAny = false;
+				for (LoggedGroupActionPersistence log : groupEntry.getValue()) {
+					LoggedGroupAction action = entry.getValue().apply(log);
+					if (action != null) {
+						group.getActionLog().addAction(action, false);
+						addedAny = true;
+					}
+				}
+				if (addedAny) {
+					groupsModified.add(group);
+				}
+			}
+		}
+		for (Group group : groupsModified) {
+			group.getActionLog().sortLog();
+		}
 	}
 
 	public LoggedGroupAction produceAction(String identifier, LoggedGroupActionPersistence persist) {
@@ -56,6 +90,18 @@ public class LoggedGroupActionFactory {
 			return null;
 		}
 		return instanciator.apply(persist);
+	}
+
+	public void persist(Group group, LoggedGroupAction action) {
+		Integer id = identifierToInternalId.get(action.getIdentifier());
+		if (id != null) {
+			Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> {
+				NameLayerPlugin.getInstance().getGroupManagerDao().insertActionLog(group, id, action);
+			});
+		} else {
+			NameLayerPlugin.getInstance().getLogger()
+					.severe("No id was found for group log of type " + action.getIdentifier());
+		}
 	}
 
 	public void registerProvider(String identifier,
@@ -75,7 +121,7 @@ public class LoggedGroupActionFactory {
 			return;
 		}
 		for (Entry<Integer, List<LoggedGroupActionPersistence>> entry : actionToLoad.entrySet()) {
-			Group group = GroupAPI.getGroupById(entry.getKey());
+			Group group = GroupAPI.getGroup(entry.getKey());
 			if (group == null) {
 				continue;
 			}

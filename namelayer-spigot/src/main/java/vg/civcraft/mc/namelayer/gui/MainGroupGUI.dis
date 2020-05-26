@@ -32,8 +32,8 @@ import vg.civcraft.mc.namelayer.events.PromotePlayerEvent;
 import vg.civcraft.mc.namelayer.group.BlackList;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.listeners.PlayerListener;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
-import vg.civcraft.mc.namelayer.permission.PlayerType;
 
 public class MainGroupGUI extends AbstractGroupGUI {
 
@@ -131,13 +131,13 @@ public class MainGroupGUI extends AbstractGroupGUI {
 		ci.setSlot(getSuperMenuClickable(), 45);
 		ci.setSlot(createInheritedMemberToggle(), 46);
 		ci.setSlot(createInviteToggle(), 47);
-		ci.setSlot(setupMemberTypeToggle(PlayerType.MEMBERS, showMembers), 48);
+		ci.setSlot(setupMemberTypeToggle(GroupRank.MEMBERS, showMembers), 48);
 
-		ci.setSlot(setupMemberTypeToggle(PlayerType.MODS, showMods), 50);
+		ci.setSlot(setupMemberTypeToggle(GroupRank.MODS, showMods), 50);
 
-		ci.setSlot(setupMemberTypeToggle(PlayerType.ADMINS, showAdmins), 51);
+		ci.setSlot(setupMemberTypeToggle(GroupRank.ADMINS, showAdmins), 51);
 
-		ci.setSlot(setupMemberTypeToggle(PlayerType.OWNER, showOwners), 52);
+		ci.setSlot(setupMemberTypeToggle(GroupRank.OWNER, showOwners), 52);
 
 		// exit button
 		ItemStack backToOverview = goBackStack(); 
@@ -225,9 +225,9 @@ public class MainGroupGUI extends AbstractGroupGUI {
 
 		}
 		if (showInvites) {
-			Map<UUID, PlayerType> invites = NameLayerPlugin
+			Map<UUID, GroupRank> invites = NameLayerPlugin
 					.getGroupManagerDao().getInvitesForGroup(g.getName());
-			for (Entry<UUID, PlayerType> entry : invites.entrySet()) {
+			for (Entry<UUID, GroupRank> entry : invites.entrySet()) {
 				ItemStack is = new ItemStack(Material.CHAINMAIL_CHESTPLATE);
 				ItemMeta im = is.getItemMeta();
 				im.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
@@ -277,7 +277,7 @@ public class MainGroupGUI extends AbstractGroupGUI {
 						@Override
 						public void clicked(Player arg0) {
 							UUID invitedUUID = NameAPI.getUUID(playerName);
-							PlayerType pType = g.getInvite(invitedUUID);
+							GroupRank pType = g.getInvite(invitedUUID);
 							if (pType == null) {
 								p.sendMessage(ChatColor.RED
 										+ "Failed to revoke invite for "
@@ -337,29 +337,29 @@ public class MainGroupGUI extends AbstractGroupGUI {
 		}
 		for (UUID uuid : g.getAllMembers()) {
 			Clickable c = null;
-			switch (g.getPlayerType(uuid)) {
+			switch (g.getRank(uuid)) {
 				case MEMBERS:
 					if (showMembers) {
 						c = constructMemberClickable(Material.LEATHER_CHESTPLATE,
-								uuid, PlayerType.MEMBERS);
+								uuid, GroupRank.MEMBERS);
 					}
 					break;
 				case MODS:
 					if (showMods) {
 						c = constructMemberClickable(modMat(),
-								uuid, PlayerType.MODS);
+								uuid, GroupRank.MODS);
 					}
 					break;
 				case ADMINS:
 					if (showAdmins) {
 						c = constructMemberClickable(Material.IRON_CHESTPLATE,
-								uuid, PlayerType.ADMINS);
+								uuid, GroupRank.ADMINS);
 					}
 					break;
 				case OWNER:
 					if (showOwners) {
 						c = constructMemberClickable(Material.DIAMOND_CHESTPLATE,
-								uuid, PlayerType.OWNER);
+								uuid, GroupRank.OWNER);
 					}
 					break;
 				default:
@@ -377,14 +377,14 @@ public class MainGroupGUI extends AbstractGroupGUI {
 	 * Convenience method to create the toggles for the displaying of different
 	 * group member types
 	 */
-	private Clickable setupMemberTypeToggle(final PlayerType pType,
+	private Clickable setupMemberTypeToggle(final GroupRank pType,
 											boolean initialState) {
 		boolean canEdit = gm.hasAccess(g, p.getUniqueId(),
 				getAccordingPermission(pType))
 				|| gm.hasAccess(g, p.getUniqueId(),
 				PermissionType.getPermission("GROUPSTATS"));
 		ItemStack is = MenuUtils.toggleButton(initialState, ChatColor.GOLD
-				+ "Show " + PlayerType.getNiceRankName(pType) + "s", canEdit);
+				+ "Show " + GroupRank.getNiceRankName(pType) + "s", canEdit);
 		Clickable c;
 		if (canEdit) {
 			c = new Clickable(is) {
@@ -422,7 +422,7 @@ public class MainGroupGUI extends AbstractGroupGUI {
 	 * gui, which represent members
 	 */
 	private Clickable constructMemberClickable(Material material,
-											   final UUID toDisplay, PlayerType rank) {
+											   final UUID toDisplay, GroupRank rank) {
 		Clickable c;
 		ItemStack is = new ItemStack(material);
 		ItemMeta im = is.getItemMeta();
@@ -481,16 +481,16 @@ public class MainGroupGUI extends AbstractGroupGUI {
 		ci.setSlot(new DecorationStack(info), 4);
 
 		Clickable memberClick = setupDetailSlot(Material.LEATHER_CHESTPLATE,
-				uuid, PlayerType.MEMBERS);
+				uuid, GroupRank.MEMBERS);
 		ci.setSlot(memberClick, 10);
 		Clickable modClick = setupDetailSlot(modMat(), uuid,
-				PlayerType.MODS);
+				GroupRank.MODS);
 		ci.setSlot(modClick, 12);
 		Clickable adminClick = setupDetailSlot(Material.IRON_CHESTPLATE, uuid,
-				PlayerType.ADMINS);
+				GroupRank.ADMINS);
 		ci.setSlot(adminClick, 14);
 		Clickable ownerClick = setupDetailSlot(Material.DIAMOND_CHESTPLATE,
-				uuid, PlayerType.OWNER);
+				uuid, GroupRank.OWNER);
 		ci.setSlot(ownerClick, 16);
 
 		ItemStack backToOverview = goBackStack(); 
@@ -510,8 +510,8 @@ public class MainGroupGUI extends AbstractGroupGUI {
 	 * easily construct the clickables needed
 	 */
 	private Clickable setupDetailSlot(Material slotMaterial,
-									  final UUID toChange, final PlayerType pType) {
-		final PlayerType rank = g.getCurrentRank(toChange);
+									  final UUID toChange, final GroupRank pType) {
+		final GroupRank rank = g.getCurrentRank(toChange);
 		ItemStack mod = new ItemStack(slotMaterial);
 		ItemMeta im = mod.getItemMeta();
 		im.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
@@ -541,9 +541,9 @@ public class MainGroupGUI extends AbstractGroupGUI {
 			ItemAPI.setDisplayName(
 					mod,
 					ChatColor.GOLD
-							+ demoteOrPromote(g.getPlayerType(toChange), pType,
+							+ demoteOrPromote(g.getRank(toChange), pType,
 							true) + " this player to "
-							+ PlayerType.getNiceRankName(pType));
+							+ GroupRank.getNiceRankName(pType));
 			if (!gm.hasAccess(g, p.getUniqueId(), getAccordingPermission(pType))) {
 				ItemAPI.addLore(mod, ChatColor.RED
 						+ "You dont have permission to do this");
@@ -586,7 +586,7 @@ public class MainGroupGUI extends AbstractGroupGUI {
 		}
 	}
 
-	private void changePlayerRank(UUID toChange, PlayerType newRank) {
+	private void changePlayerRank(UUID toChange, GroupRank newRank) {
 		if (gm.hasAccess(g, p.getUniqueId(),
 				getAccordingPermission(g.getCurrentRank(toChange)))) {
 			if (!g.isMember(toChange)) {
@@ -1068,7 +1068,7 @@ public class MainGroupGUI extends AbstractGroupGUI {
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Stats for " + g.getName());
 		ItemAPI.addLore(is,
 				ChatColor.DARK_AQUA + "Your current rank: " + ChatColor.YELLOW
-						+ PlayerType.getNiceRankName(g.getPlayerType(p.getUniqueId())));
+						+ GroupRank.getNiceRankName(g.getRank(p.getUniqueId())));
 		boolean hasGroupStatsPerm = gm.hasAccess(g, p.getUniqueId(),
 				PermissionType.getPermission("GROUPSTATS"));
 		if (gm.hasAccess(g, p.getUniqueId(),
@@ -1078,7 +1078,7 @@ public class MainGroupGUI extends AbstractGroupGUI {
 					is,
 					ChatColor.AQUA
 							+ String.valueOf(g
-							.getAllMembers(PlayerType.MEMBERS).size())
+							.getAllMembers(GroupRank.MEMBERS).size())
 							+ " members");
 		}
 		if (gm.hasAccess(g, p.getUniqueId(),
@@ -1087,7 +1087,7 @@ public class MainGroupGUI extends AbstractGroupGUI {
 			ItemAPI.addLore(
 					is,
 					ChatColor.AQUA
-							+ String.valueOf(g.getAllMembers(PlayerType.MODS)
+							+ String.valueOf(g.getAllMembers(GroupRank.MODS)
 							.size()) + " mods");
 		}
 		if (gm.hasAccess(g, p.getUniqueId(),
@@ -1096,7 +1096,7 @@ public class MainGroupGUI extends AbstractGroupGUI {
 			ItemAPI.addLore(
 					is,
 					ChatColor.AQUA
-							+ String.valueOf(g.getAllMembers(PlayerType.ADMINS)
+							+ String.valueOf(g.getAllMembers(GroupRank.ADMINS)
 							.size()) + " admins");
 		}
 		if (gm.hasAccess(g, p.getUniqueId(),
@@ -1105,7 +1105,7 @@ public class MainGroupGUI extends AbstractGroupGUI {
 			ItemAPI.addLore(
 					is,
 					ChatColor.AQUA
-							+ String.valueOf(g.getAllMembers(PlayerType.OWNER)
+							+ String.valueOf(g.getAllMembers(GroupRank.OWNER)
 							.size()) + " owner");
 		}
 		if (hasGroupStatsPerm) {
@@ -1134,11 +1134,11 @@ public class MainGroupGUI extends AbstractGroupGUI {
 		if (uuid == null) {
 			return null;
 		}
-		PlayerType pType = g.getPlayerType(uuid);
+		GroupRank pType = g.getRank(uuid);
 		if (pType == null) {
 			return null;
 		}
-		return PlayerType.getNiceRankName(pType);
+		return GroupRank.getNiceRankName(pType);
 	}
 
 	/**
@@ -1148,7 +1148,7 @@ public class MainGroupGUI extends AbstractGroupGUI {
 	 * @return Permission belonging to the given PlayerType or null if the
 	 * permission was NOT_BLACKLISTED or null
 	 */
-	public static PermissionType getAccordingPermission(PlayerType pt) {
+	public static PermissionType getAccordingPermission(GroupRank pt) {
 		switch (pt) {
 			case MEMBERS:
 				return PermissionType.getPermission("MEMBERS");
@@ -1165,9 +1165,9 @@ public class MainGroupGUI extends AbstractGroupGUI {
 	/**
 	 * Utility to determine whether the player is being promoted or demoted
 	 */
-	private static String demoteOrPromote(PlayerType oldRank,
-										  PlayerType newRank, boolean upperCaseFirstLetter) {
-		String res = PlayerType.getID(oldRank) <= PlayerType.getID(newRank) ? "promote"
+	private static String demoteOrPromote(GroupRank oldRank,
+										  GroupRank newRank, boolean upperCaseFirstLetter) {
+		String res = GroupRank.getID(oldRank) <= GroupRank.getID(newRank) ? "promote"
 				: "demote";
 		if (upperCaseFirstLetter) {
 			return res.substring(0, 1).toUpperCase() + res.substring(1);
@@ -1182,7 +1182,7 @@ public class MainGroupGUI extends AbstractGroupGUI {
 		}
 		for (UUID uuid : g.getAllMembers()) {
 			ItemStack is;
-			switch (g.getPlayerType(uuid)) {
+			switch (g.getRank(uuid)) {
 				case MEMBERS:
 					is = new ItemStack(Material.LEATHER_CHESTPLATE);
 					break;

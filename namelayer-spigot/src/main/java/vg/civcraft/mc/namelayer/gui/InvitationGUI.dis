@@ -24,12 +24,12 @@ import vg.civcraft.mc.namelayer.NameAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.commands.InvitePlayer;
 import vg.civcraft.mc.namelayer.group.Group;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
-import vg.civcraft.mc.namelayer.permission.PlayerType;
 
 public class InvitationGUI extends AbstractGroupGUI{
 	
-	private PlayerType selectedType;
+	private GroupRank selectedType;
 	private MainGroupGUI parent;
 	
 	public InvitationGUI(Group g, Player p, MainGroupGUI parent) {
@@ -45,14 +45,14 @@ public class InvitationGUI extends AbstractGroupGUI{
 		ItemAPI.setDisplayName(explain, ChatColor.GOLD + "Select an option");
 		ItemAPI.addLore(explain, ChatColor.AQUA + "Please select the rank ", ChatColor.AQUA + "you want the invited player to have");
 		ci.setSlot(new DecorationStack(explain), 4);
-		ci.setSlot(produceOptionStack(Material.LEATHER_CHESTPLATE, "member", PlayerType.MEMBERS, PermissionType.getPermission("MEMBERS")), 10);
-		ci.setSlot(produceOptionStack(modMat(), "mod", PlayerType.MODS, PermissionType.getPermission("MODS")), 12);
-		ci.setSlot(produceOptionStack(Material.IRON_CHESTPLATE, "admin", PlayerType.ADMINS, PermissionType.getPermission("ADMINS")), 14);
-		ci.setSlot(produceOptionStack(Material.DIAMOND_CHESTPLATE, "owner", PlayerType.OWNER, PermissionType.getPermission("OWNER")), 16);
+		ci.setSlot(produceOptionStack(Material.LEATHER_CHESTPLATE, "member", GroupRank.MEMBERS, PermissionType.getPermission("MEMBERS")), 10);
+		ci.setSlot(produceOptionStack(modMat(), "mod", GroupRank.MODS, PermissionType.getPermission("MODS")), 12);
+		ci.setSlot(produceOptionStack(Material.IRON_CHESTPLATE, "admin", GroupRank.ADMINS, PermissionType.getPermission("ADMINS")), 14);
+		ci.setSlot(produceOptionStack(Material.DIAMOND_CHESTPLATE, "owner", GroupRank.OWNER, PermissionType.getPermission("OWNER")), 16);
 		ci.showInventory(p);
 	}
 	
-	private Clickable produceOptionStack(Material item, String niceRankName, final PlayerType pType, PermissionType perm) {
+	private Clickable produceOptionStack(Material item, String niceRankName, final GroupRank pType, PermissionType perm) {
 		ItemStack is = new ItemStack(item);
 		ItemMeta im = is.getItemMeta();
 		im.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
@@ -97,7 +97,7 @@ public class InvitationGUI extends AbstractGroupGUI{
 
 									InvitePlayer.sendInvitation(g, pType, inviteUUID, p.getUniqueId(), true);
 
-									p.sendMessage(ChatColor.GREEN  + "Invited " + NameAPI.getCurrentName(inviteUUID) + " as " + PlayerType.getNiceRankName(pType));
+									p.sendMessage(ChatColor.GREEN  + "Invited " + NameAPI.getCurrentName(inviteUUID) + " as " + GroupRank.getNiceRankName(pType));
 								}
 							} else {
 								p.sendMessage(ChatColor.RED + "You do not have permission to invite a player to this rank");

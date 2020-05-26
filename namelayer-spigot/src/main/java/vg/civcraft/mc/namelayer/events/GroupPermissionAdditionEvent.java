@@ -5,8 +5,8 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 import vg.civcraft.mc.namelayer.group.Group;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
-import vg.civcraft.mc.namelayer.permission.PlayerType;
 
 public class GroupPermissionAdditionEvent extends Event implements Cancellable{
 	
@@ -14,10 +14,10 @@ public class GroupPermissionAdditionEvent extends Event implements Cancellable{
 	
 	private boolean isCancelled = false;
 	private Group group;
-	private PlayerType playerType;
+	private GroupRank playerType;
 	private PermissionType permission;
 	
-	public GroupPermissionAdditionEvent(Group group, PlayerType playerType, PermissionType permission){
+	public GroupPermissionAdditionEvent(Group group, GroupRank playerType, PermissionType permission){
 		this.group = group;
 		this.playerType = playerType;
 		this.permission = permission;
@@ -33,7 +33,7 @@ public class GroupPermissionAdditionEvent extends Event implements Cancellable{
 	/**
 	 * @return Player type from which the permission was taken
 	 */
-	public PlayerType getPlayerType() {
+	public GroupRank getPlayerType() {
 		return playerType;
 	}
 	

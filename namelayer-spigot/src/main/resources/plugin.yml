@@ -36,6 +36,16 @@ commands:
     min-args: 1
     max-args: 1
     player-only: true
+  nlbl:
+    aliases:
+      - blacklist
+      - addblacklist
+      - nlab
+    usage: /nlbl [group] [player] [rank]
+    description: Adds a player to a blacklist rank
+    min-args: 3
+    max-args: 3
+    player-only: true
   nlcg:
     aliases:
       - nlcreategroup
@@ -56,6 +66,16 @@ commands:
     min-args: 2
     max-args: 2
     player-only: false
+  nlcr:
+    aliases:
+      - nlcreaterank
+      - createrank
+      - addrank
+    usage: /nlcr [group] [parentRank] [rankName]
+    description: Creates a new rank for a group
+    min-args: 3
+    max-args: 3
+    player-only: true
   nldg:
     aliases:
       - nldeletegroup
@@ -68,6 +88,16 @@ commands:
     usage: /nldg [group] [CONFIRM]
     description: Deletes a group
     min-args: 1
+    max-args: 2
+    player-only: true
+  nldr:
+    aliases:
+      - nldeleterank
+      - deleterank
+      - removerank
+    usage: /nldr [group] [rank]
+    description: Deletes a rank from a group
+    min-args: 2
     max-args: 2
     player-only: true
   nlgs:
@@ -103,6 +133,16 @@ commands:
     description: Joins a group via password
     min-args: 2
     max-args: 50
+    player-only: true
+  nllb:
+    aliases:
+      - showblacklist
+      - listblacklist
+      - nllbl
+    usage: /nllbl [group]
+    description: Lists all players blacklisted for a group
+    min-args: 1
+    max-args: 1
     player-only: true
   nllci:
     aliases:
@@ -187,7 +227,7 @@ commands:
     min-args: 3
     max-args: 3
     player-only: true
-  nlrg:
+  nldi:
     aliases:
       - nlrejectinvite
       - nldeclineinvite
@@ -197,6 +237,16 @@ commands:
     description: Rejects an invite to a group
     min-args: 1
     max-args: 1
+    player-only: true
+  nlrg:
+    aliases:
+      - nlrenamegroup
+      - renamegroup
+      - changegroupname
+    usage: /nlrg [group] [newName]
+    description: Changes a groups name
+    min-args: 2
+    max-args: 2
     player-only: true
   nlri:
     aliases:
@@ -227,6 +277,16 @@ commands:
     min-args: 2
     max-args: 2
     player-only: true
+  nlrr:
+    aliases:
+      - nlrenamerank
+      - renamerank
+      - changerankname
+    usage: /nlrr [group] [rank] [newRankName]
+    description: Changes the name of a rank for a group
+    min-args: 3
+    max-args: 3
+    player-only: true
   nlsdg:
     aliases:
       - setdefaultgroup
@@ -250,29 +310,12 @@ commands:
     min-args: 1
     max-args: 50
     player-only: true
-  nllbl:
-    aliases:
-      - showblacklist
-      - listblacklist
-    usage: /nllbl [group]
-    description: Lists all players blacklisted for a group
-    min-args: 1
-    max-args: 1
-    player-only: true
-  nlbl:
-    aliases:
-      - blacklist
-      - addblacklist
-    usage: /nlbl [group] [player] [rank]
-    description: Adds a player to a blacklist rank
-    min-args: 3
-    max-args: 3
-    player-only: true
-  nlubl:
+  nlub:
     aliases:
       - removeblacklist
       - unblacklist
-    usage: /nlubl [group] [player]
+      - nlubl 
+    usage: /nlub [group] [player]
     description: Removes a player from a blacklist rank
     min-args: 2
     max-args: 2

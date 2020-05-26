@@ -15,9 +15,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import vg.civcraft.mc.namelayer.GroupManager;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
+import vg.civcraft.mc.namelayer.group.GroupManager;
 
 public class PlayerListener implements Listener{
 

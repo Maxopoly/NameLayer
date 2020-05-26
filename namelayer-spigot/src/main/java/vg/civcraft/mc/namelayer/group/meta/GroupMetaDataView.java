@@ -28,9 +28,9 @@ public class GroupMetaDataView<T extends GroupMetaData> {
 	}
 	
 	public T getMetaData(Group group) {
-		T data = metaData.get(group.getGroupId());
+		T data = metaData.get(group.getPrimaryId());
 		if (data == null) {
-			JsonObject json = GroupMetaDataAPI.hitJsonCache(group.getGroupId(), identifier);
+			JsonObject json = GroupMetaDataAPI.hitJsonCache(group.getPrimaryId(), identifier);
 			if (json == null) {
 				data = defaultValue.get();
 			}
@@ -41,7 +41,7 @@ public class GroupMetaDataView<T extends GroupMetaData> {
 					data = defaultValue.get();
 				}
 			}
-			metaData.put(group.getGroupId(), data);
+			metaData.put(group.getPrimaryId(), data);
 		}
 		return data;
 	}

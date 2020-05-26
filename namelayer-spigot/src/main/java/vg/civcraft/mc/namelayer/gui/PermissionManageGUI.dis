@@ -20,8 +20,8 @@ import vg.civcraft.mc.civmodcore.inventorygui.DecorationStack;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.permission.GroupPermission;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
-import vg.civcraft.mc.namelayer.permission.PlayerType;
 
 public class PermissionManageGUI extends AbstractGroupGUI {
 
@@ -40,7 +40,7 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 			return;
 		}
 		//dye blacklisted clickable black
-		Clickable blackClick = produceSelectionClickable(Material.LEATHER_CHESTPLATE, PlayerType.NOT_BLACKLISTED);
+		Clickable blackClick = produceSelectionClickable(Material.LEATHER_CHESTPLATE, GroupRank.NOT_BLACKLISTED);
 		ItemStack blackStack = blackClick.getItemStack();
 		LeatherArmorMeta meta = (LeatherArmorMeta)blackStack.getItemMeta();
 		meta.setColor(Color.BLACK);
@@ -48,16 +48,16 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 		ci.setSlot(blackClick, 9);
 		ci.setSlot(
 				produceSelectionClickable(Material.LEATHER_CHESTPLATE,
-						PlayerType.MEMBERS), 11);
+						GroupRank.MEMBERS), 11);
 		ci.setSlot(
 				produceSelectionClickable(modMat(),
-						PlayerType.MODS), 13);
+						GroupRank.MODS), 13);
 		ci.setSlot(
 				produceSelectionClickable(Material.IRON_CHESTPLATE,
-						PlayerType.ADMINS), 15);
+						GroupRank.ADMINS), 15);
 		ci.setSlot(
 				produceSelectionClickable(Material.DIAMOND_CHESTPLATE,
-						PlayerType.OWNER), 17);
+						GroupRank.OWNER), 17);
 		ItemStack backStack = new ItemStack(Material.ARROW);
 		ItemAPI.setDisplayName(backStack, ChatColor.GOLD
 				+ "Go back to member management");
@@ -72,14 +72,14 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 	}
 
 	private Clickable produceSelectionClickable(Material mat,
-			final PlayerType pType) {
+			final GroupRank pType) {
 		ItemStack is = new ItemStack(mat);
 		ItemMeta im = is.getItemMeta();
 		im.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 		is.setItemMeta(im);
 		Clickable c;
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "View and edit permissions for "
-				+ PlayerType.getNiceRankName(pType));
+				+ GroupRank.getNiceRankName(pType));
 		if (!gm.hasAccess(g, p.getUniqueId(),
 				PermissionType.getPermission("LIST_PERMS"))) {
 			ItemAPI.addLore(is, ChatColor.RED + "You are not allowed to list",
@@ -97,7 +97,7 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 		return c;
 	}
 
-	private void showPermissionEditing(final PlayerType pType) {
+	private void showPermissionEditing(final GroupRank pType) {
 		if (!validGroup()) {
 			return;
 		}
@@ -123,7 +123,7 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 				ItemAPI.addLore(
 						is,
 						ChatColor.DARK_AQUA
-								+ PlayerType.getNiceRankName(pType)
+								+ GroupRank.getNiceRankName(pType)
 								+ "s currently have", ChatColor.DARK_AQUA
 								+ "this permission");
 			} else {
@@ -131,7 +131,7 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 				ItemAPI.addLore(
 						is,
 						ChatColor.DARK_AQUA
-								+ PlayerType.getNiceRankName(pType)
+								+ GroupRank.getNiceRankName(pType)
 								+ "s currently don't have", ChatColor.DARK_AQUA
 								+ "this permission");
 			}
@@ -141,14 +141,14 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 				ItemAPI.addLore(is, ChatColor.GREEN + desc);
 			}
 
-			if (pType == PlayerType.NOT_BLACKLISTED && !perm.getCanBeBlacklisted()) {
+			if (pType == GroupRank.NOT_BLACKLISTED && !perm.getCanBeBlacklisted()) {
 				canEdit = false;
 
 				ItemAPI.addLore(
 						is,
 						ChatColor.AQUA
 								+ "This permission cannot be toggled for "
-								+ PlayerType.getNiceRankName(pType)
+								+ GroupRank.getNiceRankName(pType)
 				);
 			}
 

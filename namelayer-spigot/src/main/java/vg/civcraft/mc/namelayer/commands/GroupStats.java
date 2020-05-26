@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -20,9 +21,9 @@ import vg.civcraft.mc.namelayer.NameAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.group.GroupLink;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
+import vg.civcraft.mc.namelayer.permission.GroupRankHandler;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
-import vg.civcraft.mc.namelayer.permission.PlayerType;
-import vg.civcraft.mc.namelayer.permission.PlayerTypeHandler;
 
 @CivCommand(id = "nlgs")
 public class GroupStats extends StandaloneCommand {
@@ -31,9 +32,9 @@ public class GroupStats extends StandaloneCommand {
 		StringBuilder sb = new StringBuilder();
 		sb.append(ChatColor.GREEN.toString() + ChatColor.BOLD + " --- " + group.getColoredName() + ChatColor.GREEN
 				+ ChatColor.BOLD + " --- " + '\n');
-		PlayerTypeHandler typeHandler = group.getPlayerTypeHandler();
-		for (PlayerType type : typeHandler.getAllTypes()) {
-			List<UUID> ofThatType = group.getAllTrackedByType(type);
+		GroupRankHandler typeHandler = group.getGroupRankHandler();
+		for (GroupRank type : typeHandler.getAllTypes()) {
+			Set<UUID> ofThatType = group.getAllTrackedByType(type);
 			sb.append(ChatColor.GREEN);
 			sb.append(type);
 			if (type.getParent() != null) {
@@ -86,12 +87,12 @@ public class GroupStats extends StandaloneCommand {
 			}
 		}
 		sb.append('\n');
-		Map<UUID, PlayerType> invites = group.dumpInvites();
+		Map<UUID, GroupRank> invites = group.getAllInvites();
 		if (invites.isEmpty()) {
 			sb.append("There are no pending invites\n");
 		} else {
 			sb.append("Pending invites:\n");
-			for (Entry<UUID, PlayerType> entry : invites.entrySet()) {
+			for (Entry<UUID, GroupRank> entry : invites.entrySet()) {
 				sb.append(" - ");
 				sb.append(NameAPI.getCurrentName(entry.getKey()));
 				sb.append(" (");
@@ -102,7 +103,7 @@ public class GroupStats extends StandaloneCommand {
 		return sb.toString();
 	}
 
-	private static void printInheritedMembersRecursive(StringBuilder sb, Group group, PlayerType type) {
+	private static void printInheritedMembersRecursive(StringBuilder sb, Group group, GroupRank type) {
 		for (GroupLink link : group.getIncomingLinks()) {
 			if (!type.isEqualOrAbove(link.getTargetType())) {
 				continue;
@@ -118,7 +119,7 @@ public class GroupStats extends StandaloneCommand {
 			sb.append(group.getColoredName());
 			sb.append(ChatColor.YELLOW);
 		}
-		for (PlayerType parent : type.getAllParents()) {
+		for (GroupRank parent : type.getAllParents()) {
 			for (UUID player : group.getAllTrackedByType(parent)) {
 				sb.append(" - ");
 				sb.append(NameAPI.getCurrentName(player));
@@ -137,7 +138,7 @@ public class GroupStats extends StandaloneCommand {
 
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
-		Group group = GroupAPI.getGroupByName(args[0]);
+		Group group = GroupAPI.getGroup(args[0]);
 		if (group == null) {
 			sender.sendMessage(String.format("%sThe group %s does not exist", ChatColor.RED, args[0]));
 			return true;

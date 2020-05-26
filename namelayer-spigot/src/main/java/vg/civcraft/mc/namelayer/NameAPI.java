@@ -52,6 +52,10 @@ public class NameAPI {
 		return nameToUUIDS.computeIfAbsent(playerName, associations::getUUID);
 	}
 	
+	public AssociationList getDatabase() {
+		return associations;
+	}
+	
 	/**
 	 * Returns the UUID of the player on the given server.
 	 * @param playerName The playername.

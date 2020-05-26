@@ -2,86 +2,39 @@ package vg.civcraft.mc.namelayer.commands;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
+import java.util.Set;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
-import vg.civcraft.mc.namelayer.GroupManager;
-import vg.civcraft.mc.namelayer.NameAPI;
+import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
 
+@CivCommand(id = "nllg")
 public class ListGroups extends StandaloneCommand {
 
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		Player player = (Player) sender;
-		UUID uuid = null;
-		boolean autopages = false;
-		
-		if ((sender.isOp() || sender.hasPermission("namelayer.admin"))) {
-			if (args.length == 0) {
-				uuid = NameAPI.getUUID(sender.getName());
-			} else if (args.length == 1) {
-				uuid = NameAPI.getUUID(args[0]);
-			}
-				
-			if (uuid == null) {
-            	sender.sendMessage(ChatColor.RED + "UUID is NULL, OP Usage is /nllg <playername>");
-            	return true;
-            }
-            autopages = true;
-        } else {
-			p = (Player) sender;
-			uuid = NameAPI.getUUID(p.getName());
+		Set<Group> groups = NameLayerPlugin.getInstance().getGroupManager().getGroupsForPlayer(player.getUniqueId());
+		if (groups.isEmpty()) {
+			sender.sendMessage(ChatColor.GREEN + "You are not a member of any groups");
+			return true;
 		}
-		
-		List<String> groups = gm.getAllGroupNames(uuid);
-		
-		int pages = (groups.size() / 10);
-		if (groups.size() % 10 > 0) {
-			pages++;
-		}
-		if (pages == 0) {
-			pages = 1;
-		}
-		int actualPages = pages;
-		
-		int target = 1;
-		if (args.length == 1) {
-			try {
-				target = Integer.parseInt(args[0]);
-			} catch (NumberFormatException e) {
-				sender.sendMessage(ChatColor.RED + args[0] + " is not a number");
-				return false;
-			}
-		}
-		
-		if (target >= pages) {
-			target = pages;
-		}
-		
-		if (!autopages) {
-			pages = target;
-		}
-		
 		StringBuilder sb = new StringBuilder();
 		sb.append(ChatColor.GREEN);
-		for (int page = target; page <= pages; page++) {
-			sb.append("Page ");
-			sb.append(page);
-			sb.append(" of ");
-			sb.append(actualPages);
-			sb.append(".\n");
-			
-			int first = (page - 1) * 10;
-			for (int x = first; x < first + 10 && x < groups.size(); x++){
-				Group g = GroupManager.getGroup(groups.get(x));
-				sb.append(String.format("%s : (%s)\n", 
-				        g.getName(), g.getPlayerType(uuid).toString()));
-			}
+		sb.append("Your groups are:\n");
+		for(Group group : groups) {
+			sb.append(ChatColor.DARK_GRAY);
+			sb.append(" - ");
+			sb.append(group.getColoredName());
+			sb.append(ChatColor.YELLOW);
+			sb.append("  (");
+			sb.append(group.getRank(player.getUniqueId()).getName());
+			sb.append(")");
 		}
 		sender.sendMessage(sb.toString());
 		return true;

@@ -1,21 +1,25 @@
 package vg.civcraft.mc.namelayer.commands;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import vg.civcraft.mc.namelayer.GroupAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.listeners.PlayerListener;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
+import vg.civcraft.mc.namelayer.permission.GroupRankHandler;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
-import vg.civcraft.mc.namelayer.permission.PlayerType;
 
 public final class NameLayerTabCompletion {
 
@@ -38,8 +42,26 @@ public final class NameLayerTabCompletion {
 		return complete(prefix, playersGroups, Group::getName);
 	}
 	
-	public static List<String> completePlayerType(String prefix, Group group) {
-		return complete(prefix, group.getPlayerTypeHandler().getAllTypes(), PlayerType::getName);
+	public static List<String> completePlayerType(String prefix, Player player, String groupName) {
+		Group group = GroupAPI.getGroup(groupName);
+		if (group == null) {
+			return Collections.emptyList();
+		}
+		return completePlayerType(prefix, player.getUniqueId(), group);
+	}
+	
+	public static List<String> completePlayerType(String prefix, UUID player, Group group) {
+		GroupRankHandler rankHandler = group.getGroupRankHandler();
+		List<GroupRank> ranks = new ArrayList<>();
+		for(GroupRank rank : rankHandler.getAllTypes()) {
+			if (rank == rankHandler.getDefaultNonMemberType()) {
+				continue;
+			}
+			if(GroupAPI.hasPermission(player, group, rank.getInvitePermissionType())) {
+				ranks.add(rank);
+			}
+		}
+		return complete(prefix, ranks, GroupRank::getName);
 	}
 	
 	public static List<String> completeGroupInvitedTo(String prefix, Player sender) {

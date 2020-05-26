@@ -30,8 +30,9 @@ public class InvitePlayer extends StandaloneCommand {
 		case 2:
 			return NameLayerTabCompletion.completePlayer(args[1]);
 		case 3:
-			// TODO complete rank
+			return NameLayerTabCompletion.completePlayerType(args[2], (Player) sender, args[0]);
+		default:
+			return Collections.emptyList();
 		}
-		return Collections.emptyList();
 	}
 }

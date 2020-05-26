@@ -24,18 +24,18 @@ import com.google.gson.JsonParser;
 
 import vg.civcraft.mc.civmodcore.dao.ManagedDatasource;
 import vg.civcraft.mc.namelayer.GroupAPI;
-import vg.civcraft.mc.namelayer.GroupManager;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.group.GroupLink;
+import vg.civcraft.mc.namelayer.group.GroupManager;
 import vg.civcraft.mc.namelayer.group.NameLayerMetaData;
 import vg.civcraft.mc.namelayer.group.log.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.group.log.abstr.LoggedGroupAction;
 import vg.civcraft.mc.namelayer.group.meta.GroupMetaDataAPI;
 import vg.civcraft.mc.namelayer.listeners.PlayerListener;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
+import vg.civcraft.mc.namelayer.permission.GroupRankHandler;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
-import vg.civcraft.mc.namelayer.permission.PlayerType;
-import vg.civcraft.mc.namelayer.permission.PlayerTypeHandler;
 
 public class GroupManagerDao {
 	private Logger logger;
@@ -47,22 +47,40 @@ public class GroupManagerDao {
 		registerMigrations();
 	}
 
-	private void registerMigrations() {
-		// TODO initial table creation
-
-		db.registerMigration(14, false, "DELETE FROM permissionByGroup " + "WHERE role='NOT_BLACKLISTED' "
+	private void registerMigrations() {		
+		db.registerMigration(13, false, "CREATE TABLE IF NOT EXISTS faction (group_name varchar(255) NOT NULL, founder varchar(36) DEFAULT NULL, "
+				+ "password varchar(255) DEFAULT NULL, discipline_flags int(11) NOT NULL, type int(11) DEFAULT '0', last_timestamp datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+				+ "PRIMARY KEY (group_name))",
+				
+				"CREATE TABLE IF NOT EXISTS faction_id (group_id int(11) NOT NULL AUTO_INCREMENT, group_name varchar(255) DEFAULT NULL, "
+				+ "PRIMARY KEY (group_id),KEY faction_id_index (group_name))",
+				
+				"CREATE TABLE IF NOT EXISTS faction_member (group_id int(11) NOT NULL, member_name varchar(36) DEFAULT NULL, role varchar(10) NOT NULL DEFAULT 'MEMBERS',"
+				+ "UNIQUE KEY group_id (group_id,member_name), UNIQUE KEY uq_meber_faction (member_name,group_id), KEY faction_member_index (group_id))",
+				
+				"create table if not exists permissionByGroup(group_id int not null,role varchar(40) not null,perm_id int not null, "
+				+ "primary key(group_id,role,perm_id));",
+				
+				"create table if not exists permissionIdMapping(perm_id int not null, name varchar(64) not null,primary key(perm_id));",
+				
+				"create table if not exists group_invitation(uuid varchar(36) NOT NULL,groupName varchar(255) NOT NULL,"+
+						"role varchar(10) NOT NULL default 'MEMBERS', date datetime NOT NULL default NOW(), "
+						+ "constraint UQ_uuid_groupName unique(uuid, groupName));");
+		
+		db.registerMigration(14, false, "DELETE FROM permissionByGroup WHERE role='NOT_BLACKLISTED' "
 				+ "AND perm_id=(SELECT perm_id FROM permissionIdMapping WHERE name='BASTION_PLACE');");
 		db.registerMigration(15, false,
 				// Previously if a group was merged, it had multiple ids assigned to it and the
 				// "real id" was the smallest id. We fix that here by letting groups only have
 				// one id and extracting alternative ids into a separate table
-				"create table if not exists mergedGroups (oldGroup int not null, newGroup int not null, primary key(oldGroup))",
-				"insert into mergedGroups (oldGroup,newGroup) (select fi1.group_id, fi2.min_id from faction_id fi1 "
+				"create table if not exists nl_merged_groups (oldGroup int not null, "
+				+ "newGroup int not null references faction_id(group_id), primary key(oldGroup))",
+				"insert into nl_merged_groups (oldGroup,newGroup) (select fi1.group_id, fi2.min_id from faction_id fi1 "
 						+ "inner join (select min(group_id) as min_id, group_name as name from faction_id group by group_name) fi2 "
 						+ "on fi2.name = fi1.group_name where fi2.min_id < fi1.group_id)",
 				// now we just clean up all duplicates entries for which we have replacements in
 				// mergeGroups
-				"delete from faction_id where group_id in (select oldGroup from mergedGroups)",
+				"delete from faction_id where group_id in (select oldGroup from nl_merged_groups)",
 				// delete completely broken groups without id
 				"delete from faction where group_name not in (select group_name from faction_id)");
 
@@ -80,6 +98,10 @@ public class GroupManagerDao {
 					String password = rs.getString(3);
 					long time = rs.getTimestamp(4).getTime();
 					NameLayerMetaData meta = NameLayerMetaData.createNew();
+					if (creator == null) {
+						//our one god
+						creator = "8326bc56-1ed9-40ff-8f24-46bf3e300e51";
+					}
 					meta.setCreator(UUID.fromString(creator));
 					if (password != null) {
 						meta.setPassword(password);
@@ -115,16 +137,16 @@ public class GroupManagerDao {
 				// we no longer use this table, so might as well get rid of it
 				"drop table if exists nameLayerNameChanges;",
 				// make new table to hold player types
-				"create table if not exists groupPlayerTypes(group_id int not null,"
+				"create table if not exists nl_group_ranks(group_id int not null,"
 						+ "rank_id int not null, type_name varchar(40) not null, parent_rank_id int, constraint unique (group_id, rank_id), constraint unique (group_id, type_name), "
 						+ "primary key(group_id,rank_id), foreign key(group_id) references faction_id (group_id) on delete cascade);",
 				// convert old player types over to new format
-				"insert into groupPlayerTypes (group_id,rank_id,type_name) select group_id, 0, 'OWNER' from faction_id;",
-				"insert into groupPlayerTypes (group_id,rank_id,type_name,parent_rank_id) select group_id, 1, 'ADMINS',0 from faction_id;",
-				"insert into groupPlayerTypes (group_id,rank_id,type_name,parent_rank_id) select group_id, 2, 'MODS',1 from faction_id;",
-				"insert into groupPlayerTypes (group_id,rank_id,type_name,parent_rank_id) select group_id, 3, 'MEMBERS',2 from faction_id;",
-				"insert into groupPlayerTypes (group_id,rank_id,type_name,parent_rank_id) select group_id, 4, 'DEFAULT',0 from faction_id;",
-				"insert into groupPlayerTypes (group_id,rank_id,type_name,parent_rank_id) select group_id, 5, 'BLACKLISTED',4 from faction_id;",
+				"insert into nl_group_ranks (group_id,rank_id,type_name) select group_id, 0, 'OWNER' from faction_id;",
+				"insert into nl_group_ranks (group_id,rank_id,type_name,parent_rank_id) select group_id, 1, 'ADMINS',0 from faction_id;",
+				"insert into nl_group_ranks (group_id,rank_id,type_name,parent_rank_id) select group_id, 2, 'MODS',1 from faction_id;",
+				"insert into nl_group_ranks (group_id,rank_id,type_name,parent_rank_id) select group_id, 3, 'MEMBERS',2 from faction_id;",
+				"insert into nl_group_ranks (group_id,rank_id,type_name,parent_rank_id) select group_id, 4, 'DEFAULT',0 from faction_id;",
+				"insert into nl_group_ranks (group_id,rank_id,type_name,parent_rank_id) select group_id, 5, 'BLACKLISTED',4 from faction_id;",
 				// previously permissions were assigned to player ranks by the static name of
 				// that type, so we need to change that into an id. First of all we
 				// need to get rid of the old primary key, which was a (group_id,role,perm_id)
@@ -148,7 +170,7 @@ public class GroupManagerDao {
 				// cleanup if someone messes with the master perm table
 				"alter table permissionByGroup add constraint foreign key (perm_id) references permissionIdMapping(perm_id) on delete cascade;",
 				// ensure perms clean themselves up if the group is deleted
-				"alter table permissionByGroup add constraint foreign key (group_id, rank_id) references groupPlayerTypes(group_id, rank_id) on delete cascade;",
+				"alter table permissionByGroup add constraint foreign key (group_id, rank_id) references nl_group_ranks(group_id, rank_id) on delete cascade;",
 				// ensure perms cant be inserted multiple times
 				"alter table permissionByGroup add constraint unique (group_id, rank_id, perm_id)",
 
@@ -157,35 +179,35 @@ public class GroupManagerDao {
 				// at this point the new invite/remove permissions were already created and
 				// registered, we can just use them
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'MEMBERS' and pimn.name = 'invitePlayer#3';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'MEMBERS' and pimn.name = 'invitePlayer#3';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'MEMBERS' and pimn.name = 'removePlayer#3';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'MEMBERS' and pimn.name = 'removePlayer#3';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'MEMBERS' and pimn.name = 'listPlayer#3';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'MEMBERS' and pimn.name = 'listPlayer#3';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'MODS' and pimn.name = 'invitePlayer#2';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'MODS' and pimn.name = 'invitePlayer#2';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'MODS' and pimn.name = 'removePlayer#2';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'MODS' and pimn.name = 'removePlayer#2';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'MODS' and pimn.name = 'listPlayer#2';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'MODS' and pimn.name = 'listPlayer#2';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'ADMINS' and pimn.name = 'invitePlayer#1';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'ADMINS' and pimn.name = 'invitePlayer#1';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'ADMINS' and pimn.name = 'removePlayer#1';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'ADMINS' and pimn.name = 'removePlayer#1';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'ADMINS' and pimn.name = 'listPlayer#1';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'ADMINS' and pimn.name = 'listPlayer#1';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'OWNER' and pimn.name = 'invitePlayer#0';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'OWNER' and pimn.name = 'invitePlayer#0';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'OWNER' and pimn.name = 'removePlayer#0';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'OWNER' and pimn.name = 'removePlayer#0';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'OWNER' and pimn.name = 'listPlayer#0';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'OWNER' and pimn.name = 'listPlayer#0';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'BLACKLIST' and pimn.name = 'invitePlayer#5';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'BLACKLIST' and pimn.name = 'invitePlayer#5';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'BLACKLIST' and pimn.name = 'removePlayer#5';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'BLACKLIST' and pimn.name = 'removePlayer#5';",
 				"insert into permissionByGroup (group_id,perm_id,rank_id) select pbg.group_id, pimn.perm_id, pbg.rank_id from permissionByGroup pbg inner join permissionIdMapping pim "
-						+ "on pim.perm_id = pbg.perm_id cross join permissionidmapping pimn where pim.name = 'BLACKLIST' and pimn.name = 'listPlayer#5';",
+						+ "on pim.perm_id = pbg.perm_id cross join permissionIdMapping pimn where pim.name = 'BLACKLIST' and pimn.name = 'listPlayer#5';",
 
 				// we are done converting permissions over, so we can now delete the old ones,
 				// foreign keys will leftover perms for groups
@@ -202,7 +224,7 @@ public class GroupManagerDao {
 				"update faction_member set rank_id=4 where role='NOT_BLACKLISTED';",
 				"delete from faction_member where rank_id is null;", "alter table faction_member drop column role;",
 				"delete from faction_member where group_id not in (select group_id from faction_id);",
-				"alter table faction_member add constraint foreign key (group_id, rank_id) references groupPlayerTypes(group_id, rank_id) on delete cascade;",
+				"alter table faction_member add constraint foreign key (group_id, rank_id) references nl_group_ranks(group_id, rank_id) on delete cascade;",
 				"delete from faction_member where member_name is null",
 
 				// remove old restrictions
@@ -214,7 +236,7 @@ public class GroupManagerDao {
 				"delete from group_invitation where group_id is null;",
 				"alter table group_invitation drop column groupName;",
 				// make column not null now that its filled
-				"alter table group_invitation alter column group_id int not null",
+				"alter table group_invitation modify column group_id int not null",
 
 				// now apply our player type changes
 				"alter table group_invitation add rank_id int;",
@@ -223,7 +245,7 @@ public class GroupManagerDao {
 				"update group_invitation set rank_id=2 where role='MODS';",
 				"update group_invitation set rank_id=3 where role='MEMBERS';",
 				"delete from group_invitation where rank_id is null;", "alter table group_invitation drop column role;",
-				"alter table group_invitation add constraint foreign key (group_id, rank_id) references groupPlayerTypes(group_id, rank_id) on delete cascade;",
+				"alter table group_invitation add constraint foreign key (group_id, rank_id) references nl_group_ranks(group_id, rank_id) on delete cascade;",
 				"alter table group_invitation add constraint unique (group_id, uuid);",
 
 				// finally easy lookup by group id is nice
@@ -235,8 +257,8 @@ public class GroupManagerDao {
 				"drop procedure if exists mergeintogroup;", "create definer=current_user procedure mergeintogroup("
 						+ "in remainingId int, in tomergeId int) " + "sql security invoker begin " +
 						// update preexisting merge mapping to the group which we now remove
-						"update mergedGroups set newGroup = remainingId where newGroup = tomergeId;"
-						+ "insert into mergedGroups (oldGroup,newGroup) values(tomergeId, remainingId);"
+						"update nl_merged_groups set newGroup = remainingId where newGroup = tomergeId;"
+						+ "insert into nl_merged_groups (oldGroup,newGroup) values(tomergeId, remainingId);"
 						+ "delete from faction_id where group_id = tomergeId;" + "end;",
 				// foreign keys will do everything else
 				// need to update group creation as well
@@ -245,30 +267,59 @@ public class GroupManagerDao {
 						+ "sql security invoker begin"
 						+ " if (select (count(*) = 0) from faction_id q where q.group_name = group_name) is true then"
 						+ "  insert into faction_id(group_name) values (group_name); "
-						+ "  insert into faction_member (member_name, rank_id, group_id) select founder, 0, f.group_id from faction_id f where f.group_name = group_name; "
-						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 0, 'OWNER', null from faction_id f where f.group_name = group_name;"
-						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 1, 'ADMINS', 0 from faction_id f where f.group_name = group_name;"
-						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 2, 'MODS', 1 from faction_id f where f.group_name = group_name;"
-						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 3, 'MEMBERS', 2 from faction_id f where f.group_name = group_name;"
-						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 4, 'DEFAULT', 0 from faction_id f where f.group_name = group_name;"
-						+ "  insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 5, 'BLACKLISTED', 4 from faction_id f where f.group_name = group_name;"
-						+ "  insert into faction_member (group_id, rank_id, member_name) select f.group_id, 0, creator from faction_id f where f.group_name = group_name;"
-						+ " end if; " + "end;",
+						+ "  insert into nl_group_ranks (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 0, 'OWNER', null from faction_id f where f.group_name = group_name; "
+						+ "  insert into nl_group_ranks (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 1, 'ADMINS', 0 from faction_id f where f.group_name = group_name; "
+						+ "  insert into nl_group_ranks (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 2, 'MODS', 1 from faction_id f where f.group_name = group_name; "
+						+ "  insert into nl_group_ranks (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 3, 'MEMBERS', 2 from faction_id f where f.group_name = group_name; "
+						+ "  insert into nl_group_ranks (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 4, 'DEFAULT', 0 from faction_id f where f.group_name = group_name; "
+						+ "  insert into nl_group_ranks (group_id, rank_id, type_name, parent_rank_id) select f.group_id, 5, 'BLACKLISTED', 4 from faction_id f where f.group_name = group_name; "
+						+ "  insert into faction_member (group_id, rank_id, member_name) select f.group_id, 0,creator from faction_id f where f.group_name = group_name; "
+						+ " end if; " + 
+						"end;",
 				// add tables for new group linking
 				// old one is broken af and worked differently, just get rid of it
 				"drop table if exists subgroup",
 				"create table if not exists nl_group_links (link_id int not null primary key auto_increment, "
 						+ "originating_group_id int not null, originating_type_id int not null, target_group_id int not null, "
-						+ "target_type_id int not null, foreign key (originating_group_id, originating_type_id) references groupPlayerTypes(group_id, rank_id) on delete cascade,"
-						+ "foreign key (target_group_id, target_type_id) references groupPlayerTypes(group_id, rank_id) on delete cascade, "
+						+ "target_type_id int not null, foreign key (originating_group_id, originating_type_id) references nl_group_ranks(group_id, rank_id) on delete cascade,"
+						+ "foreign key (target_group_id, target_type_id) references nl_group_ranks(group_id, rank_id) on delete cascade, "
 						+ "unique (originating_group_id, originating_type_id, target_group_id, target_type_id), index(originating_group_id), index(target_group_id))",
 				"create table if not exists nl_group_actions(id int not null auto_increment primary key, name varchar(255) not null,"
 						+ "constraint unique_name unique(name));",
 				"create table if not exists nl_action_log (action_id int not null primary key auto_increment, "
-				+ "type_id int not null references nl_group_actions(id),"
+						+ "type_id int not null references nl_group_actions(id),"
 						+ "player varchar(36) not null, group_id int not null references faction_id(group_id) on delete cascade, "
 						+ "time datetime not null default current_timestamp, rank varchar(255) default null, name varchar(255) default null,"
 						+ "extra text default null)");
+	}
+
+	public Map<String, Map<Integer, List<LoggedGroupActionPersistence>>> loadAllGroupsLogs() {
+		Map<String, Map<Integer, List<LoggedGroupActionPersistence>>> result = new HashMap<>();
+		try (Connection insertConn = db.getConnection();
+				PreparedStatement loadLog = insertConn
+						.prepareStatement("select ga.name,al.player, al.group_id, al.time, al.rank, al.name, al.extra"
+								+ " from nl_action_log al inner join nl_group_actions ga on al.type_id = ga.id");
+				ResultSet rs = loadLog.executeQuery()) {
+			while (rs.next()) {
+				String actionName = rs.getString(1);
+				String player = rs.getString(2);
+				int groupId = rs.getInt(3);
+				long time = rs.getTimestamp(4).getTime();
+				String rank = rs.getString(5);
+				String name = rs.getString(6);
+				String extra = rs.getString(7);
+				LoggedGroupActionPersistence persist = new LoggedGroupActionPersistence(time, UUID.fromString(player),
+						rank, name, extra);
+				Map<Integer, List<LoggedGroupActionPersistence>> forType = result.computeIfAbsent(actionName,
+						s -> new HashMap<>());
+				List<LoggedGroupActionPersistence> perGroup = forType.computeIfAbsent(groupId, s -> new ArrayList<>());
+				perGroup.add(persist);
+			}
+		} catch (SQLException e) {
+			logger.log(Level.SEVERE, "Failed to load group logs", e);
+			return null;
+		}
+		return result;
 	}
 
 	public int getOrCreateActionID(String name) {
@@ -303,14 +354,14 @@ public class GroupManagerDao {
 		}
 	}
 
-	public void insertActionLog(Group group, LoggedGroupAction change) {
+	public void insertActionLog(Group group, int typeID, LoggedGroupAction change) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement addLog = connection.prepareStatement(
-						"insert into nl_group_links(type_id, player, group_id, time,rank, name, extra) values(?,?,?,?,?,?,?)")) {
+						"insert into nl_action_log(type_id, player, group_id, time,rank, name, extra) values(?,?,?,?,?,?,?)")) {
 			LoggedGroupActionPersistence persist = change.getPersistence();
-			addLog.setInt(1, 0); // TODO
+			addLog.setInt(1, typeID);
 			addLog.setString(2, persist.getPlayer().toString());
-			addLog.setInt(3, group.getGroupId());
+			addLog.setInt(3, group.getPrimaryId());
 			addLog.setTimestamp(4, new Timestamp(persist.getTimeStamp()));
 			addLog.setString(5, persist.getRank());
 			addLog.setString(6, persist.getName());
@@ -321,10 +372,11 @@ public class GroupManagerDao {
 		}
 	}
 
-	public int createGroup(String group) {
+	public int createGroup(String group, UUID creator) {
 		try (Connection connection = db.getConnection();
-				PreparedStatement createGroup = connection.prepareStatement("call createGroup(?)")) {
+				PreparedStatement createGroup = connection.prepareStatement("call createGroup(?,?)")) {
 			createGroup.setString(1, group);
+			createGroup.setString(2, creator.toString());
 			createGroup.execute();
 		} catch (SQLException e) {
 			logger.log(Level.WARNING, "Problem setting up query to create group " + group, e);
@@ -358,11 +410,11 @@ public class GroupManagerDao {
 		}
 	}
 
-	public void addMember(UUID member, Group group, PlayerType role) {
+	public void addMember(UUID member, Group group, GroupRank role) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement addMember = connection
 						.prepareStatement("insert into faction_member(group_id, rank_id, member_name) values(?,?,?)")) {
-			addMember.setInt(1, group.getGroupId());
+			addMember.setInt(1, group.getPrimaryId());
 			addMember.setInt(2, role.getId());
 			addMember.setString(3, member.toString());
 			addMember.execute();
@@ -372,12 +424,12 @@ public class GroupManagerDao {
 		}
 	}
 
-	public void updateMember(UUID member, Group group, PlayerType role) {
+	public void updateMember(UUID member, Group group, GroupRank role) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement updateMember = connection.prepareStatement(
 						"update faction_member set rank_id = ? where group_id = ? and member_name = ?")) {
 			updateMember.setInt(1, role.getId());
-			updateMember.setInt(2, group.getGroupId());
+			updateMember.setInt(2, group.getPrimaryId());
 			updateMember.setString(3, member.toString());
 			updateMember.execute();
 		} catch (SQLException e) {
@@ -391,18 +443,19 @@ public class GroupManagerDao {
 				PreparedStatement removeMember = connection
 						.prepareStatement("delete from faction_member where member_name = ? and group_id = ?")) {
 			removeMember.setString(1, member.toString());
-			removeMember.setInt(2, group.getGroupId());
+			removeMember.setInt(2, group.getPrimaryId());
 			removeMember.execute();
 		} catch (SQLException e) {
 			logger.log(Level.WARNING, "Problem removing " + member + " from group " + group, e);
 		}
 	}
 
-	public void addAllPermissions(int groupId, Map<PlayerType, List<PermissionType>> perms) {
+	public void addAllPermissions(int groupId, Map<GroupRank, List<PermissionType>> perms) {
+		System.out.println("ehehe: " +perms);
 		try (Connection connection = db.getConnection();
 				PreparedStatement addPermissionById = connection
 						.prepareStatement("insert into permissionByGroup(group_id,rank_id,perm_id) values(?, ?, ?)")) {
-			for (Entry<PlayerType, List<PermissionType>> entry : perms.entrySet()) {
+			for (Entry<GroupRank, List<PermissionType>> entry : perms.entrySet()) {
 				int typeId = entry.getKey().getId();
 				for (PermissionType perm : entry.getValue()) {
 					addPermissionById.setInt(1, groupId);
@@ -428,12 +481,12 @@ public class GroupManagerDao {
 		}
 	}
 
-	public void removeAllPermissions(Group g, Map<PlayerType, List<PermissionType>> perms) {
-		int groupId = g.getGroupId();
+	public void removeAllPermissions(Group g, Map<GroupRank, List<PermissionType>> perms) {
+		int groupId = g.getPrimaryId();
 		try (Connection connection = db.getConnection();
 				PreparedStatement removePermissionById = connection.prepareStatement(
 						"delete from permissionByGroup where group_id = ? and rank_id = ? and perm_id = ?")) {
-			for (Entry<PlayerType, List<PermissionType>> entry : perms.entrySet()) {
+			for (Entry<GroupRank, List<PermissionType>> entry : perms.entrySet()) {
 				int typeId = entry.getKey().getId();
 				for (PermissionType perm : entry.getValue()) {
 					removePermissionById.setInt(1, groupId);
@@ -458,11 +511,11 @@ public class GroupManagerDao {
 		}
 	}
 
-	public void addPermission(Group group, PlayerType type, PermissionType perm) {
+	public void addPermission(Group group, GroupRank type, PermissionType perm) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement addPermission = connection
 						.prepareStatement("insert into permissionByGroup(group_id,rank_id,perm_id) values(?, ?, ?)")) {
-			addPermission.setInt(1, group.getGroupId());
+			addPermission.setInt(1, group.getPrimaryId());
 			addPermission.setInt(2, type.getId());
 			addPermission.setInt(3, perm.getId());
 			addPermission.execute();
@@ -471,16 +524,16 @@ public class GroupManagerDao {
 		}
 	}
 
-	public Map<PlayerType, List<PermissionType>> getPermissions(Group group) {
-		Map<PlayerType, List<PermissionType>> perms = new HashMap<>();
+	public Map<GroupRank, List<PermissionType>> getPermissions(Group group) {
+		Map<GroupRank, List<PermissionType>> perms = new HashMap<>();
 		try (Connection connection = db.getConnection();
 				PreparedStatement getPermission = connection
 						.prepareStatement("select rank_id, perm_id from permissionByGroup where group_id = ?")) {
-			getPermission.setInt(1, group.getGroupId());
-			PlayerTypeHandler handler = group.getPlayerTypeHandler();
+			getPermission.setInt(1, group.getPrimaryId());
+			GroupRankHandler handler = group.getGroupRankHandler();
 			try (ResultSet set = getPermission.executeQuery();) {
 				while (set.next()) {
-					PlayerType type = handler.getType(set.getInt(1));
+					GroupRank type = handler.getType(set.getInt(1));
 					List<PermissionType> listPerm = perms.get(type);
 					if (listPerm == null) {
 						listPerm = new ArrayList<>();
@@ -499,11 +552,11 @@ public class GroupManagerDao {
 		return perms;
 	}
 
-	public void removePermission(Group group, PlayerType pType, PermissionType perm) {
+	public void removePermission(Group group, GroupRank pType, PermissionType perm) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement removePermission = connection.prepareStatement(
 						"delete from permissionByGroup where group_id = ? and rank_id = ? and perm_id = ?")) {
-			removePermission.setInt(1, group.getGroupId());
+			removePermission.setInt(1, group.getPrimaryId());
 			removePermission.setInt(2, pType.getId());
 			removePermission.setInt(3, perm.getId());
 			removePermission.executeUpdate();
@@ -542,11 +595,11 @@ public class GroupManagerDao {
 		return perms;
 	}
 
-	public void registerPlayerType(Group g, PlayerType type) {
+	public void registerPlayerType(Group g, GroupRank type) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement addType = connection.prepareStatement(
-						"insert into groupPlayerTypes (group_id, rank_id, type_name, parent_rank_id) values(?,?,?,?)");) {
-			addType.setInt(1, g.getGroupId());
+						"insert into nl_group_ranks (group_id, rank_id, type_name, parent_rank_id) values(?,?,?,?)");) {
+			addType.setInt(1, g.getPrimaryId());
 			addType.setInt(2, type.getId());
 			addType.setString(3, type.getName());
 			if (type.getParent() == null) {
@@ -560,11 +613,11 @@ public class GroupManagerDao {
 		}
 	}
 
-	public void removePlayerType(Group g, PlayerType type) {
+	public void removePlayerType(Group g, GroupRank type) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement removeType = connection
-						.prepareStatement("delete from groupPlayerTypes where group_id = ? and rank_id = ?");) {
-			removeType.setInt(1, g.getGroupId());
+						.prepareStatement("delete from nl_group_ranks where group_id = ? and rank_id = ?");) {
+			removeType.setInt(1, g.getPrimaryId());
 			removeType.setInt(2, type.getId());
 			removeType.execute();
 		} catch (SQLException e) {
@@ -572,12 +625,12 @@ public class GroupManagerDao {
 		}
 	}
 
-	public void updatePlayerTypeName(Group g, PlayerType type) {
+	public void updatePlayerTypeName(Group g, GroupRank type) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement renameType = connection.prepareStatement(
-						"update groupPlayerTypes set type_name = ? where group_id = ? and rank_id = ?");) {
+						"update nl_group_ranks set type_name = ? where group_id = ? and rank_id = ?");) {
 			renameType.setString(1, type.getName());
-			renameType.setInt(2, g.getGroupId());
+			renameType.setInt(2, g.getPrimaryId());
 			renameType.setInt(3, type.getId());
 			renameType.execute();
 		} catch (SQLException e) {
@@ -589,8 +642,8 @@ public class GroupManagerDao {
 	public void mergeGroup(Group groupThatStays, Group groupToMerge) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement mergeGroup = connection.prepareStatement("call mergeintogroup(?,?)");) {
-			mergeGroup.setInt(1, groupThatStays.getGroupId());
-			mergeGroup.setInt(2, groupToMerge.getGroupId());
+			mergeGroup.setInt(1, groupThatStays.getPrimaryId());
+			mergeGroup.setInt(2, groupToMerge.getPrimaryId());
 			mergeGroup.execute();
 		} catch (SQLException e) {
 			logger.log(Level.WARNING,
@@ -598,12 +651,12 @@ public class GroupManagerDao {
 		}
 	}
 
-	public void addGroupInvitation(UUID uuid, Group group, PlayerType role) {
+	public void addGroupInvitation(UUID uuid, Group group, GroupRank role) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement addGroupInvitation = connection.prepareStatement(
 						"insert into group_invitation(uuid, group_id, rank_id) values(?, ?, ?) on duplicate key update rank_id=values(rank_id), date=now()")) {
 			addGroupInvitation.setString(1, uuid.toString());
-			addGroupInvitation.setInt(2, group.getGroupId());
+			addGroupInvitation.setInt(2, group.getPrimaryId());
 			addGroupInvitation.setInt(3, role.getId());
 			addGroupInvitation.executeUpdate();
 		} catch (SQLException e) {
@@ -617,7 +670,7 @@ public class GroupManagerDao {
 				PreparedStatement removeGroupInvitation = connection
 						.prepareStatement("delete from group_invitation where uuid = ? and group_id = ?");) {
 			removeGroupInvitation.setString(1, uuid.toString());
-			removeGroupInvitation.setInt(2, group.getGroupId());
+			removeGroupInvitation.setInt(2, group.getPrimaryId());
 			removeGroupInvitation.executeUpdate();
 		} catch (SQLException e) {
 			logger.log(Level.WARNING, "Problem removing group " + group.getName() + " invite for " + uuid, e);
@@ -637,13 +690,13 @@ public class GroupManagerDao {
 				int groupId = set.getInt(2);
 				int rankId = set.getInt(3);
 				UUID playerUUID = UUID.fromString(uuid);
-				Group g = GroupAPI.getGroupById(groupId);
-				PlayerType type = null;
+				Group g = GroupAPI.getGroup(groupId);
+				GroupRank type = null;
 				if (g != null) {
-					type = g.getPlayerTypeHandler().getType(rankId);
+					type = g.getGroupRankHandler().getType(rankId);
 				}
 				if (type != null) {
-					g.addInvite(playerUUID, type, false);
+					g.addInvite(playerUUID, type);
 					PlayerListener.addNotification(playerUUID, g);
 				}
 			}
@@ -658,9 +711,9 @@ public class GroupManagerDao {
 						"insert into nl_group_links (originating_group_id, originating_type_id, target_group_id, target_type_id) "
 								+ "values(?,?, ?,?);",
 						Statement.RETURN_GENERATED_KEYS)) {
-			insertLink.setInt(1, link.getOriginatingGroup().getGroupId());
+			insertLink.setInt(1, link.getOriginatingGroup().getPrimaryId());
 			insertLink.setInt(2, link.getOriginatingType().getId());
-			insertLink.setInt(3, link.getTargetGroup().getGroupId());
+			insertLink.setInt(3, link.getTargetGroup().getPrimaryId());
 			insertLink.setInt(4, link.getTargetType().getId());
 			insertLink.execute();
 			try (ResultSet rs = insertLink.getGeneratedKeys()) {
@@ -704,30 +757,34 @@ public class GroupManagerDao {
 				Group group = new Group(name, id);
 				groupById.put(id, group);
 				groupByName.put(name.toLowerCase(), group);
-				groupMetaById.put(id, (JsonObject) jsonParser.parse(rawMeta));
+				if (rawMeta != null) {
+					groupMetaById.put(id, (JsonObject) jsonParser.parse(rawMeta));
+				}
+				else {
+					groupMetaById.put(id, new JsonObject());
+				}
 			}
 		} catch (SQLException e) {
 			logger.severe("Failed to load groups: " + e.toString());
 			return null;
 		}
-		Map<Integer, Map<Integer, PlayerType>> retrievedTypes = new TreeMap<>();
-		Map<Integer, Map<Integer, List<PlayerType>>> pendingParents = new TreeMap<>();
+		Map<Integer, Map<Integer, GroupRank>> retrievedTypes = new TreeMap<>();
+		Map<Integer, Map<Integer, List<GroupRank>>> pendingParents = new TreeMap<>();
 		// load all player types without linking them in any way initially
 		try (Connection connection = db.getConnection();
 				PreparedStatement getTypes = connection
-						.prepareStatement("select type_name, group_id, rank_id, parent_rank_id from groupPlayerTypes");
+						.prepareStatement("select type_name, group_id, rank_id, parent_rank_id from nl_group_ranks");
 				ResultSet types = getTypes.executeQuery()) {
 			while (types.next()) {
 				String name = types.getString(1);
 				int groupId = types.getInt(2);
 				int rankId = types.getInt(3);
 				int parentId = types.getInt(4);
-				PlayerType type = new PlayerType(name, rankId, null, new LinkedList<PermissionType>(), null);
-				Map<Integer, PlayerType> typeMap = retrievedTypes.computeIfAbsent(groupId, i -> new TreeMap<>());
+				GroupRank type = new GroupRank(name, rankId, null, new LinkedList<PermissionType>(), null);
+				Map<Integer, GroupRank> typeMap = retrievedTypes.computeIfAbsent(groupId, i -> new TreeMap<>());
 				typeMap.put(rankId, type);
-				Map<Integer, List<PlayerType>> parentMap = pendingParents.computeIfAbsent(groupId,
-						i -> new TreeMap<>());
-				List<PlayerType> brothers = parentMap.computeIfAbsent(parentId, i -> new LinkedList<>());
+				Map<Integer, List<GroupRank>> parentMap = pendingParents.computeIfAbsent(groupId, i -> new TreeMap<>());
+				List<GroupRank> brothers = parentMap.computeIfAbsent(parentId, i -> new LinkedList<>());
 				brothers.add(type);
 			}
 		} catch (SQLException e) {
@@ -735,28 +792,28 @@ public class GroupManagerDao {
 			return null;
 		}
 		// properly map player type children/parents
-		for (Entry<Integer, Map<Integer, PlayerType>> entry : retrievedTypes.entrySet()) {
-			Map<Integer, PlayerType> loadedTypes = entry.getValue();
-			Map<Integer, List<PlayerType>> loadedParents = pendingParents.get(entry.getKey());
+		for (Entry<Integer, Map<Integer, GroupRank>> entry : retrievedTypes.entrySet()) {
+			Map<Integer, GroupRank> loadedTypes = entry.getValue();
+			Map<Integer, List<GroupRank>> loadedParents = pendingParents.get(entry.getKey());
 			Group group = groupById.get(entry.getKey());
 			if (group == null) {
 				logger.log(Level.WARNING, "Found player types, but no group for id " + entry.getKey());
 				continue;
 			}
-			PlayerType root = loadedTypes.get(PlayerTypeHandler.OWNER_ID);
-			PlayerTypeHandler handler = new PlayerTypeHandler(root, group);
-			Queue<PlayerType> toHandle = new LinkedList<>();
+			GroupRank root = loadedTypes.get(GroupRankHandler.OWNER_ID);
+			GroupRankHandler handler = new GroupRankHandler(root, group);
+			Queue<GroupRank> toHandle = new LinkedList<>();
 			toHandle.add(root);
 			while (!toHandle.isEmpty()) {
-				PlayerType parent = toHandle.poll();
-				List<PlayerType> children = loadedParents.get(parent.getId());
+				GroupRank parent = toHandle.poll();
+				List<GroupRank> children = loadedParents.get(parent.getId());
 				loadedParents.remove(parent.getId());
 				if (children == null) {
 					continue;
 				}
-				for (PlayerType child : children) {
+				for (GroupRank child : children) {
 					// parent is intentionally non modifiable, so we create a new instance
-					PlayerType type = new PlayerType(child.getName(), child.getId(), parent, group);
+					GroupRank type = new GroupRank(child.getName(), child.getId(), parent, group);
 					parent.addChild(type);
 					handler.loadPlayerType(type);
 					toHandle.add(type);
@@ -769,7 +826,7 @@ public class GroupManagerDao {
 						"A total of " + loadedTypes.values().size() + " player types could not be loaded for group "
 								+ group.getName() + ", because they arent part of the normal tree structure");
 			}
-			group.setPlayerTypeHandler(handler);
+			group.setGroupRankHandler(handler);
 		}
 		// load members
 		try (Connection connection = db.getConnection();
@@ -792,7 +849,7 @@ public class GroupManagerDao {
 					logger.log(Level.WARNING, "Couldnt not load group " + groupId + " from cache to add member");
 					continue;
 				}
-				group.addToTracking(member, group.getPlayerTypeHandler().getType(rankId), false);
+				group.addToTracking(member, group.getGroupRankHandler().getType(rankId));
 			}
 		} catch (SQLException e) {
 			logger.severe("Failed to load group members: " + e.toString());
@@ -813,7 +870,7 @@ public class GroupManagerDao {
 					continue;
 				}
 				if (perm != null) {
-					group.getPlayerTypeHandler().getType(rankId).addPermission(perm, false);
+					group.getGroupRankHandler().getType(rankId).addPermission(perm, false);
 				}
 			}
 		} catch (SQLException e) {
@@ -821,7 +878,7 @@ public class GroupManagerDao {
 		}
 		// load merged group remapping
 		try (Connection connection = db.getConnection();
-				PreparedStatement getTypes = connection.prepareStatement("select oldGroup, newGroup from mergedGroups");
+				PreparedStatement getTypes = connection.prepareStatement("select oldGroup, newGroup from nl_merged_groups");
 				ResultSet types = getTypes.executeQuery()) {
 			while (types.next()) {
 				int oldId = types.getInt(1);
@@ -858,12 +915,12 @@ public class GroupManagerDao {
 					logger.log(Level.SEVERE, "Link loaded had no group: " + linkId);
 					continue;
 				}
-				PlayerType originatingPlayerType = originatingGroup.getPlayerTypeHandler().getType(originatingTypeId);
+				GroupRank originatingPlayerType = originatingGroup.getGroupRankHandler().getType(originatingTypeId);
 				if (originatingPlayerType == null) {
 					logger.log(Level.SEVERE, "Link loaded had no og type: " + linkId);
 					continue;
 				}
-				PlayerType targetPlayerType = targetGroup.getPlayerTypeHandler().getType(targetTypeId);
+				GroupRank targetPlayerType = targetGroup.getGroupRankHandler().getType(targetTypeId);
 				if (targetPlayerType == null) {
 					logger.log(Level.SEVERE, "Link loaded had no target type: " + linkId);
 					continue;

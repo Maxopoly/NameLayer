@@ -6,17 +6,17 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 import vg.civcraft.mc.namelayer.group.Group;
-import vg.civcraft.mc.namelayer.permission.PlayerType;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
 
 public class PromotePlayerEvent extends Event implements Cancellable{
 	private static final HandlerList handlers = new HandlerList();
 	private boolean cancelled;
 	private Player player;
 	private Group group;
-	private PlayerType currentType;
-	private PlayerType futureType;
+	private GroupRank currentType;
+	private GroupRank futureType;
 
-	public PromotePlayerEvent(Player player, Group group, PlayerType currentType, PlayerType futureType){
+	public PromotePlayerEvent(Player player, Group group, GroupRank currentType, GroupRank futureType){
 		this.player = player;
 		this.group = group;
 		this.currentType = currentType;
@@ -31,11 +31,11 @@ public class PromotePlayerEvent extends Event implements Cancellable{
 		return group;
 	}
 	
-	public PlayerType getCurrentPlayerType(){
+	public GroupRank getCurrentPlayerType(){
 		return currentType;
 	}
 	
-	public PlayerType getFuturePlayerType(){
+	public GroupRank getFuturePlayerType(){
 		return futureType;
 	}
 	

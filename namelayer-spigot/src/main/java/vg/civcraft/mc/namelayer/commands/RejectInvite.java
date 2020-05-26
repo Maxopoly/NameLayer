@@ -10,7 +10,7 @@ import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 
-@CivCommand(id = "nlrg")
+@CivCommand(id = "nldi")
 public class RejectInvite extends StandaloneCommand {
 
 	@Override

@@ -1,17 +1,19 @@
-package vg.civcraft.mc.namelayer;
+package vg.civcraft.mc.namelayer.group;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
 
-import vg.civcraft.mc.namelayer.group.Group;
-import vg.civcraft.mc.namelayer.group.GroupLink;
-import vg.civcraft.mc.namelayer.group.NameLayerMetaData;
+import vg.civcraft.mc.namelayer.GroupAPI;
+import vg.civcraft.mc.namelayer.NameAPI;
+import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.log.impl.AcceptInvitation;
 import vg.civcraft.mc.namelayer.group.log.impl.AddLink;
 import vg.civcraft.mc.namelayer.group.log.impl.AddPermission;
@@ -34,10 +36,10 @@ import vg.civcraft.mc.namelayer.group.log.impl.SetPassword;
 import vg.civcraft.mc.namelayer.group.meta.GroupMetaDataView;
 import vg.civcraft.mc.namelayer.listeners.PlayerListener;
 import vg.civcraft.mc.namelayer.misc.NameLayerSettingManager;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
+import vg.civcraft.mc.namelayer.permission.GroupRankHandler;
 import vg.civcraft.mc.namelayer.permission.NameLayerPermissionManager;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
-import vg.civcraft.mc.namelayer.permission.PlayerType;
-import vg.civcraft.mc.namelayer.permission.PlayerTypeHandler;
 
 public class GroupInteractionManager {
 
@@ -59,23 +61,23 @@ public class GroupInteractionManager {
 		if (group == null) {
 			return false;
 		}
-		PlayerType type = group.getInvite(executor);
+		GroupRank type = group.getInvite(executor);
 		if (type == null) {
 			callback.accept(String.format("%sYou were not invited to %s", ChatColor.RED, group.getColoredName()));
 			return false;
 		}
 		if (group.isMember(executor)) {
 			callback.accept(ChatColor.RED + "You are already a member or blacklisted you cannot join again.");
-			group.removeInvite(executor);
+			groupMan.deleteInvite(group, executor);
 			return false;
 		}
-		group.addToTracking(executor, type, true);
-		group.removeInvite(executor);
+		groupMan.addPlayerToGroup(group, executor, type, true);
+		groupMan.deleteInvite(group, executor);
 		group.getActionLog().addAction(new AcceptInvitation(System.currentTimeMillis(), executor, type.getName()),
 				true);
 		PlayerListener.removeNotification(executor, group);
-		callback.accept(String.format("%You have been added to %s%s as a %s%s", ChatColor.GREEN, group.getColoredName(),
-				ChatColor.GREEN, ChatColor.YELLOW, type.getName()));
+		callback.accept(String.format("%sYou have been added to %s%s as a %s%s", ChatColor.GREEN,
+				group.getColoredName(), ChatColor.GREEN, ChatColor.YELLOW, type.getName()));
 		return true;
 	}
 
@@ -112,8 +114,8 @@ public class GroupInteractionManager {
 		if (!checkPermission(group, executor, permManager.getCreatePlayerType(), callback)) {
 			return false;
 		}
-		PlayerTypeHandler typeHandler = group.getPlayerTypeHandler();
-		PlayerType parent = typeHandler.getType(parentName);
+		GroupRankHandler typeHandler = group.getGroupRankHandler();
+		GroupRank parent = typeHandler.getType(parentName);
 		if (parent == null) {
 			reply(callback, "%sThe rank %s%s%s does not exist", ChatColor.RED, ChatColor.YELLOW, parentName,
 					ChatColor.RED);
@@ -131,10 +133,10 @@ public class GroupInteractionManager {
 		if (id == -1) {
 			reply(callback,
 					"%sYou have reached the maximum amount of ranks (%d). You'll have to delete some before creating new ones",
-					ChatColor.RED, PlayerTypeHandler.MAXIMUM_TYPE_COUNT);
+					ChatColor.RED, GroupRankHandler.MAXIMUM_TYPE_COUNT);
 			return false;
 		}
-		PlayerType added = new PlayerType(name, id, parent, group);
+		GroupRank added = new GroupRank(name, id, parent, group);
 		reply(callback, "%sSuccessfully added %s%s%s as sub rank of %s%s", ChatColor.GREEN, ChatColor.GOLD, name,
 				ChatColor.GREEN, ChatColor.YELLOW, parent.getName());
 		typeHandler.registerType(added, true);
@@ -164,8 +166,7 @@ public class GroupInteractionManager {
 		if (!checkPermission(group, executor, permManager.getDeletePlayerType(), callback)) {
 			return false;
 		}
-		PlayerTypeHandler typeHandler = group.getPlayerTypeHandler();
-		PlayerType rank = getPlayerType(group, rankName, callback);
+		GroupRank rank = getPlayerType(group, rankName, callback);
 		if (rank == null) {
 			return false;
 		}
@@ -174,11 +175,12 @@ public class GroupInteractionManager {
 					ChatColor.RED, ChatColor.YELLOW, rank.getName(), ChatColor.RED);
 			return false;
 		}
-		if (rank == typeHandler.getDefaultNonMemberType()) {
+		GroupRankHandler rankHandler = group.getGroupRankHandler();
+		if (rank == rankHandler.getDefaultNonMemberType()) {
 			reply(callback, "%sYou can not delete the default type for non-members", ChatColor.RED);
 			return false;
 		}
-		if (rank == typeHandler.getOwnerType()) {
+		if (rank == rankHandler.getOwnerType()) {
 			// can happen through inherited access
 			reply(callback,
 					"%sYou can not delete the rank %s%s%s of the group %s%s, because it is the last remaining rank",
@@ -186,16 +188,32 @@ public class GroupInteractionManager {
 					ChatColor.RED);
 			return false;
 		}
-		List<UUID> members = group.getAllTrackedByType(rank);
+		Set<UUID> members = group.getAllTrackedByType(rank);
 		if (!members.isEmpty()) {
 			reply(callback,
 					"%sThe rank %s%s%s still has %d members and can not be deleted until all of them have been removed",
 					ChatColor.RED, ChatColor.YELLOW, rank.getName(), ChatColor.RED, members.size());
 			return false;
 		}
+		for (GroupLink link : group.getOutgoingLinks()) {
+			if (link.getOriginatingType().equals(rank)) {
+				reply(callback,
+						"%sThe rank %s%s%s has an outgoing link and can not be deleted until that link has been removed",
+						ChatColor.RED, ChatColor.YELLOW, rank.getName(), ChatColor.RED);
+				return false;
+			}
+		}
+		for (GroupLink link : group.getIncomingLinks()) {
+			if (link.getTargetType().equals(rank)) {
+				reply(callback,
+						"%sThe rank %s%s%s has an incoming link and can not be deleted until that link has been removed",
+						ChatColor.RED, ChatColor.YELLOW, rank.getName(), ChatColor.RED);
+				return false;
+			}
+		}
 		callback.accept(String.format("%sThe rank %s%s%s in %s%s has been deleted", ChatColor.GREEN, ChatColor.GOLD,
 				rank.getName(), ChatColor.GREEN, group.getColoredName(), ChatColor.GREEN));
-		typeHandler.deleteType(rank, true);
+		rankHandler.deleteType(rank, true);
 		group.getActionLog().addAction(new DeleteRank(System.currentTimeMillis(), executor, rank.getName()), true);
 		return true;
 	}
@@ -210,18 +228,18 @@ public class GroupInteractionManager {
 		if (toInvite == null) {
 			return false;
 		}
-		PlayerTypeHandler handler = group.getPlayerTypeHandler();
-		PlayerType targetType = rank != null ? handler.getType(rank) : handler.getDefaultInvitationType();
+		GroupRankHandler handler = group.getGroupRankHandler();
+		GroupRank targetType = rank != null ? handler.getType(rank) : handler.getDefaultInvitationType();
 		// this is designed to not reveal any names of player types to the outside
 		if (targetType == null) {
 			callback.accept(ChatColor.RED
-					+ "The player type you entered did not exist or you do not permission to invite to it");
+					+ "The rank you entered did not exist or you do not permission to invite to it");
 			return false;
 		}
 		PermissionType permRequired = targetType.getInvitePermissionType();
 		if (!groupMan.hasAccess(group, executor, permRequired)) {
 			callback.accept(ChatColor.RED
-					+ "The player type you entered did not exist or you do not permission to invite to it");
+					+ "The rank you entered did not exist or you do not permission to invite to it");
 			return false;
 		}
 		if (group.isTracked(toInvite)) {
@@ -260,12 +278,31 @@ public class GroupInteractionManager {
 					group.getColoredName());
 			return false;
 		}
-		PlayerType targetType = group.getPlayerTypeHandler().getDefaultPasswordJoinType();
-		group.addToTracking(executor, targetType, true);
+		GroupRank targetType = group.getGroupRankHandler().getDefaultPasswordJoinType();
+		groupMan.addPlayerToGroup(group, executor, targetType, true);
 		group.getActionLog().addAction(new JoinGroup(System.currentTimeMillis(), executor, targetType.getName()), true);
 		callback.accept(String.format("%You have been added to %s%s as a %s%s", ChatColor.GREEN, group.getColoredName(),
 				ChatColor.GREEN, ChatColor.YELLOW, targetType.getName()));
 		return true;
+	}
+
+	public Map<GroupRank, Set<UUID>> getMemberList(UUID executor, String groupName, Consumer<String> callback) {
+		Group group = getGroup(groupName, callback);
+		if (group == null) {
+			return null;
+		}
+		Map<GroupRank, Set<UUID>> ranks = new HashMap<>();
+		GroupRankHandler rankHandler = group.getGroupRankHandler();
+		boolean showAll = groupMan.hasAccess(group, executor, permManager.getGroupStats());
+		for (GroupRank rank : rankHandler.getAllTypes()) {
+			if (rank == rankHandler.getDefaultNonMemberType()) {
+				continue;
+			}
+			if (showAll || groupMan.hasAccess(group, executor, rank.getListPermissionType())) {
+				ranks.put(rank, group.getAllTrackedByType(rank));
+			}
+		}
+		return ranks;
 	}
 
 	public boolean linkGroups(UUID executor, String originatingGroupName, String originatingRankName,
@@ -288,11 +325,11 @@ public class GroupInteractionManager {
 		if (!checkPermission(targetGroup, executor, permManager.getLinkGroup(), callback)) {
 			return false;
 		}
-		PlayerType originatingRank = getPlayerType(originatingGroup, originatingRankName, callback);
+		GroupRank originatingRank = getPlayerType(originatingGroup, originatingRankName, callback);
 		if (originatingRank == null) {
 			return false;
 		}
-		PlayerType targetRank = getPlayerType(targetGroup, targetRankName, callback);
+		GroupRank targetRank = getPlayerType(targetGroup, targetRankName, callback);
 		if (targetRank == null) {
 			return false;
 		}
@@ -316,8 +353,8 @@ public class GroupInteractionManager {
 		if (group == null) {
 			return false;
 		}
-		PlayerType rank = group.getPlayerType(executor);
-		if (!group.getPlayerTypeHandler().isMemberType(rank)) {
+		GroupRank rank = group.getRank(executor);
+		if (!group.getGroupRankHandler().isMemberType(rank)) {
 			reply(callback, "%sYou are not a member of %s", ChatColor.RED, group.getColoredName());
 			return false;
 		}
@@ -329,7 +366,7 @@ public class GroupInteractionManager {
 					ChatColor.RED, ChatColor.YELLOW, rank.getName());
 			return false;
 		}
-		group.removeFromTracking(executor);
+		groupMan.removePlayerFromGroup(group, executor);
 		group.getActionLog().addAction(new LeaveGroup(System.currentTimeMillis(), executor, rank.getName()), true);
 		reply(callback, "%sYou have left %s", ChatColor.GREEN, group.getColoredName());
 		return true;
@@ -394,8 +431,8 @@ public class GroupInteractionManager {
 		if (toPromote == null) {
 			return false;
 		}
-		PlayerTypeHandler handler = group.getPlayerTypeHandler();
-		PlayerType targetType = handler.getType(targetRank);
+		GroupRankHandler handler = group.getGroupRankHandler();
+		GroupRank targetType = handler.getType(targetRank);
 		// this is designed to not reveal any names of player types to the outside
 		if (targetType == null) {
 			callback.accept(ChatColor.RED
@@ -408,7 +445,7 @@ public class GroupInteractionManager {
 					+ "The player type you entered did not exist or you do not permission to invite to it");
 			return false;
 		}
-		PlayerType currentRank = group.getPlayerType(toPromote);
+		GroupRank currentRank = group.getRank(toPromote);
 		if (currentRank == handler.getDefaultNonMemberType()) {
 			reply(callback, "%s%s%s is not a member of the group or you do not have permission to modify their rank",
 					ChatColor.YELLOW, NameAPI.getCurrentName(toPromote), ChatColor.RED);
@@ -428,7 +465,7 @@ public class GroupInteractionManager {
 		}
 		group.getActionLog().addAction(new ChangeMemberRank(System.currentTimeMillis(), executor, targetType.getName(),
 				toPromote, currentRank.getName()), true);
-		group.updateTracking(toPromote, targetType);
+		groupMan.updatePlayerRankInGroup(group, toPromote, targetType);
 		reply(callback, "Changed rank of %s%s%s from %s%s%s to %s%s%s in %s", ChatColor.GREEN, ChatColor.YELLOW,
 				NameAPI.getCurrentName(toPromote), ChatColor.GREEN, ChatColor.YELLOW, currentRank.getName(),
 				ChatColor.GREEN, ChatColor.YELLOW, targetType.getName(), ChatColor.GREEN, group.getColoredName());
@@ -440,12 +477,12 @@ public class GroupInteractionManager {
 		if (group == null) {
 			return false;
 		}
-		PlayerType rankInvitedTo = group.getInvite(executor);
+		GroupRank rankInvitedTo = group.getInvite(executor);
 		if (rankInvitedTo == null) {
 			reply(callback, "%sYou have not been invited to %s", ChatColor.RED, group.getColoredName());
 			return false;
 		}
-		group.removeInvite(executor);
+		groupMan.deleteInvite(group, executor);
 		PlayerListener.removeNotification(executor, group);
 		group.getActionLog().addAction(new RejectInvite(System.currentTimeMillis(), executor, rankInvitedTo.getName()),
 				true);
@@ -459,30 +496,30 @@ public class GroupInteractionManager {
 		if (group == null) {
 			return false;
 		}
-		UUID player = getPlayer(playerName, callback);
-		if (player == null) {
+		UUID invitedPlayer = getPlayer(playerName, callback);
+		if (invitedPlayer == null) {
 			return false;
 		}
-		PlayerType rankInvitedTo = group.getInvite(player);
+		GroupRank rankInvitedTo = group.getInvite(invitedPlayer);
 		if (rankInvitedTo == null) {
 			reply(callback, "%s%s%s has not been invited to %s%s or you do not have permission to revoke their invite",
-					ChatColor.YELLOW, NameAPI.getCurrentName(player), ChatColor.RED, group.getColoredName(),
+					ChatColor.YELLOW, NameAPI.getCurrentName(invitedPlayer), ChatColor.RED, group.getColoredName(),
 					ChatColor.RED);
 			return false;
 		}
 		if (!groupMan.hasAccess(group, executor, rankInvitedTo.getInvitePermissionType())) {
 			reply(callback, "%s%s%s has not been invited to %s%s or you do not have permission to revoke their invite",
-					ChatColor.YELLOW, NameAPI.getCurrentName(player), ChatColor.RED, group.getColoredName(),
+					ChatColor.YELLOW, NameAPI.getCurrentName(invitedPlayer), ChatColor.RED, group.getColoredName(),
 					ChatColor.RED);
 			return false;
 		}
-		group.removeInvite(player);
-		PlayerListener.removeNotification(player, group);
+		groupMan.deleteInvite(group, invitedPlayer);
+		PlayerListener.removeNotification(invitedPlayer, group);
 		group.getActionLog().addAction(
-				new RevokeInvite(System.currentTimeMillis(), executor, rankInvitedTo.getName(), player), true);
+				new RevokeInvite(System.currentTimeMillis(), executor, rankInvitedTo.getName(), invitedPlayer), true);
 		reply(callback, "%sRevoked an invite to %s%s as %s%s%s from %s%s", ChatColor.GREEN, group.getColoredName(),
 				ChatColor.GREEN, ChatColor.GOLD, rankInvitedTo.getName(), ChatColor.GREEN, ChatColor.YELLOW,
-				NameAPI.getCurrentName(player));
+				NameAPI.getCurrentName(invitedPlayer));
 		return true;
 	}
 
@@ -506,11 +543,11 @@ public class GroupInteractionManager {
 		if (!checkPermission(targetGroup, executor, permManager.getLinkGroup(), callback)) {
 			return false;
 		}
-		PlayerType originatingRank = getPlayerType(originatingGroup, originatingRankName, callback);
+		GroupRank originatingRank = getPlayerType(originatingGroup, originatingRankName, callback);
 		if (originatingRank == null) {
 			return false;
 		}
-		PlayerType targetRank = getPlayerType(targetGroup, targetRankName, callback);
+		GroupRank targetRank = getPlayerType(targetGroup, targetRankName, callback);
 		if (targetRank == null) {
 			return false;
 		}
@@ -554,7 +591,7 @@ public class GroupInteractionManager {
 		if (!checkPermission(group, executor, permManager.getModifyPerms(), callback)) {
 			return false;
 		}
-		PlayerType rank = getPlayerType(group, rankName, callback);
+		GroupRank rank = getPlayerType(group, rankName, callback);
 		if (rank == null) {
 			return false;
 		}
@@ -607,8 +644,8 @@ public class GroupInteractionManager {
 		}
 		// this is designed to not reveal any names of player types or current member
 		// status to the outside
-		PlayerTypeHandler handler = group.getPlayerTypeHandler();
-		PlayerType currentRank = group.getPlayerType(toKick);
+		GroupRankHandler handler = group.getGroupRankHandler();
+		GroupRank currentRank = group.getRank(toKick);
 		if (currentRank == handler.getDefaultNonMemberType()) {
 			callback.accept(ChatColor.RED
 					+ "The player is not a member of the group or you do not have sufficient permission to demote them");
@@ -622,7 +659,7 @@ public class GroupInteractionManager {
 		}
 		group.getActionLog()
 				.addAction(new RemoveMember(System.currentTimeMillis(), executor, currentRank.getName(), toKick), true);
-		group.removeFromTracking(toKick, true);
+		groupMan.removePlayerFromGroup(group, toKick);
 		reply(callback, "%s%s%s with the rank %s%s%s was kicked from %s", ChatColor.YELLOW,
 				NameAPI.getCurrentName(toKick), ChatColor.GREEN, ChatColor.YELLOW, currentRank.getName(),
 				ChatColor.GREEN, group.getColoredName());
@@ -669,8 +706,8 @@ public class GroupInteractionManager {
 		if (!isConformName(newName, callback)) {
 			return false;
 		}
-		PlayerTypeHandler typeHandler = group.getPlayerTypeHandler();
-		PlayerType rank = getPlayerType(group, oldName, callback);
+		GroupRankHandler typeHandler = group.getGroupRankHandler();
+		GroupRank rank = getPlayerType(group, oldName, callback);
 		if (rank == null) {
 			return false;
 		}
@@ -728,8 +765,8 @@ public class GroupInteractionManager {
 		return group;
 	}
 
-	private static PlayerType getPlayerType(Group group, String rankName, Consumer<String> callback) {
-		PlayerType rank = group.getPlayerTypeHandler().getType(rankName);
+	private static GroupRank getPlayerType(Group group, String rankName, Consumer<String> callback) {
+		GroupRank rank = group.getGroupRankHandler().getType(rankName);
 		if (rank == null) {
 			reply(callback, "%sThe rank %s%s%s does not exist for the group %s", ChatColor.RED, ChatColor.YELLOW,
 					rankName, ChatColor.RED, group.getColoredName());

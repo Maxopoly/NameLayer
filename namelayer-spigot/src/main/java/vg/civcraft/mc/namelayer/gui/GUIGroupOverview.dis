@@ -24,14 +24,14 @@ import vg.civcraft.mc.civmodcore.chatDialog.Dialog;
 import vg.civcraft.mc.civmodcore.inventorygui.Clickable;
 import vg.civcraft.mc.civmodcore.inventorygui.ClickableInventory;
 import vg.civcraft.mc.civmodcore.inventorygui.DecorationStack;
-import vg.civcraft.mc.namelayer.GroupManager;
 import vg.civcraft.mc.namelayer.NameAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.RunnableOnGroup;
 import vg.civcraft.mc.namelayer.group.Group;
+import vg.civcraft.mc.namelayer.group.GroupManager;
 import vg.civcraft.mc.namelayer.permission.GroupPermission;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
-import vg.civcraft.mc.namelayer.permission.PlayerType;
 
 public class GUIGroupOverview {
 
@@ -154,7 +154,7 @@ public class GUIGroupOverview {
 				continue;
 			}
 			Clickable c;
-			PlayerType pType = g.getPlayerType(p.getUniqueId());
+			GroupRank pType = g.getRank(p.getUniqueId());
 			if (pType == null) {
 				continue;
 			}
@@ -313,7 +313,7 @@ public class GUIGroupOverview {
 								p = Bukkit.getPlayer(uuid);
 								Group g = getGroup();
 								if (p != null) {
-									if (g.getGroupId() == -1) { // failure
+									if (g.getPrimaryId() == -1) { // failure
 										p.sendMessage(ChatColor.RED + "That group is already taken or creation failed.");
 									} else {
 										p.sendMessage(ChatColor.GREEN + "The group " + g.getName() + " was successfully created.");
@@ -327,7 +327,7 @@ public class GUIGroupOverview {
 
 								} else {
 									NameLayerPlugin.getInstance().getLogger().log(Level.INFO, "Group {0} creation complete resulting in group id: {1}",
-											new Object[] {g.getName(), g.getGroupId()});
+											new Object[] {g.getName(), g.getPrimaryId()});
 								}
 							}
 						}, false);
@@ -395,7 +395,7 @@ public class GUIGroupOverview {
 								else {
 									Group gro = ensureFreshGroup(g);
 									GroupPermission groupPerm = gm.getPermissionforGroup(gro);
-									PlayerType pType = groupPerm.getFirstWithPerm(PermissionType.getPermission("JOIN_PASSWORD"));
+									GroupRank pType = groupPerm.getFirstWithPerm(PermissionType.getPermission("JOIN_PASSWORD"));
 									if (pType == null) {
 										p.sendMessage(ChatColor.RED + "Someone derped. This group does not have the specified permission to let you join, sorry.");
 										showScreen();

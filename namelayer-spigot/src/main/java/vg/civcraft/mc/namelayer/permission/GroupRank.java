@@ -9,19 +9,19 @@ import org.bukkit.Bukkit;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
 
-public class PlayerType {
+public class GroupRank {
 
 	private Group group;
 	private String name;
 	private int id;
-	private List<PlayerType> children;
-	private PlayerType parent;
+	private List<GroupRank> children;
+	private GroupRank parent;
 	private List<PermissionType> perms;
 
 	/**
 	 * For creating completly new types
 	 */
-	public PlayerType(String name, int id, PlayerType parent, Group group) {
+	public GroupRank(String name, int id, GroupRank parent, Group group) {
 		this.name = name;
 		this.parent = parent;
 		this.id = id;
@@ -40,7 +40,7 @@ public class PlayerType {
 	/**
 	 * For loading existing types
 	 */
-	public PlayerType(String name, int id, PlayerType parent, List<PermissionType> perms, Group group) {
+	public GroupRank(String name, int id, GroupRank parent, List<PermissionType> perms, Group group) {
 		this.name = name;
 		this.parent = parent;
 		this.id = id;
@@ -58,12 +58,12 @@ public class PlayerType {
 	 * 
 	 * @return Parent node or null if no parent exists
 	 */
-	public PlayerType getParent() {
+	public GroupRank getParent() {
 		return parent;
 	}
 
-	public List<PlayerType> getAllParents() {
-		List<PlayerType> types = new ArrayList<>();
+	public List<GroupRank> getAllParents() {
+		List<GroupRank> types = new ArrayList<>();
 		if (parent != null) {
 			types.add(parent);
 			types.addAll(parent.getAllParents());
@@ -99,7 +99,7 @@ public class PlayerType {
 	 * @param recursive Whether children should be retrieved recursively (deep)
 	 * @return All children
 	 */
-	public List<PlayerType> getChildren(boolean recursive) {
+	public List<GroupRank> getChildren(boolean recursive) {
 		if (recursive) {
 			return getRecursiveChildren();
 		}
@@ -110,10 +110,10 @@ public class PlayerType {
 	/**
 	 * Utility method to recursively collect all children of a player type
 	 */
-	private List<PlayerType> getRecursiveChildren() {
+	private List<GroupRank> getRecursiveChildren() {
 		// deep search
-		List<PlayerType> types = new LinkedList<>();
-		for (PlayerType child : children) {
+		List<GroupRank> types = new LinkedList<>();
+		for (GroupRank child : children) {
 			types.add(child);
 			types.addAll(child.getRecursiveChildren());
 		}
@@ -126,7 +126,7 @@ public class PlayerType {
 	 * @param type Possible child
 	 * @return True if the given player type is a direct child, false if not
 	 */
-	public boolean isChildren(PlayerType type) {
+	public boolean isChildren(GroupRank type) {
 		return children.contains(type);
 	}
 
@@ -136,7 +136,7 @@ public class PlayerType {
 	 * @param child PlayerType to add as child
 	 * @return True if it was added successfully, false if not
 	 */
-	public boolean addChild(PlayerType child) {
+	public boolean addChild(GroupRank child) {
 		if (isChildren(child)) {
 			return false;
 		}
@@ -150,7 +150,7 @@ public class PlayerType {
 	 * @param child PlayerType to remove as child
 	 * @return True if it was removed successfully, false if not
 	 */
-	public boolean removeChild(PlayerType child) {
+	public boolean removeChild(GroupRank child) {
 		if (isChildren(child)) {
 			children.remove(child);
 			return true;
@@ -268,7 +268,7 @@ public class PlayerType {
 	 * @return True if the given type is above this one in the hierarchy of the
 	 *         group, false if not
 	 */
-	public boolean isEqualOrAbove(PlayerType type) {
+	public boolean isEqualOrAbove(GroupRank type) {
 		if (type == this) {
 			return true;
 		}
@@ -277,10 +277,10 @@ public class PlayerType {
 
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof PlayerType)) {
+		if (!(o instanceof GroupRank)) {
 			return false;
 		}
-		PlayerType comp = (PlayerType) o;
+		GroupRank comp = (GroupRank) o;
 		return comp.getId() == this.getId() && comp.getName().equals(this.getName());
 	}
 

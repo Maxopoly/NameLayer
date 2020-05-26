@@ -1,5 +1,6 @@
-package vg.civcraft.mc.namelayer;
+package vg.civcraft.mc.namelayer.group;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -22,17 +23,17 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import vg.civcraft.mc.civmodcore.command.MailBoxAPI;
+import vg.civcraft.mc.namelayer.NameAPI;
+import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.database.GroupManagerDao;
 import vg.civcraft.mc.namelayer.events.GroupCreateEvent;
 import vg.civcraft.mc.namelayer.events.GroupLinkEvent;
 import vg.civcraft.mc.namelayer.events.PostGroupMergeEvent;
 import vg.civcraft.mc.namelayer.events.PreGroupMergeEvent;
-import vg.civcraft.mc.namelayer.group.Group;
-import vg.civcraft.mc.namelayer.group.GroupLink;
 import vg.civcraft.mc.namelayer.group.log.impl.AcceptInvitation;
+import vg.civcraft.mc.namelayer.permission.GroupRank;
+import vg.civcraft.mc.namelayer.permission.GroupRankHandler;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
-import vg.civcraft.mc.namelayer.permission.PlayerType;
-import vg.civcraft.mc.namelayer.permission.PlayerTypeHandler;
 
 public class GroupManager {
 
@@ -59,7 +60,7 @@ public class GroupManager {
 	}
 
 	public Set<Group> getGroupsForPlayer(UUID player) {
-		return groupsByMember.get(player);
+		return Collections.unmodifiableSet(groupsByMember.computeIfAbsent(player, s ->new HashSet<>()));
 	}
 
 	public void renameGroup(Group group, String newName) {
@@ -70,7 +71,7 @@ public class GroupManager {
 		groupManagerDao.renameGroup(oldName, newName);
 	}
 
-	public void invitePlayer(UUID inviterUUID, UUID toInvite, PlayerType rank, Group group) {
+	public void invitePlayer(UUID inviterUUID, UUID toInvite, GroupRank rank, Group group) {
 		Player player = Bukkit.getPlayer(toInvite);
 		if (NameLayerPlugin.getInstance().getSettingsManager().getAutoAcceptInvites().getValue(toInvite)) {
 			if (player != null) {
@@ -83,7 +84,7 @@ public class GroupManager {
 			}
 			group.getActionLog().addAction(new AcceptInvitation(System.currentTimeMillis(), toInvite, rank.getName()),
 					true);
-			group.addToTracking(toInvite, rank, true);
+			addPlayerToGroup(group, toInvite, rank, true);
 		} else {
 			if (player != null) {
 				TextComponent message = new TextComponent(ChatColor.GREEN + "You have been invited to the group "
@@ -94,7 +95,9 @@ public class GroupManager {
 						new ComponentBuilder("  ---  Click to accept").create()));
 				player.spigot().sendMessage(message);
 			}
-			group.addInvite(toInvite, rank, true);
+			group.addInvite(toInvite, rank);
+			Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(),
+					() -> groupManagerDao.addGroupInvitation(toInvite, group, rank));
 		}
 	}
 
@@ -125,20 +128,55 @@ public class GroupManager {
 			return;
 		}
 		Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> {
-			int groupId = groupManagerDao.createGroup(name);
+			int groupId = groupManagerDao.createGroup(name, creator);
 			if (groupId == -1) {
 				return;
 			}
 			Group group = new Group(name, groupId);
-			group.setPlayerTypeHandler(PlayerTypeHandler.createStandardTypes(group));
-			group.addToTracking(creator, group.getPlayerTypeHandler().getOwnerType(), false);
-			//force instanciation of meta data time stamp
+			groupsByName.put(name.toLowerCase(), group);
+			groupsById.put(groupId, group);
+			group.setGroupRankHandler(GroupRankHandler.createStandardTypes(group));
+			addPlayerToGroup(group, creator, group.getGroupRankHandler().getOwnerType(), false);
+			// force instanciation of meta data time stamp
 			NameLayerPlugin.getInstance().getNameLayerMeta().getMetaData(group);
-			Bukkit.getScheduler().runTask(NameLayerPlugin.getInstance(), () -> {
-				postCreate.accept(group);
-			});
+			if (postCreate != null) {
+				Bukkit.getScheduler().runTask(NameLayerPlugin.getInstance(), () -> {
+					postCreate.accept(group);
+				});
+			}
 		});
+	}
 
+	public void addPlayerToGroup(Group group, UUID player, GroupRank rank, boolean saveToDatabase) {
+		Set<Group> groups = groupsByMember.computeIfAbsent(player, u -> new HashSet<>());
+		groups.add(group);
+		group.addToTracking(player, rank);
+		if (saveToDatabase) {
+			Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(),
+					() -> groupManagerDao.addMember(player, group, rank));
+		}
+	}
+
+	public void updatePlayerRankInGroup(Group group, UUID player, GroupRank rank) {
+		group.updateTracking(player, rank);
+		Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> {
+			groupManagerDao.updateMember(player, group, rank);
+		});
+	}
+
+	public void removePlayerFromGroup(Group group, UUID player) {
+		Set<Group> groups = groupsByMember.computeIfAbsent(player, u -> new HashSet<>());
+		groups.remove(group);
+		group.removeFromTracking(player);
+		Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> {
+			groupManagerDao.removeMember(player, group);
+		});
+	}
+
+	public void deleteInvite(Group group, UUID player) {
+		group.removeInvite(player);
+		Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(),
+				() -> groupManagerDao.removeGroupInvitation(player, group));
 	}
 
 	public void mergeGroup(final Group toKeep, final Group notToKeep) {
@@ -148,7 +186,7 @@ public class GroupManager {
 			return;
 		}
 
-		if (undergoingMerge.contains(toKeep.getGroupId()) || undergoingMerge.contains(notToKeep.getGroupId())) {
+		if (undergoingMerge.contains(toKeep.getPrimaryId()) || undergoingMerge.contains(notToKeep.getPrimaryId())) {
 			return;
 		}
 		PreGroupMergeEvent event = new PreGroupMergeEvent(toKeep, notToKeep);
@@ -158,8 +196,8 @@ public class GroupManager {
 					"Group merge event was cancelled for groups: " + toKeep.getName() + " and " + notToKeep.getName());
 			return;
 		}
-		undergoingMerge.add(toKeep.getGroupId());
-		undergoingMerge.add(notToKeep.getGroupId());
+		undergoingMerge.add(toKeep.getPrimaryId());
+		undergoingMerge.add(notToKeep.getPrimaryId());
 		NameLayerPlugin.getInstance().getServer().getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(),
 				() -> {
 					groupManagerDao.mergeGroup(toKeep, notToKeep);
@@ -167,8 +205,8 @@ public class GroupManager {
 							() -> {
 								PostGroupMergeEvent postEvent = new PostGroupMergeEvent(toKeep, notToKeep);
 								Bukkit.getPluginManager().callEvent(postEvent);
-								undergoingMerge.remove(toKeep.getGroupId());
-								undergoingMerge.remove(notToKeep.getGroupId());
+								undergoingMerge.remove(toKeep.getPrimaryId());
+								undergoingMerge.remove(notToKeep.getPrimaryId());
 							});
 				});
 	}
@@ -207,8 +245,8 @@ public class GroupManager {
 	 *         parents
 	 */
 	private boolean hasPlayerInheritsPerms(Group group, UUID uuid, PermissionType perm) {
-		PlayerType rank = group.getPlayerType(uuid);
-		if (rank == group.getPlayerTypeHandler().getOwnerType() || rank.hasPermission(perm)) {
+		GroupRank rank = group.getRank(uuid);
+		if (rank == group.getGroupRankHandler().getOwnerType() || rank.hasPermission(perm)) {
 			return true;
 		}
 		// check group links
@@ -218,7 +256,7 @@ public class GroupManager {
 				continue;
 			}
 			Group originatingGroup = link.getOriginatingGroup();
-			PlayerType rankInOgGroup = originatingGroup.getPlayerType(uuid);
+			GroupRank rankInOgGroup = originatingGroup.getRank(uuid);
 			if (link.getOriginatingType().isEqualOrAbove(rankInOgGroup)) {
 				return true;
 			} else {
@@ -233,7 +271,7 @@ public class GroupManager {
 	private static boolean checkUpwardsLinks(Group group, UUID player) {
 		for (GroupLink link : group.getIncomingLinks()) {
 			Group originatingGroup = link.getOriginatingGroup();
-			PlayerType rankInOgGroup = originatingGroup.getPlayerType(player);
+			GroupRank rankInOgGroup = originatingGroup.getRank(player);
 			if (link.getOriginatingType().isEqualOrAbove(rankInOgGroup)) {
 				return true;
 			} else {
@@ -258,7 +296,7 @@ public class GroupManager {
 	 *                        originating type
 	 * @return GroupLink created or null if creation was aborted
 	 */
-	public GroupLink linkGroups(Group originating, PlayerType originatingType, Group target, PlayerType targetType) {
+	public GroupLink linkGroups(Group originating, GroupRank originatingType, Group target, GroupRank targetType) {
 		Queue<Group> toProcess = new LinkedList<>();
 		Set<Group> alreadyLinked = new HashSet<>();
 		for (GroupLink link : target.getOutgoingLinks()) {
