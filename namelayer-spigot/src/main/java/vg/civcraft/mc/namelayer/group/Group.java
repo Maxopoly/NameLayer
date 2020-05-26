@@ -12,12 +12,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
-
 import com.google.common.base.Preconditions;
 
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
-import vg.civcraft.mc.namelayer.database.GroupManagerDao;
 import vg.civcraft.mc.namelayer.group.log.GroupActionLog;
 import vg.civcraft.mc.namelayer.permission.GroupRank;
 import vg.civcraft.mc.namelayer.permission.GroupRankHandler;

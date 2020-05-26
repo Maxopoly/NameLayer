@@ -11,11 +11,11 @@ public enum DefaultPermissionLevel {
 	public List<Integer> getAllowedRankIds() {
 		switch(this) {
 		case ADMIN:
-			return Arrays.asList(1);
+			return Arrays.asList(GroupRankHandler.DEFAULT_ADMIN_ID);
 		case MEMBER:
-			return Arrays.asList(1, 2, 3);
+			return Arrays.asList(GroupRankHandler.DEFAULT_ADMIN_ID, GroupRankHandler.DEFAULT_MOD_ID, GroupRankHandler.DEFAULT_MEMBER_ID);
 		case MOD:
-			return Arrays.asList(1, 2);
+			return Arrays.asList(GroupRankHandler.DEFAULT_ADMIN_ID, GroupRankHandler.DEFAULT_MOD_ID);
 		case OWNER:
 			return Collections.emptyList();
 		default:

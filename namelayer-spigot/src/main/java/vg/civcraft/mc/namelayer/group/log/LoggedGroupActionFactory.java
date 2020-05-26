@@ -18,6 +18,7 @@ import vg.civcraft.mc.namelayer.group.log.abstr.LoggedGroupAction;
 import vg.civcraft.mc.namelayer.group.log.impl.AcceptInvitation;
 import vg.civcraft.mc.namelayer.group.log.impl.AddLink;
 import vg.civcraft.mc.namelayer.group.log.impl.AddPermission;
+import vg.civcraft.mc.namelayer.group.log.impl.BlacklistPlayer;
 import vg.civcraft.mc.namelayer.group.log.impl.ChangeColor;
 import vg.civcraft.mc.namelayer.group.log.impl.ChangeGroupName;
 import vg.civcraft.mc.namelayer.group.log.impl.ChangeMemberRank;
@@ -143,6 +144,7 @@ public class LoggedGroupActionFactory {
 		registerProvider(AcceptInvitation.ID, AcceptInvitation::new);
 		registerProvider(AddLink.ID, AddLink::new);
 		registerProvider(AddPermission.ID, AddPermission::new);
+		registerProvider(BlacklistPlayer.ID, BlacklistPlayer::new);
 		registerProvider(ChangeColor.ID, ChangeColor::new);
 		registerProvider(ChangeGroupName.ID, ChangeGroupName::new);
 		registerProvider(ChangeMemberRank.ID, ChangeMemberRank::new);

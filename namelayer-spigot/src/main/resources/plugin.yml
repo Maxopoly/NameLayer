@@ -192,6 +192,15 @@ commands:
     min-args: 1
     max-args: 1
     player-only: true
+  nllp:
+    aliases:
+      - nllistperms
+      - listperms
+    usage: /nllp [group]
+    description: Lists all permissions you have on a group
+    min-args: 1
+    max-args: 1
+    player-only: true
   nlmg:
     aliases:
       - nlmergegroups

@@ -34,7 +34,7 @@ public class ListGroups extends StandaloneCommand {
 			sb.append(ChatColor.YELLOW);
 			sb.append("  (");
 			sb.append(group.getRank(player.getUniqueId()).getName());
-			sb.append(")");
+			sb.append(")\n");
 		}
 		sender.sendMessage(sb.toString());
 		return true;

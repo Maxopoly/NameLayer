@@ -17,6 +17,7 @@ import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.log.impl.AcceptInvitation;
 import vg.civcraft.mc.namelayer.group.log.impl.AddLink;
 import vg.civcraft.mc.namelayer.group.log.impl.AddPermission;
+import vg.civcraft.mc.namelayer.group.log.impl.BlacklistPlayer;
 import vg.civcraft.mc.namelayer.group.log.impl.ChangeGroupName;
 import vg.civcraft.mc.namelayer.group.log.impl.ChangeMemberRank;
 import vg.civcraft.mc.namelayer.group.log.impl.ChangeRankName;
@@ -78,6 +79,61 @@ public class GroupInteractionManager {
 		PlayerListener.removeNotification(executor, group);
 		callback.accept(String.format("%sYou have been added to %s%s as a %s%s", ChatColor.GREEN,
 				group.getColoredName(), ChatColor.GREEN, ChatColor.YELLOW, type.getName()));
+		return true;
+	}
+
+	public boolean blacklistPlayer(UUID executor, String groupName, String targetPlayer, String rank,
+			Consumer<String> callback) {
+		Group group = getGroup(groupName, callback);
+		if (group == null) {
+			return false;
+		}
+		UUID toAdd = getPlayer(targetPlayer, callback);
+		if (toAdd == null) {
+			return false;
+		}
+		GroupRankHandler handler = group.getGroupRankHandler();
+		GroupRank targetType = rank != null ? handler.getType(rank) : handler.getDefaultInvitationType();
+		// this is designed to not reveal any names of player types to the outside
+		if (targetType == null) {
+			callback.accept(
+					ChatColor.RED + "The rank you entered did not exist or you do not permission to blacklist on it");
+			return false;
+		}
+		PermissionType permRequired = targetType.getInvitePermissionType();
+		if (!groupMan.hasAccess(group, executor, permRequired)) {
+			callback.accept(
+					ChatColor.RED + "The rank you entered did not exist or you do not permission to blacklist on it");
+			return false;
+		}
+		if (!handler.isBlackListedType(targetType)) {
+			reply(callback, "%s%s%s is not a blacklist rank in %s", ChatColor.YELLOW, targetType.getName(),
+					ChatColor.RED, group.getColoredName());
+			return false;
+		}
+		GroupRank currentRank = group.getRank(toAdd);
+		if (currentRank != handler.getDefaultNonMemberType()) {
+			if (!groupMan.hasAccess(group, executor, currentRank.getRemovalPermissionType())) {
+				callback.accept(String.format(
+						"%sThe player %s%s%s is already tracked for %s%s and you do not have permission to remove them from their current rank",
+						ChatColor.RED, ChatColor.YELLOW, NameAPI.getCurrentName(toAdd), ChatColor.RED,
+						group.getColoredName(), ChatColor.RED));
+				return false;
+			}
+			callback.accept(String.format("%s%s%s had their rank changed from %s%s%s to %s%s%s in %s", ChatColor.YELLOW,
+					NameAPI.getCurrentName(toAdd), ChatColor.GREEN, ChatColor.GOLD, currentRank.getName(),
+					ChatColor.GREEN, ChatColor.GOLD, targetType.getName(), ChatColor.GREEN, group.getColoredName()));
+			group.getActionLog().addAction(new ChangeMemberRank(System.currentTimeMillis(), executor,
+					targetType.getName(), toAdd, currentRank.getName()), true);
+			groupMan.updatePlayerRankInGroup(group, toAdd, targetType);
+			return true;
+		}
+		callback.accept(String.format("%s%s %shas been blacklisted as %s%s%s in %s", ChatColor.YELLOW,
+				NameAPI.getCurrentName(toAdd), ChatColor.GREEN, ChatColor.YELLOW, targetType.getName(),
+				ChatColor.YELLOW, group.getColoredName()));
+		group.getActionLog().addAction(
+				new BlacklistPlayer(System.currentTimeMillis(), executor, targetType.getName(), toAdd), true);
+		groupMan.addPlayerToGroup(group, toAdd, targetType, true);
 		return true;
 	}
 
@@ -232,14 +288,19 @@ public class GroupInteractionManager {
 		GroupRank targetType = rank != null ? handler.getType(rank) : handler.getDefaultInvitationType();
 		// this is designed to not reveal any names of player types to the outside
 		if (targetType == null) {
-			callback.accept(ChatColor.RED
-					+ "The rank you entered did not exist or you do not permission to invite to it");
+			callback.accept(
+					ChatColor.RED + "The rank you entered did not exist or you do not permission to invite to it");
 			return false;
 		}
 		PermissionType permRequired = targetType.getInvitePermissionType();
 		if (!groupMan.hasAccess(group, executor, permRequired)) {
-			callback.accept(ChatColor.RED
-					+ "The rank you entered did not exist or you do not permission to invite to it");
+			callback.accept(
+					ChatColor.RED + "The rank you entered did not exist or you do not permission to invite to it");
+			return false;
+		}
+		if (handler.isBlackListedType(targetType)) {
+			reply(callback, "%sYou can not invite players to the blacklist rank %s%s%s in %s", ChatColor.RED,
+					ChatColor.GOLD, targetType.getName(), ChatColor.RED, group.getColoredName());
 			return false;
 		}
 		if (group.isTracked(toInvite)) {
@@ -251,7 +312,7 @@ public class GroupInteractionManager {
 		}
 		callback.accept(String.format("%s%s %shas been invited as %s%s%s to %s", ChatColor.YELLOW,
 				NameAPI.getCurrentName(toInvite), ChatColor.GREEN, ChatColor.YELLOW, targetType.getName(),
-				ChatColor.YELLOW, group.getColoredName()));
+				ChatColor.GREEN, group.getColoredName()));
 		group.getActionLog().addAction(
 				new InviteMember(System.currentTimeMillis(), executor, targetType.getName(), toInvite), true);
 		groupMan.invitePlayer(executor, toInvite, targetType, group);
@@ -431,6 +492,10 @@ public class GroupInteractionManager {
 		if (toPromote == null) {
 			return false;
 		}
+		if (toPromote.equals(executor)) {
+			callback.accept(ChatColor.RED + "You can not change your own rank");
+			return false;
+		}
 		GroupRankHandler handler = group.getGroupRankHandler();
 		GroupRank targetType = handler.getType(targetRank);
 		// this is designed to not reveal any names of player types to the outside
@@ -439,10 +504,9 @@ public class GroupInteractionManager {
 					+ "The player type you entered did not exist or you do not permission to promote to it");
 			return false;
 		}
-		PermissionType permRequired = targetType.getInvitePermissionType();
-		if (!GroupAPI.hasPermission(executor, group, permRequired)) {
+		if (!GroupAPI.hasPermission(executor, group, targetType.getInvitePermissionType())) {
 			callback.accept(ChatColor.RED
-					+ "The player type you entered did not exist or you do not permission to invite to it");
+					+ "The player type you entered did not exist or you do not permission to promote to it");
 			return false;
 		}
 		GroupRank currentRank = group.getRank(toPromote);
@@ -454,6 +518,12 @@ public class GroupInteractionManager {
 		if (!groupMan.hasAccess(group, executor, currentRank.getRemovalPermissionType())) {
 			reply(callback, "%s%s%s is not a member of the group or you do not have permission to modify their rank",
 					ChatColor.YELLOW, NameAPI.getCurrentName(toPromote), ChatColor.RED);
+			return false;
+		}
+		if (currentRank.equals(targetType)) {
+			reply(callback, "%s%s%s already has the rank %s%s%s in %s", ChatColor.YELLOW,
+					NameAPI.getCurrentName(toPromote), ChatColor.RED, ChatColor.GOLD, currentRank.getName(),
+					ChatColor.RED, group.getColoredName());
 			return false;
 		}
 		if (handler.isBlackListedType(currentRank) && !handler.isBlackListedType(targetType)) {
@@ -486,7 +556,7 @@ public class GroupInteractionManager {
 		PlayerListener.removeNotification(executor, group);
 		group.getActionLog().addAction(new RejectInvite(System.currentTimeMillis(), executor, rankInvitedTo.getName()),
 				true);
-		reply(callback, "%sYou rejected the invite to %s%s as %s%s%s", ChatColor.GREEN, group.getColoredName(),
+		reply(callback, "%sYou rejected the invite to %s%s as %s%s", ChatColor.GREEN, group.getColoredName(),
 				ChatColor.GREEN, ChatColor.GOLD, rankInvitedTo.getName());
 		return true;
 	}
@@ -640,6 +710,10 @@ public class GroupInteractionManager {
 		}
 		UUID toKick = getPlayer(playerName, callback);
 		if (toKick == null) {
+			return false;
+		}
+		if (toKick.equals(executor)) {
+			callback.accept(ChatColor.RED + "You can not kick yourself from a group, leave it instead");
 			return false;
 		}
 		// this is designed to not reveal any names of player types or current member

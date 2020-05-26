@@ -41,14 +41,16 @@ public class GroupManager {
 
 	private GroupManagerDao groupManagerDao;
 
-	private Map<String, Group> groupsByName = new HashMap<>();
-	private Map<Integer, Group> groupsById = new HashMap<>();
+	private Map<String, Group> groupsByName;
+	private Map<Integer, Group> groupsById;
 	private Map<UUID, Set<Group>> groupsByMember;
 	private Set<Integer> undergoingMerge;
 
 	public GroupManager(GroupManagerDao groupManagerDao, Map<String, Group> groupsByName,
 			Map<Integer, Group> groupsById) {
 		this.groupManagerDao = groupManagerDao;
+		this.groupsById = groupsById;
+		this.groupsByName = groupsByName;
 		this.undergoingMerge = new TreeSet<>();
 		this.groupsByMember = new HashMap<>();
 		for (Group group : groupsById.values()) {
@@ -57,6 +59,7 @@ public class GroupManager {
 				groups.add(group);
 			}
 		}
+		System.out.println(groupsByName);
 	}
 
 	public Set<Group> getGroupsForPlayer(UUID player) {

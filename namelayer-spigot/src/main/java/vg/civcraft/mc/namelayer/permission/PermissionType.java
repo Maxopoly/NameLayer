@@ -2,7 +2,6 @@ package vg.civcraft.mc.namelayer.permission;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -25,6 +24,10 @@ public final class PermissionType {
 	private static Map<String, PermissionType> permissionByName;
 	private static Map<Integer, PermissionType> permissionById;
 	private static int maximumExistingId;
+
+	private static final String LIST_RANK_PREFIX = "listPlayer#";
+	private static final String INVITE_RANK_PREFIX = "invitePlayer#";
+	private static final String REMOVE_RANK_PREFIX = "removePlayer#";
 
 	public static void initialize() {
 		permissionByName = new HashMap<>();
@@ -78,8 +81,8 @@ public final class PermissionType {
 	 * @param defaultPermLevels
 	 * @param description
 	 */
-	public static PermissionType registerPermission(JavaPlugin registeringPlugin, String name, DefaultPermissionLevel defaultPermLevel,
-			String description) {
+	public static PermissionType registerPermission(JavaPlugin registeringPlugin, String name,
+			DefaultPermissionLevel defaultPermLevel, String description) {
 		if (name == null) {
 			Bukkit.getLogger().severe("Could not register permission, name was null");
 			return null;
@@ -97,7 +100,6 @@ public final class PermissionType {
 				break;
 			}
 		}
-		List<Integer> defaultPermLevels = defaultPermLevel.getAllowedRankIds();
 		PermissionType perm;
 		if (id == -1) {
 			// not in db yet
@@ -106,11 +108,11 @@ public final class PermissionType {
 				id++;
 			}
 			maximumExistingId = id;
-			perm = new PermissionType(registeringPlugin, name, id, defaultPermLevels, description);
+			perm = new PermissionType(registeringPlugin, name, id, defaultPermLevel, description);
 			NameLayerPlugin.getInstance().getGroupManagerDao().registerPermission(perm);
 		} else {
 			// already in db, so use existing id
-			perm = new PermissionType(registeringPlugin, name, id, defaultPermLevels, description);
+			perm = new PermissionType(registeringPlugin, name, id, defaultPermLevel, description);
 		}
 		permissionByName.put(name, perm);
 		permissionById.put(id, perm);
@@ -127,7 +129,7 @@ public final class PermissionType {
 	 * @return Invite permission for the given id
 	 */
 	public static PermissionType getInvitePermission(int id) {
-		String invitePermName = "invitePlayer#" + id;
+		String invitePermName = INVITE_RANK_PREFIX + id;
 		PermissionType invPerm = PermissionType.getPermission(invitePermName);
 		if (invPerm == null) {
 			// register type, because it was never used before, we do this with
@@ -149,7 +151,7 @@ public final class PermissionType {
 	 * @return Remove permission for the given id
 	 */
 	public static PermissionType getRemovePermission(int id) {
-		String removePermName = "removePlayer#" + id;
+		String removePermName = REMOVE_RANK_PREFIX + id;
 		PermissionType removePerm = PermissionType.getPermission(removePermName);
 		if (removePerm == null) {
 			// register type, because it was never used before, we do this with
@@ -172,7 +174,7 @@ public final class PermissionType {
 	 * @return List permission for the given id
 	 */
 	public static PermissionType getListPermission(int id) {
-		String listPermName = "listPlayer#" + id;
+		String listPermName = LIST_RANK_PREFIX + id;
 		PermissionType listPerm = PermissionType.getPermission(listPermName);
 		if (listPerm == null) {
 			// register type, because it was never used before, we do this with
@@ -186,84 +188,6 @@ public final class PermissionType {
 	}
 
 	/**
-	 * Checks if the given PermissionType is a player type removal permission and if
-	 * it is, it returns the id for which this permission allows removing members.
-	 * If it is not a removal permission -1 will be returned
-	 * 
-	 * @param perm PermissionType to check
-	 * @return removal id of the given perm or -1 if it isn't a removal perm
-	 */
-	public static int getRemovePermissionId(PermissionType perm) {
-		if (perm.getDescription() != null) {
-			return -1;
-		}
-		String[] parts = perm.getName().split("#");
-		if (parts.length != 2) {
-			return -1;
-		}
-		if (!parts[0].equals("removePlayer")) {
-			return -1;
-		}
-		try {
-			return Integer.parseInt(parts[1]);
-		} catch (NumberFormatException e) {
-			return -1;
-		}
-	}
-
-	/**
-	 * Checks if the given PermissionType is a player type invite permission and if
-	 * it is, it returns the id for which this permission allows inviting members.
-	 * If it is not an invite permission -1 will be returned
-	 * 
-	 * @param perm PermissionType to check
-	 * @return invite id of the given perm or -1 if it isn't a invitation perm
-	 */
-	public static int getInvitePermissionId(PermissionType perm) {
-		if (perm.getDescription() != null) {
-			return -1;
-		}
-		String[] parts = perm.getName().split("#");
-		if (parts.length != 2) {
-			return -1;
-		}
-		if (!parts[0].equals("invitePlayer")) {
-			return -1;
-		}
-		try {
-			return Integer.parseInt(parts[1]);
-		} catch (NumberFormatException e) {
-			return -1;
-		}
-	}
-
-	/**
-	 * Checks if the given PermissionType is a player type list permission and if it
-	 * is, it returns the id for which this permission allows listing members. If it
-	 * is not a list permission -1 will be returned
-	 * 
-	 * @param perm PermissionType to check
-	 * @return list id of the given perm or -1 if it isn't a listing perm
-	 */
-	public static int getListPermissionId(PermissionType perm) {
-		if (perm.getDescription() != null) {
-			return -1;
-		}
-		String[] parts = perm.getName().split("#");
-		if (parts.length != 2) {
-			return -1;
-		}
-		if (!parts[0].equals("listPlayer")) {
-			return -1;
-		}
-		try {
-			return Integer.parseInt(parts[1]);
-		} catch (NumberFormatException e) {
-			return -1;
-		}
-	}
-
-	/**
 	 * @return All existing permissions
 	 */
 	public static Collection<PermissionType> getAllPermissions() {
@@ -274,6 +198,28 @@ public final class PermissionType {
 	 * Initializes all the permissions ranks use internally
 	 */
 	private static void registerRankPermissions() {
+		NameLayerPlugin plugin = NameLayerPlugin.getInstance();
+		// list admins
+		registerPermission(plugin, LIST_RANK_PREFIX + GroupRankHandler.DEFAULT_ADMIN_ID, DefaultPermissionLevel.ADMIN,
+				"");
+		// list mods
+		registerPermission(plugin, LIST_RANK_PREFIX + GroupRankHandler.DEFAULT_MOD_ID, DefaultPermissionLevel.ADMIN,
+				"");
+		// invite mods
+		registerPermission(plugin, INVITE_RANK_PREFIX + GroupRankHandler.DEFAULT_MOD_ID, DefaultPermissionLevel.ADMIN,
+				"");
+		// remove mods
+		registerPermission(plugin, REMOVE_RANK_PREFIX + GroupRankHandler.DEFAULT_MOD_ID, DefaultPermissionLevel.ADMIN,
+				"");
+		// list members
+		registerPermission(plugin, LIST_RANK_PREFIX + GroupRankHandler.DEFAULT_MEMBER_ID, DefaultPermissionLevel.MOD,
+				"");
+		// invite members
+		registerPermission(plugin, INVITE_RANK_PREFIX + GroupRankHandler.DEFAULT_MEMBER_ID, DefaultPermissionLevel.MOD,
+				"");
+		// remove members
+		registerPermission(plugin, REMOVE_RANK_PREFIX + GroupRankHandler.DEFAULT_MEMBER_ID, DefaultPermissionLevel.MOD,
+				"");
 		for (int i = 0; i < GroupRankHandler.getMaximumTypeCount(); i++) {
 			// a get call will ensure all of them are initiated both in cache and the
 			// database
@@ -285,11 +231,11 @@ public final class PermissionType {
 
 	private String name;
 	private String registeringPlugin;
-	private List<Integer> defaultPermLevels;
+	private DefaultPermissionLevel defaultPermLevels;
 	private int id;
 	private String description;
 
-	private PermissionType(JavaPlugin registeringPlugin, String name, int id, List<Integer> defaultPermLevels,
+	private PermissionType(JavaPlugin registeringPlugin, String name, int id, DefaultPermissionLevel defaultPermLevels,
 			String description) {
 		this.name = name;
 		this.registeringPlugin = registeringPlugin.getName();
@@ -313,15 +259,10 @@ public final class PermissionType {
 	}
 
 	/**
-	 * List containing all player types, which will automatically get this
-	 * permission when a new group is created. Player types are identified by id
-	 * here: 1 = Admin, 2 = Mod, 3 = Member, 4 = DefaultNonMember, 5 = Blacklisted.
-	 * 0, which is owner wont be in the list explicitly, but is implied to always
-	 * have all permissions on group creation
 	 * 
-	 * @return All player type levels which get this permission by default
+	 * @return Minimum permission level which will get this permission by default
 	 */
-	public List<Integer> getDefaultPermLevels() {
+	public DefaultPermissionLevel getDefaultPermLevels() {
 		return defaultPermLevels;
 	}
 

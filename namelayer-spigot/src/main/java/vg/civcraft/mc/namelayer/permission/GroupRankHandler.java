@@ -29,6 +29,9 @@ public class GroupRankHandler {
 	private Map<Integer, GroupRank> typesById;
 	public static final int MAXIMUM_TYPE_COUNT = 27;
 	public static final int OWNER_ID = 0;
+	public static final int DEFAULT_ADMIN_ID = 1;
+	public static final int DEFAULT_MOD_ID = 2;
+	public static final int DEFAULT_MEMBER_ID = 3;
 	private static final int DEFAULT_NON_MEMBER_ID = 4;
 
 	public GroupRankHandler(GroupRank root, Group group) {
@@ -212,7 +215,7 @@ public class GroupRankHandler {
 				otherType.removePermission(listPermission, false);
 				perms.add(listPermission);
 			}
-			if (perms.size() != 0) {
+			if (!perms.isEmpty()) {
 				permsToRemove.put(otherType, perms);
 			}
 		}
@@ -354,11 +357,11 @@ public class GroupRankHandler {
 		Map<GroupRank, List<PermissionType>> permsToSave = new HashMap<>();
 		GroupRank owner = new GroupRank("Owner", OWNER_ID, null, g);
 		GroupRankHandler handler = new GroupRankHandler(owner, g);
-		GroupRank admin = new GroupRank("Admin", 1, owner, g);
+		GroupRank admin = new GroupRank("Admin", DEFAULT_ADMIN_ID, owner, g);
 		handler.registerType(admin, false);
-		GroupRank mod = new GroupRank("Mod", 2, admin, g);
+		GroupRank mod = new GroupRank("Mod", DEFAULT_MOD_ID, admin, g);
 		handler.registerType(mod, false);
-		GroupRank member = new GroupRank("Member", 3, mod, g);
+		GroupRank member = new GroupRank("Member", DEFAULT_MEMBER_ID, mod, g);
 		handler.registerType(member, false);
 		GroupRank defaultNonMember = new GroupRank("Default", DEFAULT_NON_MEMBER_ID, owner, g);
 		handler.registerType(defaultNonMember, false);
@@ -370,7 +373,7 @@ public class GroupRankHandler {
 			}
 			List<PermissionType> permList = new ArrayList<>();
 			for (PermissionType perm : PermissionType.getAllPermissions()) {
-				if (perm.getDefaultPermLevels().contains(type.getId())) {
+				if (perm.getDefaultPermLevels().getAllowedRankIds().contains(type.getId())) {
 					type.addPermission(perm, false);
 					permList.add(perm);
 				}
@@ -379,9 +382,8 @@ public class GroupRankHandler {
 		}
 		handler.defaultInvitationType = member;
 		handler.defaultPasswordJoinType = member;
-		Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> {
-			NameLayerPlugin.getInstance().getGroupManagerDao().addAllPermissions(g.getPrimaryId(), permsToSave);
-		});
+		Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> NameLayerPlugin.getInstance()
+				.getGroupManagerDao().addAllPermissions(g.getPrimaryId(), permsToSave));
 		return handler;
 	}
 }

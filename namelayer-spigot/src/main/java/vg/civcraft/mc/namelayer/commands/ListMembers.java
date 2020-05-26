@@ -26,8 +26,16 @@ public class ListMembers extends StandaloneCommand {
 		Map<GroupRank, Set<UUID>> playersByRank = NameLayerPlugin.getInstance().getGroupInteractionManager()
 				.getMemberList(player.getUniqueId(), args[0], player::sendMessage);
 		StringBuilder sb = new StringBuilder();
+		if (playersByRank == null) {
+			sender.sendMessage(String.format("%sThe group %s does not exist", ChatColor.RED, args [0]));
+			return true;
+		}
+		if (playersByRank.isEmpty()) {
+			sender.sendMessage(String.format("%sYou do not have permission to list any members of %s", ChatColor.RED, args [0]));
+			return true;
+		}
 		for (Entry<GroupRank, Set<UUID>> entry : playersByRank.entrySet()) {
-			if (entry.getValue().size() == 0) {
+			if (entry.getValue().isEmpty()) {
 				continue;
 			}
 			GroupRank rank = entry.getKey();
