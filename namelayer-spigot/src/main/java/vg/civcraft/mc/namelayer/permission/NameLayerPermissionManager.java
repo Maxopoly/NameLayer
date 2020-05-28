@@ -24,7 +24,7 @@ public class NameLayerPermissionManager {
 				"Allows viewing this groups password and changing or removing it");
 		// allows to list the permissions for each permission group
 		listPerms = PermissionType.registerPermission(plugin, "LIST_PERMS", DefaultPermissionLevel.ADMIN,
-				"Allows viewing how permission for this group are set up");
+				"Allows viewing how permissions for this group are set up");
 		// allows to see general group stats
 		groupStats = PermissionType.registerPermission(plugin, "GROUPSTATS", DefaultPermissionLevel.ADMIN,
 				"Gives access to various group statistics such as member "
@@ -51,7 +51,7 @@ public class NameLayerPermissionManager {
 				"Allows renaming the group");
 		linkGroup = PermissionType.registerPermission(plugin, "LINK_GROUP", DefaultPermissionLevel.OWNER,
 				"Allows linking and unlinking the group");
-		changeGroupColor = PermissionType.registerPermission(plugin, "GROUP_COLOR", DefaultPermissionLevel.OWNER,
+		changeGroupColor = PermissionType.registerPermission(plugin, "GROUP_COLOR", DefaultPermissionLevel.ADMIN,
 				"Allows changing the groups color prefix");
 	}
 

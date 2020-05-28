@@ -1,6 +1,7 @@
 package vg.civcraft.mc.namelayer.permission;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,11 +40,9 @@ public class GroupRankHandler {
 		this.group = group;
 		this.typesByName = new HashMap<>();
 		this.typesById = new TreeMap<>();
-		typesByName.put(root.getName().toLowerCase(), root);
-		typesById.put(root.getId(), root);
+		putRank(root);
 		for (GroupRank type : root.getChildren(true)) {
-			typesByName.put(type.getName().toLowerCase(), type);
-			typesById.put(type.getId(), type);
+			putRank(type);
 		}
 	}
 
@@ -240,54 +239,43 @@ public class GroupRankHandler {
 	 * created one get invite and remove permissions for the player type. The new
 	 * type will not inherit those permissions for itself
 	 * 
-	 * @param type    Player type to add
-	 * @param saveToD Whether the action should be persisted to the database and
-	 *                broadcasted via Mercury
+	 * @param rank Rank to add
 	 */
-	public boolean registerType(GroupRank type, boolean saveToDb) {
+	public boolean createNewType(GroupRank rank) {
 		// we can always assume that the register type has a parent here,
 		// because the root is created a different way and
 		// all other nodes should have a parent
-		if (type == null || type.getParent() == null || doesTypeExist(type.getName())
-				|| !doesTypeExist(type.getParent().getName())) {
+		if (rank == null || rank.getParent() == null || doesTypeExist(rank.getName())
+				|| !doesTypeExist(rank.getParent().getName())) {
 			return false;
 		}
-		PermissionType invPerm = PermissionType.getInvitePermission(type.getId());
-		PermissionType removePerm = PermissionType.getRemovePermission(type.getId());
-		PermissionType listPermission = PermissionType.getListPermission(type.getId());
+		PermissionType invPerm = PermissionType.getInvitePermission(rank.getId());
+		PermissionType removePerm = PermissionType.getRemovePermission(rank.getId());
+		PermissionType listPermission = PermissionType.getListPermission(rank.getId());
 		Map<GroupRank, List<PermissionType>> permissionsToSave = new HashMap<>();
 		// copy permissions from parent, we dont want to save the perm changes
 		// to the db directly, because we will batch them
-		// additionally other servers will change those permissions without
-		// explicitly being told to do so when
-		// they are notified of the new player type creation
-		for (PermissionType perm : type.getParent().getAllPermissions()) {
-			type.addPermission(perm, false);
+		for (PermissionType perm : rank.getParent().getAllPermissions()) {
+			rank.addPermission(perm, false);
 		}
-		permissionsToSave.put(type, type.getParent().getAllPermissions());
-		// dont give add/remove permission for default rank
-		if (type.getId() != DEFAULT_NON_MEMBER_ID) {
-			// give all parents permissions to modify the new type
-			for (GroupRank parent : type.getAllParents()) {
-				if (!isMemberType(parent)) {
-					continue;
-				}
-				parent.addPermission(invPerm, false);
-				parent.addPermission(removePerm, false);
-				parent.addPermission(listPermission, false);
-				List<PermissionType> perms = new LinkedList<>();
-				perms.add(invPerm);
-				perms.add(removePerm);
-				permissionsToSave.put(parent, perms);
+		permissionsToSave.put(rank, rank.getParent().getAllPermissions());
+		GroupRank parent = rank.getParent();
+		while (parent != null) {
+			if (!isMemberType(parent)) {
+				parent = parent.getParent();
+				continue;
 			}
+			parent.addPermission(invPerm, false);
+			parent.addPermission(removePerm, false);
+			parent.addPermission(listPermission, false);
+			permissionsToSave.put(parent, Arrays.asList(invPerm, removePerm, listPermission));
 		}
-		typesByName.put(type.getName().toLowerCase(), type);
-		typesById.put(type.getId(), type);
-		if (saveToDb) {
+		putRank(rank);
+		Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> {
+			NameLayerPlugin.getInstance().getGroupManagerDao().registerPlayerType(group, rank);
 			NameLayerPlugin.getInstance().getGroupManagerDao().addAllPermissions(group.getPrimaryId(),
 					permissionsToSave);
-			NameLayerPlugin.getInstance().getGroupManagerDao().registerPlayerType(group, type);
-		}
+		});
 		return true;
 	}
 
@@ -298,7 +286,7 @@ public class GroupRankHandler {
 	 * 
 	 * @param type Type to add
 	 */
-	public void loadPlayerType(GroupRank type) {
+	public void putRank(GroupRank type) {
 		typesByName.put(type.getName().toLowerCase(), type);
 		typesById.put(type.getId(), type);
 	}
@@ -358,15 +346,15 @@ public class GroupRankHandler {
 		GroupRank owner = new GroupRank("Owner", OWNER_ID, null, g);
 		GroupRankHandler handler = new GroupRankHandler(owner, g);
 		GroupRank admin = new GroupRank("Admin", DEFAULT_ADMIN_ID, owner, g);
-		handler.registerType(admin, false);
+		handler.putRank(admin);
 		GroupRank mod = new GroupRank("Mod", DEFAULT_MOD_ID, admin, g);
-		handler.registerType(mod, false);
+		handler.putRank(mod);
 		GroupRank member = new GroupRank("Member", DEFAULT_MEMBER_ID, mod, g);
-		handler.registerType(member, false);
+		handler.putRank(member);
 		GroupRank defaultNonMember = new GroupRank("Default", DEFAULT_NON_MEMBER_ID, owner, g);
-		handler.registerType(defaultNonMember, false);
+		handler.putRank(defaultNonMember);
 		GroupRank blacklisted = new GroupRank("Blacklisted", 5, defaultNonMember, g);
-		handler.registerType(blacklisted, false);
+		handler.putRank(blacklisted);
 		for (GroupRank type : handler.getAllTypes()) {
 			if (type == owner) {
 				continue;

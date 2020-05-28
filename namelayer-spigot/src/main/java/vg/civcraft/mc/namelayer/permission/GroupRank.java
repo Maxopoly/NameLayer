@@ -1,6 +1,7 @@
 package vg.civcraft.mc.namelayer.permission;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,29 +28,7 @@ public class GroupRank {
 		this.id = id;
 		this.group = group;
 		this.children = new LinkedList<>();
-		if (parent != null) {
-			// flat copy perms
-			this.perms = new ArrayList<>(parent.perms);
-			parent.addChild(this);
-		} else {
-			// new root with all permissions
-			this.perms = new ArrayList<>(PermissionType.getAllPermissions());
-		}
-	}
-
-	/**
-	 * For loading existing types
-	 */
-	public GroupRank(String name, int id, GroupRank parent, List<PermissionType> perms, Group group) {
-		this.name = name;
-		this.parent = parent;
-		this.id = id;
-		this.group = group;
-		this.children = new LinkedList<>();
-		this.perms = perms;
-		if (parent != null) {
-			parent.addChild(this);
-		}
+		this.perms = new ArrayList<>();
 	}
 
 	/**
@@ -172,10 +151,6 @@ public class GroupRank {
 			// already exists
 			return false;
 		}
-		if (parent != null && !parent.hasPermission(perm)) {
-			// would create inconsistent perm structure
-			return false;
-		}
 		perms.add(perm);
 		if (saveToDb) {
 			Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> {
@@ -199,7 +174,7 @@ public class GroupRank {
 			return false;
 		}
 		if (!perms.contains(perm)) {
-			// doesn't exists
+			// doesn't exist
 			return false;
 		}
 		perms.remove(perm);
@@ -225,7 +200,7 @@ public class GroupRank {
 	 * @return Copy of the list containing all permissions this instance has
 	 */
 	public List<PermissionType> getAllPermissions() {
-		return new LinkedList<>(perms);
+		return Collections.unmodifiableList(perms);
 	}
 
 	/**

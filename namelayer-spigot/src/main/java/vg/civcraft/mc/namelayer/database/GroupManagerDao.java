@@ -780,11 +780,11 @@ public class GroupManagerDao {
 				int groupId = types.getInt(2);
 				int rankId = types.getInt(3);
 				int parentId = types.getInt(4);
-				GroupRank type = new GroupRank(name, rankId, null, new LinkedList<PermissionType>(), null);
+				GroupRank type = new GroupRank(name, rankId, null, groupById.get(groupId));
 				Map<Integer, GroupRank> typeMap = retrievedTypes.computeIfAbsent(groupId, i -> new TreeMap<>());
 				typeMap.put(rankId, type);
 				Map<Integer, List<GroupRank>> parentMap = pendingParents.computeIfAbsent(groupId, i -> new TreeMap<>());
-				List<GroupRank> brothers = parentMap.computeIfAbsent(parentId, i -> new LinkedList<>());
+				List<GroupRank> brothers = parentMap.computeIfAbsent(parentId, i -> new ArrayList<>());
 				brothers.add(type);
 			}
 		} catch (SQLException e) {
@@ -815,7 +815,7 @@ public class GroupManagerDao {
 					// parent is intentionally non modifiable, so we create a new instance
 					GroupRank type = new GroupRank(child.getName(), child.getId(), parent, group);
 					parent.addChild(type);
-					handler.loadPlayerType(type);
+					handler.putRank(type);
 					toHandle.add(type);
 					loadedTypes.remove(type.getId());
 				}

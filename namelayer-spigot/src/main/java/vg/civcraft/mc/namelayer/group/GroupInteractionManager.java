@@ -195,7 +195,7 @@ public class GroupInteractionManager {
 		GroupRank added = new GroupRank(name, id, parent, group);
 		reply(callback, "%sSuccessfully added %s%s%s as sub rank of %s%s", ChatColor.GREEN, ChatColor.GOLD, name,
 				ChatColor.GREEN, ChatColor.YELLOW, parent.getName());
-		typeHandler.registerType(added, true);
+		typeHandler.createNewType(added);
 		group.getActionLog().addAction(new CreateRank(System.currentTimeMillis(), executor, name, parent.getName()),
 				true);
 		return true;

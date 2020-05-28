@@ -192,7 +192,7 @@ public class Group {
 	 *         GroupRank. Never null if the given GroupRank is part of this group
 	 */
 	public Set<UUID> getAllTrackedByType(GroupRank rank) {
-		return Collections.unmodifiableSet(playersByRank.get(rank));
+		return Collections.unmodifiableSet(playersByRank.getOrDefault(rank, Collections.emptySet()));
 	}
 
 	/**
