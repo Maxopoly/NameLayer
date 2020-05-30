@@ -13,31 +13,14 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import vg.civcraft.mc.namelayer.NameAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.database.AssociationList;
-import vg.civcraft.mc.namelayer.misc.ClassHandler;
 import vg.civcraft.mc.namelayer.misc.NameCleanser;
-import vg.civcraft.mc.namelayer.misc.ProfileInterface;
 
 public class AssociationListener implements Listener {
 
 	private AssociationList associations;
 
-	private ClassHandler ch;
-
-	private ProfileInterface game;
 
 	public AssociationListener() {
-		Bukkit.getScheduler().runTaskLater(NameLayerPlugin.getInstance(), new Runnable() {
-
-			@Override
-			public void run() {
-				ch = ClassHandler.ch;
-				if (ClassHandler.properlyEnabled)
-					game = ch.getProfileClass();
-
-				associations = NameAPI.getInstance().getDatabase();
-			}
-
-		}, 1);
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
@@ -68,8 +51,8 @@ public class AssociationListener implements Listener {
 			name = associations.getCurrentName(event.getPlayer().getUniqueId());
 		}
 
-		if (game != null) {
+		/*if (game != null) {
 			game.setPlayerProfle(event.getPlayer(), name);
-		}
+		}*/
 	}
 }

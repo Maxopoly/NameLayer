@@ -4,48 +4,57 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>com.github.civclassic</groupId>
+    <artifactId>civclassic-parent</artifactId>
+    <version>1.0.0</version>
+  </parent>
+
   <groupId>vg.civcraft.mc.namelayer</groupId>
   <artifactId>namelayer-parent</artifactId>
-  <version>1.0.0</version>
+  <version>3.0.0</version>
   <packaging>pom</packaging>
 
-  <url>https://github.com/Civcraft/NameLayer</url>
+  <url>https://github.com/Civclassic/NameLayer</url>
+
+    <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.3</version>
+      <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <transformers>
+                <transformer
+                  implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Built-By>Maven</Built-By>
+                  </manifestEntries>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
   <modules>
-    <module>nms/interface</module>
-    <module>nms/v1_14_R1</module>
     <module>namelayer-spigot</module>
     <module>namelayer-bungee</module>
-    <module>namelayer-all</module>
   </modules>
-  
-  <properties>
-    <releaseVersion>2.13.1</releaseVersion>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-
   <repositories>
     <repository>
-      <id>devoted-repo</id>
-      <url>https://build.devotedmc.com/plugin/repository/everything/</url>
+      <id>civ-jenkins</id>
+      <url>https://repo.civclassic.com/repository/internal/</url>
     </repository>
-
-    <repository>
-      <id>codecrafter47-repo</id>
-      <url>http://nexus.codecrafter47.dyndns.eu/content/repositories/public/</url>
-    </repository>
-
-    <repository>
-      <id>spigot-repo</id>
-      <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
-    </repository>
-    <repository>
-      <id>spigot-repo2</id>
-      <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots</url>
-    </repository>
-
     <repository>
       <id>md_5-repo</id>
       <url>http://repo.md-5.net/content/repositories/public/</url>
@@ -55,28 +64,4 @@
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </repository>
   </repositories>
-
-  <profiles>
-    <profile>
-      <id>all</id>
-      <activation>
-        <property>
-          <name>cbdedicated</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <modules>
-        <module>nms/v1_8_R1</module>
-        <module>nms/v1_8_R2</module>
-        <module>nms/v1_8_R3</module>
-        <module>nms/v1_9_R1</module>
-        <module>nms/v1_9_R2</module>
-        <module>nms/v1_10_R1</module>
-        <module>nms/v1_11_R1</module>
-        <module>nms/v1_12_R1</module>
-	<!-- <module>nms/v1_13_R1</module> -->
-        <module>nms/v1_13_R2</module>
-      </modules>
-    </profile>
-  </profiles>
 </project>

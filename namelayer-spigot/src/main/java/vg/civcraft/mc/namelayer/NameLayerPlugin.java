@@ -15,7 +15,6 @@ import vg.civcraft.mc.namelayer.group.meta.GroupMetaDataAPI;
 import vg.civcraft.mc.namelayer.group.meta.GroupMetaDataView;
 import vg.civcraft.mc.namelayer.listeners.AssociationListener;
 import vg.civcraft.mc.namelayer.listeners.PlayerListener;
-import vg.civcraft.mc.namelayer.misc.ClassHandler;
 import vg.civcraft.mc.namelayer.misc.NameCleanser;
 import vg.civcraft.mc.namelayer.misc.NameLayerSettingManager;
 import vg.civcraft.mc.namelayer.permission.NameLayerPermissionManager;
@@ -50,7 +49,6 @@ public class NameLayerPlugin extends ACivMod {
 			Bukkit.shutdown();
 			return;
 		}
-		ClassHandler.initialize(Bukkit.getServer());
 		PermissionType.initialize();
 		new NameAPI(associations);
 		groupManager = groupManagerDao.loadAllGroups();
