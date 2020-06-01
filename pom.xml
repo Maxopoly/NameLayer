@@ -10,43 +10,19 @@
     <version>1.0.0</version>
   </parent>
 
+  <properties>
+    <releaseVersion>3.0.0</releaseVersion>
+  </properties>
+
   <groupId>vg.civcraft.mc.namelayer</groupId>
   <artifactId>namelayer-parent</artifactId>
-  <version>3.0.0</version>
+  <version>${releaseVersion}</version>
   <packaging>pom</packaging>
 
   <url>https://github.com/Civclassic/NameLayer</url>
 
-    <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.2.3</version>
-      <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <createDependencyReducedPom>false</createDependencyReducedPom>
-              <transformers>
-                <transformer
-                  implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <manifestEntries>
-                    <Built-By>Maven</Built-By>
-                  </manifestEntries>
-                </transformer>
-              </transformers>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-
   <modules>
+  	<module>namelayer-all</module>
     <module>namelayer-spigot</module>
     <module>namelayer-bungee</module>
   </modules>
@@ -54,14 +30,6 @@
     <repository>
       <id>civ-jenkins</id>
       <url>https://repo.civclassic.com/repository/internal/</url>
-    </repository>
-    <repository>
-      <id>md_5-repo</id>
-      <url>http://repo.md-5.net/content/repositories/public/</url>
-    </repository>
-    <repository>
-      <id>bungeecord-repo</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </repository>
   </repositories>
 </project>
