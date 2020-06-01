@@ -10,13 +10,14 @@ import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 
-@CivCommand(id="nlcg")
+@CivCommand(id = "nlcg")
 public class CreateGroup extends StandaloneCommand {
 
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		Player player = (Player) sender;
-		NameLayerPlugin.getInstance().getGroupInteractionManager().createGroup(player.getUniqueId(), args[0], player::sendMessage);
+		NameLayerPlugin.getInstance().getGroupInteractionManager().createGroup(player.getUniqueId(), args[0], null,
+				player::sendMessage);
 		return true;
 	}
 

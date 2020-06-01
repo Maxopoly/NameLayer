@@ -137,7 +137,7 @@ public class GroupInteractionManager {
 		return true;
 	}
 
-	public boolean createGroup(UUID executor, String groupName, Consumer<String> callback) {
+	public boolean createGroup(UUID executor, String groupName, Consumer<Group> postCreateCallback, Consumer<String> callback) {
 		// enforce regulations on the name
 		if (!isConformName(groupName, callback)) {
 			return false;
@@ -157,6 +157,9 @@ public class GroupInteractionManager {
 			NameLayerPlugin.getInstance().getLogger().log(Level.INFO,
 					"Group " + g.getName() + " was created by " + executor);
 			g.getActionLog().addAction(new CreateGroup(System.currentTimeMillis(), executor, g.getName()), true);
+			if (postCreateCallback != null) {
+				postCreateCallback.accept(g);
+			}
 		});
 		return true;
 	}

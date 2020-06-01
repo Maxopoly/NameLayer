@@ -17,7 +17,7 @@ import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
 
-public class LinkingGUI extends AbstractGroupGUI {
+public class LinkingGUI extends NameLayerGroupGUI {
 
 	private AdminFunctionsGUI parent;
 	private boolean makingSubGroup;
@@ -31,9 +31,9 @@ public class LinkingGUI extends AbstractGroupGUI {
 	}
 
 	public void showScreen() {
-		ClickableInventory ci = new ClickableInventory(54, g.getName());
+		ClickableInventory ci = new ClickableInventory(54, group.getName());
 		ci.setSlot(getInfoClickable(), 4);
-		if (g.hasSuperGroup()) {
+		if (group.hasSuperGroup()) {
 			ci.setSlot(getRemoveSuperClickable(), 3);
 		} else {
 			ci.setSlot(getAddSuperClickable(), 3);
@@ -88,12 +88,12 @@ public class LinkingGUI extends AbstractGroupGUI {
 				parent.showScreen();
 			}
 		}, 7);
-		ci.showInventory(p);
+		ci.showInventory(player);
 	}
 
 	private List<Clickable> getSubClickables() {
 		List<Clickable> clicks = new ArrayList<Clickable>();
-		for (final Group sub : g.getSubgroups()) {
+		for (final Group sub : group.getSubgroups()) {
 			ItemStack is = new ItemStack(Material.MAGMA_CREAM);
 			ItemAPI.setDisplayName(is, ChatColor.GOLD + sub.getName());
 			ItemAPI.addLore(is, ChatColor.AQUA + "This group has "
@@ -104,32 +104,32 @@ public class LinkingGUI extends AbstractGroupGUI {
 
 				@Override
 				public void clicked(Player arg0) {
-					if (!gm.hasAccess(g, p.getUniqueId(),
+					if (!groupManager.hasAccess(group, player.getUniqueId(),
 							PermissionType.getPermission("LINKING"))) {
-						p.sendMessage(ChatColor.RED
+						player.sendMessage(ChatColor.RED
 								+ "You dont have permission to unlink "
-								+ g.getName());
+								+ group.getName());
 						showScreen();
 						return;
 					}
-					if (!gm.hasAccess(sub, p.getUniqueId(),
+					if (!groupManager.hasAccess(sub, player.getUniqueId(),
 							PermissionType.getPermission("LINKING"))) {
-						p.sendMessage(ChatColor.RED
+						player.sendMessage(ChatColor.RED
 								+ "You dont have permission to unlink "
 								+ sub.getName());
 						showScreen();
 						return;
 					}
-					boolean success = Group.unlink(g, sub);
+					boolean success = Group.unlink(group, sub);
 					String message;
 					if (success) {
 						message = ChatColor.GREEN + sub.getName()
-								+ " is no longer a sub group of " + g.getName();
+								+ " is no longer a sub group of " + group.getName();
 					} else {
 						message = ChatColor.RED
 								+ "Failed to unlink the groups, you should complain to an admin about this";
 					}
-					p.sendMessage(message);
+					player.sendMessage(message);
 					showScreen();
 
 				}
@@ -146,7 +146,7 @@ public class LinkingGUI extends AbstractGroupGUI {
 				makeSuper,
 				ChatColor.AQUA
 						+ "This option means that the additional group you chose will inherit all members of "
-						+ g.getName() + " with their ranks");
+						+ group.getName() + " with their ranks");
 		Clickable superClick = new Clickable(makeSuper) {
 
 			@Override
@@ -161,16 +161,16 @@ public class LinkingGUI extends AbstractGroupGUI {
 
 	private Clickable getInfoClickable() {
 		ItemStack is = new ItemStack(Material.PAPER);
-		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Linking stats for " + g.getName());
-		if (g.hasSuperGroup()) {
+		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Linking stats for " + group.getName());
+		if (group.hasSuperGroup()) {
 			ItemAPI.addLore(is, ChatColor.AQUA + "Current super group: "
-					+ g.getSuperGroup().getName());
+					+ group.getSuperGroup().getName());
 		} else {
 			ItemAPI.addLore(is, ChatColor.AQUA + "No current super group");
 		}
 		ItemAPI.addLore(is, ChatColor.DARK_AQUA + "Currently "
-				+ g.getSubgroups().size() + " sub group"
-				+ ((g.getSubgroups().size() == 1) ? "" : "s")
+				+ group.getSubgroups().size() + " sub group"
+				+ ((group.getSubgroups().size() == 1) ? "" : "s")
 				+ ", which are listed below");
 		return new DecorationStack(is);
 	}
@@ -178,41 +178,41 @@ public class LinkingGUI extends AbstractGroupGUI {
 	private Clickable getRemoveSuperClickable() {
 		ItemStack is = new ItemStack(Material.DIAMOND);
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Remove current super group");
-		ItemAPI.addLore(is, ChatColor.AQUA + g.getSuperGroup().getName()
-				+ " is the super group of " + g.getName());
+		ItemAPI.addLore(is, ChatColor.AQUA + group.getSuperGroup().getName()
+				+ " is the super group of " + group.getName());
 		ItemAPI.addLore(is, ChatColor.DARK_AQUA + "Click to remove this link");
 		Clickable c = new Clickable(is) {
 
 			@Override
 			public void clicked(Player arg0) {
-				if (!gm.hasAccess(g, p.getUniqueId(),
+				if (!groupManager.hasAccess(group, player.getUniqueId(),
 						PermissionType.getPermission("LINKING"))) {
-					p.sendMessage(ChatColor.RED
+					player.sendMessage(ChatColor.RED
 							+ "You dont have permission to unlink "
-							+ g.getName());
+							+ group.getName());
 					showScreen();
 					return;
 				}
-				if (!gm.hasAccess(g.getSuperGroup(), p.getUniqueId(),
+				if (!groupManager.hasAccess(group.getSuperGroup(), player.getUniqueId(),
 						PermissionType.getPermission("LINKING"))) {
-					p.sendMessage(ChatColor.RED
+					player.sendMessage(ChatColor.RED
 							+ "You dont have permission to unlink "
-							+ g.getSuperGroup().getName());
+							+ group.getSuperGroup().getName());
 					showScreen();
 					return;
 				}
-				Group superGroup = g.getSuperGroup();
-				boolean success = Group.unlink(superGroup, g);
+				Group superGroup = group.getSuperGroup();
+				boolean success = Group.unlink(superGroup, group);
 				String message;
 				if (success) {
-					message = ChatColor.GREEN + g.getName()
+					message = ChatColor.GREEN + group.getName()
 							+ " is no longer a sub group of "
 							+ superGroup.getName();
 				} else {
 					message = ChatColor.RED
 							+ "Failed to unlink the groups, you should complain to an admin about this";
 				}
-				p.sendMessage(message);
+				player.sendMessage(message);
 				showScreen();
 			}
 		};
@@ -226,7 +226,7 @@ public class LinkingGUI extends AbstractGroupGUI {
 				makeSub,
 				ChatColor.AQUA
 						+ "This option means that "
-						+ g.getName()
+						+ group.getName()
 						+ " will inherit all members with their respective ranks from the second group you chose");
 		Clickable subClick = new Clickable(makeSub) {
 
@@ -242,8 +242,8 @@ public class LinkingGUI extends AbstractGroupGUI {
 
 	private void showGroupSelector() {
 		final List<Clickable> clicks = new ArrayList<Clickable>();
-		for (final String groupName : gm.getAllGroupNames(p.getUniqueId())) {
-			Group g = gm.getGroup(groupName);
+		for (final String groupName : groupManager.getAllGroupNames(player.getUniqueId())) {
+			Group g = groupManager.getGroup(groupName);
 			if (g == null) {
 				// ????
 				continue;
@@ -251,7 +251,7 @@ public class LinkingGUI extends AbstractGroupGUI {
 			ItemStack is = new ItemStack(Material.MAGMA_CREAM);
 			ItemAPI.setDisplayName(is, g.getName());
 			Clickable c;
-			if (!gm.hasAccess(g, p.getUniqueId(),
+			if (!groupManager.hasAccess(g, player.getUniqueId(),
 					PermissionType.getPermission("LINKING"))) {
 				if (!makingSubGroup && g.hasSuperGroup()) {
 					// making a supergroup, but this one already has one
@@ -274,7 +274,7 @@ public class LinkingGUI extends AbstractGroupGUI {
 			}
 			clicks.add(c);
 		}
-		ClickableInventory ci = new ClickableInventory(54, this.g.getName());
+		ClickableInventory ci = new ClickableInventory(54, this.group.getName());
 		if (clicks.size() < 45 * linkSelectingPage) {
 			// would show an empty page, so go to previous
 			linkSelectingPage--;
@@ -327,90 +327,90 @@ public class LinkingGUI extends AbstractGroupGUI {
 				showScreen();
 			}
 		}, 49);
-		ci.showInventory(p);
+		ci.showInventory(player);
 	}
 
 	private void requestLink(String groupName) {
-		Group linkGroup = gm.getGroup(groupName);
+		Group linkGroup = groupManager.getGroup(groupName);
 		if (linkGroup == null) {
-			p.sendMessage(ChatColor.RED
+			player.sendMessage(ChatColor.RED
 					+ "This group no longer exists? Something went wrong");
 			showScreen();
 			return;
 		}
-		if (!gm.hasAccess(g, p.getUniqueId(),
+		if (!groupManager.hasAccess(group, player.getUniqueId(),
 				PermissionType.getPermission("LINKING"))) {
-			p.sendMessage(ChatColor.RED + "You dont have permission to link "
-					+ g.getName());
+			player.sendMessage(ChatColor.RED + "You dont have permission to link "
+					+ group.getName());
 			showScreen();
 			return;
 		}
-		if (!gm.hasAccess(linkGroup, p.getUniqueId(),
+		if (!groupManager.hasAccess(linkGroup, player.getUniqueId(),
 				PermissionType.getPermission("LINKING"))) {
-			p.sendMessage(ChatColor.RED + "You dont have permission to link "
+			player.sendMessage(ChatColor.RED + "You dont have permission to link "
 					+ linkGroup.getName());
 			showScreen();
 			return;
 		}
-		if (makingSubGroup && g.hasSuperGroup()) {
-			p.sendMessage(ChatColor.RED + g.getName()
+		if (makingSubGroup && group.hasSuperGroup()) {
+			player.sendMessage(ChatColor.RED + group.getName()
 					+ " already has a super group");
 			showScreen();
 			return;
 		}
 		if (!makingSubGroup && linkGroup.hasSuperGroup()) {
-			p.sendMessage(ChatColor.RED + linkGroup.getName()
+			player.sendMessage(ChatColor.RED + linkGroup.getName()
 					+ " already has a super group");
 			showScreen();
 			return;
 		}
 		boolean linkCheck;
 		if (makingSubGroup) {
-			linkCheck = Group.areLinked(linkGroup, g);
+			linkCheck = Group.areLinked(linkGroup, group);
 		} else {
-			linkCheck = Group.areLinked(g, linkGroup);
+			linkCheck = Group.areLinked(group, linkGroup);
 		}
 		if (!linkCheck) {
-			p.sendMessage(ChatColor.RED
+			player.sendMessage(ChatColor.RED
 					+ "Those groups are already linked directly or indirectly, you can't link them");
 			showScreen();
 			return;
 		}
-		if (g.isDisciplined() || linkGroup.isDisciplined()) {
-			p.sendMessage(ChatColor.RED + "One of the groups is disciplined.");
+		if (group.isDisciplined() || linkGroup.isDisciplined()) {
+			player.sendMessage(ChatColor.RED + "One of the groups is disciplined.");
 			showScreen();
 			return;
 		}
 		boolean success;
 		if (makingSubGroup) {
-			success = Group.link(linkGroup, g, true);
+			success = Group.link(linkGroup, group, true);
 		} else {
-			success = Group.link(g, linkGroup, true);
+			success = Group.link(group, linkGroup, true);
 		}
 		NameLayerPlugin.log(
 				Level.INFO,
-				p.getName()
+				player.getName()
 						+ " linked "
 						+ linkGroup.getName()
 						+ " and "
-						+ g.getName()
+						+ group.getName()
 						+ " via the gui, "
-						+ (makingSubGroup ? linkGroup.getName() : g.getName()
+						+ (makingSubGroup ? linkGroup.getName() : group.getName()
 								+ " was the super group"));
 		String message;
 		if (success) {
 			if (makingSubGroup) {
-				message = ChatColor.GREEN + "Successfully made " + g.getName()
+				message = ChatColor.GREEN + "Successfully made " + group.getName()
 						+ " a subgroup of " + linkGroup.getName();
 			} else {
 				message = ChatColor.GREEN + "Successfully made "
-						+ linkGroup.getName() + " a subgroup of " + g.getName();
+						+ linkGroup.getName() + " a subgroup of " + group.getName();
 			}
 		} else {
 			message = ChatColor.RED
 					+ "Failed to link the groups, you should complain to an admin about this";
 		}
-		p.sendMessage(message);
+		player.sendMessage(message);
 	}
 
 }

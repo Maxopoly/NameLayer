@@ -23,7 +23,7 @@ import vg.civcraft.mc.namelayer.permission.GroupPermission;
 import vg.civcraft.mc.namelayer.permission.GroupRank;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
 
-public class PermissionManageGUI extends AbstractGroupGUI {
+public class PermissionManageGUI extends NameLayerGroupGUI {
 
 	private MainGroupGUI parent;
 	private int currentPage;
@@ -35,7 +35,7 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 	}
 
 	public void showScreen() {
-		ClickableInventory ci = new ClickableInventory(27, g.getName());
+		ClickableInventory ci = new ClickableInventory(27, group.getName());
 		if (!validGroup()) {
 			return;
 		}
@@ -68,7 +68,7 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 				parent.showScreen();
 			}
 		}, 22);
-		ci.showInventory(p);
+		ci.showInventory(player);
 	}
 
 	private Clickable produceSelectionClickable(Material mat,
@@ -80,7 +80,7 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 		Clickable c;
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "View and edit permissions for "
 				+ GroupRank.getNiceRankName(pType));
-		if (!gm.hasAccess(g, p.getUniqueId(),
+		if (!groupManager.hasAccess(group, player.getUniqueId(),
 				PermissionType.getPermission("LIST_PERMS"))) {
 			ItemAPI.addLore(is, ChatColor.RED + "You are not allowed to list",
 					ChatColor.RED + "permissions for this group");
@@ -101,21 +101,21 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 		if (!validGroup()) {
 			return;
 		}
-		if (!gm.hasAccess(g, p.getUniqueId(),
+		if (!groupManager.hasAccess(group, player.getUniqueId(),
 				PermissionType.getPermission("LIST_PERMS"))) {
-			p.sendMessage(ChatColor.RED
+			player.sendMessage(ChatColor.RED
 					+ "You are not allowed to list permissions for this group");
 			showScreen();
 			return;
 		}
-		ClickableInventory ci = new ClickableInventory(54, g.getName());
+		ClickableInventory ci = new ClickableInventory(54, group.getName());
 		final List<Clickable> clicks = new ArrayList<>();
-		final GroupPermission gp = gm.getPermissionforGroup(g);
+		final GroupPermission gp = groupManager.getPermissionforGroup(group);
 		for (final PermissionType perm : PermissionType.getAllPermissions()) {
 			ItemStack is = null;
 			Clickable c;
 			final boolean hasPerm = gp.hasPermission(pType, perm);
-			boolean canEdit = gm.hasAccess(g, p.getUniqueId(),
+			boolean canEdit = groupManager.hasAccess(group, player.getUniqueId(),
 					PermissionType.getPermission("PERMS"));
 
 			if (hasPerm) {
@@ -159,13 +159,13 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 					@Override
 					public void clicked(Player arg0) {
 						if (hasPerm == gp.hasPermission(pType, perm)) { // recheck
-							if (gm.hasAccess(g, p.getUniqueId(),
+							if (groupManager.hasAccess(group, player.getUniqueId(),
 									PermissionType.getPermission("PERMS"))) {
-								NameLayerPlugin.log(Level.INFO, p.getName()
+								NameLayerPlugin.log(Level.INFO, player.getName()
 										+ (hasPerm ? " removed " : " added ")
 										+ "the permission " + perm.getName()
 										+ "for player type " + pType.toString()
-										+ " for " + g.getName() + " via the gui");
+										+ " for " + group.getName() + " via the gui");
 								if (hasPerm) {
 									gp.removePermission(pType, perm);
 								} else {
@@ -173,7 +173,7 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 								}
 							}
 						} else {
-							p.sendMessage(ChatColor.RED
+							player.sendMessage(ChatColor.RED
 									+ "Something changed while you were modifying permissions, so cancelled the process");
 						}
 						showPermissionEditing(pType);
@@ -230,7 +230,7 @@ public class PermissionManageGUI extends AbstractGroupGUI {
 				showScreen();
 			}
 		}, 49);
-		ci.showInventory(p);
+		ci.showInventory(player);
 	}
 
 }

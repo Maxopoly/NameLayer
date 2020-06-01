@@ -27,7 +27,7 @@ import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.permission.GroupRank;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
 
-public class InvitationGUI extends AbstractGroupGUI{
+public class InvitationGUI extends NameLayerGroupGUI{
 	
 	private GroupRank selectedType;
 	private MainGroupGUI parent;
@@ -39,7 +39,7 @@ public class InvitationGUI extends AbstractGroupGUI{
 	}
 	
 	private void showScreen() {
-		ClickableInventory ci = new ClickableInventory(27, g.getName());
+		ClickableInventory ci = new ClickableInventory(27, group.getName());
 	
 		ItemStack explain = new ItemStack(Material.PAPER);
 		ItemAPI.setDisplayName(explain, ChatColor.GOLD + "Select an option");
@@ -49,7 +49,7 @@ public class InvitationGUI extends AbstractGroupGUI{
 		ci.setSlot(produceOptionStack(modMat(), "mod", GroupRank.MODS, PermissionType.getPermission("MODS")), 12);
 		ci.setSlot(produceOptionStack(Material.IRON_CHESTPLATE, "admin", GroupRank.ADMINS, PermissionType.getPermission("ADMINS")), 14);
 		ci.setSlot(produceOptionStack(Material.DIAMOND_CHESTPLATE, "owner", GroupRank.OWNER, PermissionType.getPermission("OWNER")), 16);
-		ci.showInventory(p);
+		ci.showInventory(player);
 	}
 	
 	private Clickable produceOptionStack(Material item, String niceRankName, final GroupRank pType, PermissionType perm) {
@@ -59,18 +59,18 @@ public class InvitationGUI extends AbstractGroupGUI{
 		is.setItemMeta(im);
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Invite as " + niceRankName);
 		Clickable c;
-		if (gm.hasAccess(g, p.getUniqueId(), perm)) {
+		if (groupManager.hasAccess(group, player.getUniqueId(), perm)) {
 			c = new Clickable(is) {
 				
 				@Override
 				public void clicked(Player arg0) {
-					p.sendMessage(ChatColor.GOLD + "Enter the name of the player to invite or \"cancel\" to exit this prompt. You may also enter the names "
+					player.sendMessage(ChatColor.GOLD + "Enter the name of the player to invite or \"cancel\" to exit this prompt. You may also enter the names "
 							+ "of multiple players, separated with spaces to invite all of them.");
 					selectedType = pType;
 					ClickableInventory.forceCloseInventory(arg0);
 					new Dialog(arg0, NameLayerPlugin.getInstance()) {
 						public void onReply(String [] message) {
-							if (gm.hasAccess(g, p.getUniqueId(), MainGroupGUI.getAccordingPermission(selectedType))) {
+							if (groupManager.hasAccess(group, player.getUniqueId(), MainGroupGUI.getAccordingPermission(selectedType))) {
 								for(String s : message) {
 									if (s.equalsIgnoreCase("cancel")) {
 										parent.showScreen();
@@ -78,36 +78,36 @@ public class InvitationGUI extends AbstractGroupGUI{
 									}
 									UUID inviteUUID = NameAPI.getUUID(s);
 									if (inviteUUID == null) {
-										p.sendMessage(ChatColor.RED + "The player " + s + " doesn't exist");
+										player.sendMessage(ChatColor.RED + "The player " + s + " doesn't exist");
 										continue;
 									}
-									if (g.isMember(inviteUUID)) { // So a player can't demote someone who is above them.
-										p.sendMessage(ChatColor.RED + NameAPI.getCurrentName(inviteUUID) + " is already a member of " + g.getName());
+									if (group.isMember(inviteUUID)) { // So a player can't demote someone who is above them.
+										player.sendMessage(ChatColor.RED + NameAPI.getCurrentName(inviteUUID) + " is already a member of " + group.getName());
 										continue;
 									}
-									if(NameLayerPlugin.getBlackList().isBlacklisted(g, inviteUUID)) {
-										p.sendMessage(ChatColor.RED + NameAPI.getCurrentName(inviteUUID) + " is currently blacklisted, you have to unblacklist him before inviting him to the group");
+									if(NameLayerPlugin.getBlackList().isBlacklisted(group, inviteUUID)) {
+										player.sendMessage(ChatColor.RED + NameAPI.getCurrentName(inviteUUID) + " is currently blacklisted, you have to unblacklist him before inviting him to the group");
 										continue;
 									}
 									NameLayerPlugin.log(Level.INFO,
-											p.getName() + " invited "
+											player.getName() + " invited "
 													+ NameAPI.getCurrentName(inviteUUID)
-													+ " to group " + g.getName()
+													+ " to group " + group.getName()
 													+ " via the gui");
 
-									InvitePlayer.sendInvitation(g, pType, inviteUUID, p.getUniqueId(), true);
+									InvitePlayer.sendInvitation(group, pType, inviteUUID, player.getUniqueId(), true);
 
-									p.sendMessage(ChatColor.GREEN  + "Invited " + NameAPI.getCurrentName(inviteUUID) + " as " + GroupRank.getNiceRankName(pType));
+									player.sendMessage(ChatColor.GREEN  + "Invited " + NameAPI.getCurrentName(inviteUUID) + " as " + GroupRank.getNiceRankName(pType));
 								}
 							} else {
-								p.sendMessage(ChatColor.RED + "You do not have permission to invite a player to this rank");
+								player.sendMessage(ChatColor.RED + "You do not have permission to invite a player to this rank");
 							}
 							parent.showScreen();
 						}
 						
 						public List<String> onTabComplete(String word, String[] msg) {
 							List<String> players = Bukkit.getOnlinePlayers().stream()
-									.filter(p -> !g.isMember(p.getUniqueId()))
+									.filter(p -> !group.isMember(p.getUniqueId()))
 									.map(Player::getName)
 									.collect(Collectors.toList());
 							players.add("cancel");

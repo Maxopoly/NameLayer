@@ -28,8 +28,6 @@
   </dependencies>
 
   <build>
-  	<!-- This allows us to avoid specifying versions in subprojects, made more difficult in M4 now that versions _must_ be literals -->
-    <!--<finalName>${project.artifactId}-${releaseVersion}</finalName>-->
     <directory>../target</directory>
     <finalName>${project.name}-${project.version}</finalName>
   </build>

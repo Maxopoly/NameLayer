@@ -13,9 +13,9 @@ public class MenuUtils {
 	public static ItemStack toggleButton(boolean initState, String name, boolean canModify) {
 		ItemStack is = null;
 		if (initState) {
-			is = AbstractGroupGUI.yesStack();
+			is = NameLayerGroupGUI.yesStack();
 		} else {
-			is = AbstractGroupGUI.noStack();
+			is = NameLayerGroupGUI.noStack();
 		}
 		if (initState) {
 			if (canModify) {
