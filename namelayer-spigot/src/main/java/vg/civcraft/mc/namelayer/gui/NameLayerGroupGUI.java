@@ -2,6 +2,7 @@ package vg.civcraft.mc.namelayer.gui;
 
 import org.bukkit.entity.Player;
 
+import vg.civcraft.mc.civmodcore.inventorygui.components.ComponableInventory;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.group.GroupInteractionManager;
@@ -22,6 +23,10 @@ public abstract class NameLayerGroupGUI {
 		this.interactionManager = NameLayerPlugin.getInstance().getGroupInteractionManager();
 		this.group = g;
 		this.player = p;
+	}
+	
+	public void setupIn(ComponableInventory inv) {
+		
 	}
 	
 	private Player getPlayer() {

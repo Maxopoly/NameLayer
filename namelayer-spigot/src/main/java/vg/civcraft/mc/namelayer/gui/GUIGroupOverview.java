@@ -89,6 +89,10 @@ public class GUIGroupOverview {
 	public void showScreen() {
 		inventory.show();
 	}
+	
+	public ComponableInventory getInnerInventory() {
+		return inventory;
+	}
 
 	private GroupFolder constructFolderHierarchy() {
 		// TODO load these
