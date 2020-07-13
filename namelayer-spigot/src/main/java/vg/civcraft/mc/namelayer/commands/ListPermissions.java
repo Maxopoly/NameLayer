@@ -2,10 +2,6 @@ package vg.civcraft.mc.namelayer.commands;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.Map.Entry;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -14,8 +10,6 @@ import org.bukkit.entity.Player;
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.GroupAPI;
-import vg.civcraft.mc.namelayer.NameAPI;
-import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.permission.GroupRank;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
@@ -32,7 +26,7 @@ public class ListPermissions extends StandaloneCommand {
 			return true;
 		}
 		GroupRank rank = group.getRank(player.getUniqueId());
-		if (!group.getGroupRankHandler().isMemberType(rank)) {
+		if (!group.getGroupRankHandler().isMemberRank(rank)) {
 			sender.sendMessage(String.format("%sYou are not a member of ", ChatColor.RED, group.getColoredName()));
 			return true;
 		}

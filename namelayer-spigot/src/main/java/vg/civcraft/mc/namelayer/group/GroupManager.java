@@ -59,7 +59,6 @@ public class GroupManager {
 				groups.add(group);
 			}
 		}
-		System.out.println(groupsByName);
 	}
 
 	public Set<Group> getGroupsForPlayer(UUID player) {
@@ -139,7 +138,7 @@ public class GroupManager {
 			groupsByName.put(name.toLowerCase(), group);
 			groupsById.put(groupId, group);
 			group.setGroupRankHandler(GroupRankHandler.createStandardTypes(group));
-			addPlayerToGroup(group, creator, group.getGroupRankHandler().getOwnerType(), false);
+			addPlayerToGroup(group, creator, group.getGroupRankHandler().getOwnerRank(), false);
 			// force instanciation of meta data time stamp
 			NameLayerPlugin.getInstance().getNameLayerMeta().getMetaData(group);
 			if (postCreate != null) {
@@ -249,7 +248,7 @@ public class GroupManager {
 	 */
 	private boolean hasPlayerInheritsPerms(Group group, UUID uuid, PermissionType perm) {
 		GroupRank rank = group.getRank(uuid);
-		if (rank == group.getGroupRankHandler().getOwnerType() || rank.hasPermission(perm)) {
+		if (rank == group.getGroupRankHandler().getOwnerRank() || rank.hasPermission(perm)) {
 			return true;
 		}
 		// check group links

@@ -33,7 +33,7 @@ public class GroupStats extends StandaloneCommand {
 		sb.append(ChatColor.GREEN.toString() + ChatColor.BOLD + " --- " + group.getColoredName() + ChatColor.GREEN
 				+ ChatColor.BOLD + " --- " + '\n');
 		GroupRankHandler typeHandler = group.getGroupRankHandler();
-		for (GroupRank type : typeHandler.getAllTypes()) {
+		for (GroupRank type : typeHandler.getAllRanks()) {
 			Set<UUID> ofThatType = group.getAllTrackedByType(type);
 			sb.append(ChatColor.GREEN);
 			sb.append(type);

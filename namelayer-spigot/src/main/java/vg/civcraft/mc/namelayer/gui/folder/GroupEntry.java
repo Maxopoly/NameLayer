@@ -13,7 +13,7 @@ public class GroupEntry extends FolderElement {
 	private Group group;
 	
 	public GroupEntry(FolderElement parent, String groupName) {
-		super(parent);
+		super(groupName, parent);
 		this.group = GroupAPI.getGroup(groupName);
 	}
 	
@@ -25,7 +25,10 @@ public class GroupEntry extends FolderElement {
 	public IClickable getGUIEntry(GUIGroupOverview gui, Player player) {
 		ItemStack is = GUIGroupOverview.getHashedItem(group.getName().hashCode());
 		return new LClickable(is, p -> {
-			
+			if (doMovingCheck(gui, player)) {
+				return;
+			}
+ 			//TODO
 		});
 	}
 

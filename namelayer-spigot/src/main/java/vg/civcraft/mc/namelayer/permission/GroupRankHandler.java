@@ -23,11 +23,11 @@ public class GroupRankHandler {
 
 	private Group group;
 	private GroupRank root;
-	private GroupRank defaultInvitationType;
-	private GroupRank defaultPasswordJoinType;
+	private GroupRank defaultInvitationRank;
+	private GroupRank defaultPasswordJoinRank;
 	// storage in lookup map by name is only done in lower case
-	private Map<String, GroupRank> typesByName;
-	private Map<Integer, GroupRank> typesById;
+	private Map<String, GroupRank> ranksByName;
+	private Map<Integer, GroupRank> ranksById;
 	public static final int MAXIMUM_TYPE_COUNT = 27;
 	public static final int OWNER_ID = 0;
 	public static final int DEFAULT_ADMIN_ID = 1;
@@ -38,8 +38,8 @@ public class GroupRankHandler {
 	public GroupRankHandler(GroupRank root, Group group) {
 		this.root = root;
 		this.group = group;
-		this.typesByName = new HashMap<>();
-		this.typesById = new TreeMap<>();
+		this.ranksByName = new HashMap<>();
+		this.ranksById = new TreeMap<>();
 		putRank(root);
 		for (GroupRank type : root.getChildren(true)) {
 			putRank(type);
@@ -47,13 +47,13 @@ public class GroupRankHandler {
 	}
 
 	/**
-	 * Checks whether this instance has a player type with the given name
+	 * Checks whether this instance has a rank with the given name
 	 * 
 	 * @param name Name to check for
-	 * @return True if such a player type exists, false if not
+	 * @return True if such a rank exists, false if not
 	 */
 	public boolean doesTypeExist(String name) {
-		return typesByName.get(name.toLowerCase()) != null;
+		return ranksByName.get(name.toLowerCase()) != null;
 	}
 
 	/**
@@ -62,7 +62,7 @@ public class GroupRankHandler {
 	 */
 	public int getUnusedId() {
 		for (int i = 0; i < MAXIMUM_TYPE_COUNT; i++) {
-			if (typesById.get(i) == null) {
+			if (ranksById.get(i) == null) {
 				return i;
 			}
 		}
@@ -78,64 +78,64 @@ public class GroupRankHandler {
 	}
 
 	/**
-	 * Checks whether a given type is a blacklist type, which means it's an
-	 * (indirect) child node of the default non member type
+	 * Checks whether a given rank is a blacklist rank, which means it's an
+	 * (indirect) child node of the default non member rank
 	 * 
-	 * @param type PlayerType to check
-	 * @return True if the given type is a blacklist type, false if not
+	 * @param type Rank to check
+	 * @return True if the given rank is a blacklist type, false if not
 	 */
-	public boolean isBlackListedType(GroupRank type) {
-		return isRelated(type, getDefaultNonMemberType());
+	public boolean isBlacklistedRank(GroupRank type) {
+		return isRelated(type, getDefaultNonMemberRank());
 	}
 
 	/**
-	 * Checks whether a given type is a member type, which means its neither the
-	 * default non member type, nor a child of it
+	 * Checks whether a given rank is a member rank, which means its neither the
+	 * default non member rank, nor a child of it
 	 * 
-	 * @param type PlayerType to check
-	 * @return True if the given type is a member type, false if not
+	 * @param type Rank to check
+	 * @return True if the given rank is a member type, false if not
 	 */
-	public boolean isMemberType(GroupRank type) {
-		return !isBlackListedType(type) && type != getDefaultNonMemberType();
+	public boolean isMemberRank(GroupRank type) {
+		return !isBlacklistedRank(type) && type != getDefaultNonMemberRank();
 	}
 
 	/**
-	 * Retrieves a PlayerType by it's id
+	 * Retrieves a Rank by it's id
 	 * 
 	 * @param id
-	 * @return PlayerType with that id or null if no such player type exists
+	 * @return Rank with that id or null if no such rank exists for this instance
 	 */
-	public GroupRank getType(int id) {
-		return typesById.get(id);
+	public GroupRank getRank(int id) {
+		return ranksById.get(id);
 	}
 
 	/**
-	 * Retrieves a PlayerType by it's name
+	 * Retrieves a rank by it's name
 	 * 
 	 * @param name
-	 * @return PlayerType with that id or null if no such player type exists
+	 * @return Rank with that id or null if no such rank exists for this instance
 	 */
-	public GroupRank getType(String name) {
-		return typesByName.get(name.toLowerCase());
+	public GroupRank getRank(String name) {
+		return ranksByName.get(name.toLowerCase());
 	}
 
 	/**
-	 * @return Read-only collection of all player types this instance is tracking,
-	 *         including the default non-member type
+	 * @return Read-only collection of all ranks this instance is tracking,
+	 *         including the default non-member rank
 	 */
-	public Collection<GroupRank> getAllTypes() {
-		return Collections.unmodifiableCollection(typesByName.values());
+	public Collection<GroupRank> getAllRanks() {
+		return Collections.unmodifiableCollection(ranksByName.values());
 	}
 
 	/**
-	 * Each instance has an undeleteable player type, which is initially called
+	 * Each instance has an undeleteable rank, which is initially called
 	 * "Owner" and will always be the root of the tree graph representing this
-	 * instance's permission hierarchy. This player type will additionally always
+	 * instance's permission hierarchy. This rank will additionally always
 	 * have the id 0.
 	 * 
 	 * @return Owner player type
 	 */
-	public GroupRank getOwnerType() {
+	public GroupRank getOwnerRank() {
 		return root;
 	}
 
@@ -147,8 +147,8 @@ public class GroupRankHandler {
 	 * 
 	 * @return Default-NonMember Player type
 	 */
-	public GroupRank getDefaultNonMemberType() {
-		return typesById.get(DEFAULT_NON_MEMBER_ID);
+	public GroupRank getDefaultNonMemberRank() {
+		return ranksById.get(DEFAULT_NON_MEMBER_ID);
 	}
 
 	/**
@@ -160,8 +160,8 @@ public class GroupRankHandler {
 	 * 
 	 * @return Default player type for invitation
 	 */
-	public GroupRank getDefaultInvitationType() {
-		return defaultInvitationType;
+	public GroupRank getDefaultInvitationRank() {
+		return defaultInvitationRank;
 	}
 
 	/**
@@ -172,8 +172,8 @@ public class GroupRankHandler {
 	 * 
 	 * @return Default player type for anyone joining a group via password
 	 */
-	public GroupRank getDefaultPasswordJoinType() {
-		return defaultPasswordJoinType;
+	public GroupRank getDefaultPasswordJoinRank() {
+		return defaultPasswordJoinRank;
 	}
 
 	/**
@@ -200,7 +200,7 @@ public class GroupRankHandler {
 		PermissionType remPermission = PermissionType.getRemovePermission(type.getId());
 		PermissionType listPermission = PermissionType.getListPermission(type.getId());
 		Map<GroupRank, List<PermissionType>> permsToRemove = new HashMap<>();
-		for (GroupRank otherType : getAllTypes()) {
+		for (GroupRank otherType : getAllRanks()) {
 			List<PermissionType> perms = new LinkedList<>();
 			if (otherType.hasPermission(invPermission)) {
 				otherType.removePermission(invPermission, false);
@@ -218,14 +218,14 @@ public class GroupRankHandler {
 				permsToRemove.put(otherType, perms);
 			}
 		}
-		if (defaultInvitationType == type) {
-			defaultInvitationType = null;
+		if (defaultInvitationRank == type) {
+			defaultInvitationRank = null;
 		}
-		if (defaultPasswordJoinType == type) {
-			defaultPasswordJoinType = null;
+		if (defaultPasswordJoinRank == type) {
+			defaultPasswordJoinRank = null;
 		}
-		typesByName.remove(type.getName().toLowerCase());
-		typesById.remove(type.getId());
+		ranksByName.remove(type.getName().toLowerCase());
+		ranksById.remove(type.getId());
 		if (saveToD) {
 			NameLayerPlugin.getInstance().getGroupManagerDao().removePlayerType(group, type);
 			NameLayerPlugin.getInstance().getGroupManagerDao().removeAllPermissions(group, permsToRemove);
@@ -233,16 +233,16 @@ public class GroupRankHandler {
 	}
 
 	/**
-	 * Registers the given player type for this instance. A new PlayerType will
+	 * Registers the given rank for this instance. A new rank will
 	 * always inherit all permissions of it's parent initially. Additionally all
 	 * parents, meaning not only the direct parent, but all nodes above the newly
-	 * created one get invite and remove permissions for the player type. The new
-	 * type will not inherit those permissions for itself
+	 * created one get invite and remove permissions for this rank. The new
+	 * rank will not inherit those permissions for itself
 	 * 
 	 * @param rank Rank to add
 	 */
-	public boolean createNewType(GroupRank rank) {
-		// we can always assume that the register type has a parent here,
+	public boolean createNewRank(GroupRank rank) {
+		// we can always assume that the registered rank has a parent here,
 		// because the root is created a different way and
 		// all other nodes should have a parent
 		if (rank == null || rank.getParent() == null || doesTypeExist(rank.getName())
@@ -261,7 +261,7 @@ public class GroupRankHandler {
 		permissionsToSave.put(rank, rank.getParent().getAllPermissions());
 		GroupRank parent = rank.getParent();
 		while (parent != null) {
-			if (!isMemberType(parent)) {
+			if (!isMemberRank(parent)) {
 				parent = parent.getParent();
 				continue;
 			}
@@ -284,11 +284,11 @@ public class GroupRankHandler {
 	 * usual sanity checks and permission modifications. Never use this to create
 	 * types that didnt already exist before
 	 * 
-	 * @param type Type to add
+	 * @param rank Type to add
 	 */
-	public void putRank(GroupRank type) {
-		typesByName.put(type.getName().toLowerCase(), type);
-		typesById.put(type.getId(), type);
+	public void putRank(GroupRank rank) {
+		ranksByName.put(rank.getName().toLowerCase(), rank);
+		ranksById.put(rank.getId(), rank);
 	}
 
 	/**
@@ -312,34 +312,33 @@ public class GroupRankHandler {
 	}
 
 	/**
-	 * Renames the given player type and updates it's name to the given one
+	 * Renames the given rank and updates it's name to the given one
 	 * 
-	 * @param type      Player type to update
+	 * @param rank      Rank to update
 	 * @param name      New name for the player type
-	 * @param writeToDb Whether the action should be persisted to the database and
-	 *                  broadcasted via Mercury
+	 * @param writeToDb Whether the action should be persisted to the database
 	 */
-	public void renameType(GroupRank type, String name, boolean writeToDb) {
-		typesByName.remove(type.getName().toLowerCase());
-		type.setName(name);
-		typesByName.put(name.toLowerCase(), type);
+	public void renameType(GroupRank rank, String name, boolean writeToDb) {
+		ranksByName.remove(rank.getName().toLowerCase());
+		rank.setName(name);
+		ranksByName.put(name.toLowerCase(), rank);
 		if (writeToDb) {
-			NameLayerPlugin.getInstance().getGroupManagerDao().updatePlayerTypeName(group, type);
+			NameLayerPlugin.getInstance().getGroupManagerDao().updatePlayerTypeName(group, rank);
 		}
 	}
 
 	/**
 	 * Creates a set of standard permissions, which are assigned to any group when
 	 * it is initially created. This roughly follows the permission schema NameLayer
-	 * used to have when it's player types were completly static. The player types
+	 * used to have when it's player types were completly static. The ranks
 	 * created here are not saved to the database, because creating a default set of
-	 * player types on a database level is already done in the stored procedure for
+	 * ranks on a database level is already done in the stored procedure for
 	 * group creation. Make sure to also update this stored procedure when changing
 	 * this method. Permissions set by this method aren't saved right away, but
 	 * instead collected and batch saved at the end
 	 * 
 	 * @param g Group for which permissions should be created
-	 * @return Completly initialized PlayerTypeHandler for new group
+	 * @return Completly initialized GroupRankHandler for new group
 	 */
 	public static GroupRankHandler createStandardTypes(Group g) {
 		Map<GroupRank, List<PermissionType>> permsToSave = new HashMap<>();
@@ -355,7 +354,7 @@ public class GroupRankHandler {
 		handler.putRank(defaultNonMember);
 		GroupRank blacklisted = new GroupRank("Blacklisted", 5, defaultNonMember, g);
 		handler.putRank(blacklisted);
-		for (GroupRank type : handler.getAllTypes()) {
+		for (GroupRank type : handler.getAllRanks()) {
 			if (type == owner) {
 				continue;
 			}
@@ -368,8 +367,8 @@ public class GroupRankHandler {
 			}
 			permsToSave.put(type, permList);
 		}
-		handler.defaultInvitationType = member;
-		handler.defaultPasswordJoinType = member;
+		handler.defaultInvitationRank = member;
+		handler.defaultPasswordJoinRank = member;
 		Bukkit.getScheduler().runTaskAsynchronously(NameLayerPlugin.getInstance(), () -> NameLayerPlugin.getInstance()
 				.getGroupManagerDao().addAllPermissions(g.getPrimaryId(), permsToSave));
 		return handler;

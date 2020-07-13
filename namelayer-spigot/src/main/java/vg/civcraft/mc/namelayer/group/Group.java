@@ -162,7 +162,7 @@ public class Group {
 	public List<UUID> getAllMembers() {
 		List<UUID> members = new ArrayList<>();
 		for (Entry<UUID, GroupRank> entry : players.entrySet()) {
-			if (rankHandler.isBlackListedType(entry.getValue())) {
+			if (rankHandler.isBlacklistedRank(entry.getValue())) {
 				continue;
 			}
 			members.add(entry.getKey());
@@ -242,7 +242,7 @@ public class Group {
 		if (rank != null) {
 			// if the type is not a child node of the non member type, it is not
 			// a blacklisted type, so the player is a member
-			return !rankHandler.isRelated(rank, rankHandler.getDefaultNonMemberType());
+			return !rankHandler.isRelated(rank, rankHandler.getDefaultNonMemberRank());
 		}
 		return false;
 	}
@@ -274,7 +274,7 @@ public class Group {
 			return member;
 		}
 		// not tracked, so default
-		return rankHandler.getDefaultNonMemberType();
+		return rankHandler.getDefaultNonMemberRank();
 	}
 
 	/**
@@ -302,7 +302,7 @@ public class Group {
 	 *                 (always async)
 	 */
 	public void addToTracking(UUID uuid, GroupRank rank) {
-		if (rank == rankHandler.getDefaultNonMemberType()) {
+		if (rank == rankHandler.getDefaultNonMemberRank()) {
 			return;
 		}
 		players.put(uuid, rank);
@@ -376,8 +376,8 @@ public class Group {
 	 */
 	public void setGroupRankHandler(GroupRankHandler handler) {
 		this.rankHandler = handler;
-		for(GroupRank rank : handler.getAllTypes()) {
-			if (rank != rankHandler.getDefaultNonMemberType()) {
+		for(GroupRank rank : handler.getAllRanks()) {
+			if (rank != rankHandler.getDefaultNonMemberRank()) {
 				this.playersByRank.put(rank, new HashSet<>());
 			}
 		}

@@ -2,10 +2,14 @@ package vg.civcraft.mc.namelayer.gui;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -19,6 +23,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.util.StringUtil;
 
 import vg.civcraft.mc.civmodcore.api.ItemAPI;
@@ -26,437 +31,193 @@ import vg.civcraft.mc.civmodcore.chatDialog.Dialog;
 import vg.civcraft.mc.civmodcore.inventorygui.Clickable;
 import vg.civcraft.mc.civmodcore.inventorygui.ClickableInventory;
 import vg.civcraft.mc.civmodcore.inventorygui.DecorationStack;
+import vg.civcraft.mc.civmodcore.inventorygui.IClickable;
+import vg.civcraft.mc.civmodcore.inventorygui.LClickable;
+import vg.civcraft.mc.civmodcore.inventorygui.components.ComponableInventory;
+import vg.civcraft.mc.civmodcore.inventorygui.components.Scrollbar;
+import vg.civcraft.mc.civmodcore.inventorygui.components.SlotPredicates;
+import vg.civcraft.mc.civmodcore.inventorygui.components.StaticDisplaySection;
+import vg.civcraft.mc.namelayer.GroupAPI;
 import vg.civcraft.mc.namelayer.NameAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.events.PromotePlayerEvent;
-import vg.civcraft.mc.namelayer.group.BlackList;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.listeners.PlayerListener;
 import vg.civcraft.mc.namelayer.permission.GroupRank;
+import vg.civcraft.mc.namelayer.permission.GroupRankHandler;
+import vg.civcraft.mc.namelayer.permission.NameLayerPermissionManager;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
 
-public class MainGroupGUI extends NameLayerGroupGUI {
+public class MainGroupGUI {
 
+	private final Group group;
+	private final Player player;
+
+	private ComponableInventory inventory;
+	private Scrollbar contentComponent;
+	private StaticDisplaySection bottomBar;
 	private boolean showInheritedMembers;
-	private boolean showBlacklist;
 	private boolean showInvites;
 	private boolean showMembers;
-	private boolean showMods;
-	private boolean showAdmins;
-	private boolean showOwners;
+	private boolean showBlacklisted;
+	private Set<GroupRank> ranksShown;
+	private Set<GroupRank> ranksViewable;
+	private NameLayerPermissionManager permMan;
 
-	private int currentPage;
-	private boolean[] savedToggleState;
-
-	public MainGroupGUI(Player p, Group g) {
-		super(g, p);
-		showBlacklist = false;
-		showInvites = false;
+	public MainGroupGUI(Player player, Group group) {
+		this.group = group;
+		this.player = player;
+		this.permMan = NameLayerPlugin.getInstance().getNLPermissionManager();
+		ranksShown = new HashSet<>();
+		ranksViewable = new HashSet<>();
 		showInheritedMembers = false;
-		showMembers = groupManager.hasAccess(g, p.getUniqueId(),
-				PermissionType.getPermission("MEMBERS"))
-				|| groupManager.hasAccess(g, p.getUniqueId(),
-				PermissionType.getPermission("GROUPSTATS"));
-		showMods = groupManager.hasAccess(g, p.getUniqueId(),
-				PermissionType.getPermission("MODS"))
-				|| groupManager.hasAccess(g, p.getUniqueId(),
-				PermissionType.getPermission("GROUPSTATS"));
-		showAdmins = groupManager.hasAccess(g, p.getUniqueId(),
-				PermissionType.getPermission("ADMINS"))
-				|| groupManager.hasAccess(g, p.getUniqueId(),
-				PermissionType.getPermission("GROUPSTATS"));
-		showOwners = groupManager.hasAccess(g, p.getUniqueId(),
-				PermissionType.getPermission("OWNER"))
-				|| groupManager.hasAccess(g, p.getUniqueId(),
-				PermissionType.getPermission("GROUPSTATS"));
-		currentPage = 0;
-		showScreen();
+		showInvites = true;
+		showMembers = true;
+		showBlacklisted = false;
 	}
 
 	/**
-	 * Shows the main gui overview for a specific group based on the properties
-	 * of this class
+	 * Shows the main gui overview for a specific group based on the properties of
+	 * this class
 	 */
 	public void showScreen() {
-		if (!validGroup()) {
-			return;
+		if (inventory == null) {
+			inventory = new ComponableInventory(ChatColor.GOLD + group.getName(), 6, player);
+			inventory.addComponent(getBottomBar(), SlotPredicates.offsetRectangle(1, 9, 5, 0));
+		} else {
+			inventory.removeComponent(contentComponent);
 		}
-		ClickableInventory ci = new ClickableInventory(54, group.getName());
-		final List<Clickable> clicks = constructClickables();
-		if (clicks.size() < 45 * currentPage) {
-			// would show an empty page, so go to previous
-			currentPage--;
-			showScreen();
-		}
-		// fill gui
-		for (int i = 36 * currentPage; i < 36 * (currentPage + 1)
-				&& i < clicks.size(); i++) {
-			ci.setSlot(clicks.get(i), 9 + i - (36 * currentPage));
-		}
-		// back button
-		if (currentPage > 0) {
-			ItemStack back = new ItemStack(Material.ARROW);
-			ItemAPI.setDisplayName(back, ChatColor.GOLD + "Go to previous page");
-			Clickable baCl = new Clickable(back) {
+		List<IClickable> clicks = constructContent();
+		this.contentComponent = new Scrollbar(clicks, 45);
+		inventory.addComponent(contentComponent, SlotPredicates.rows(5));
+	}
 
-				@Override
-				public void clicked(Player arg0) {
-					if (currentPage > 0) {
-						currentPage--;
-					}
-					showScreen();
-				}
-			};
-			ci.setSlot(baCl, 45);
-		}
-		// next button
-		if ((45 * (currentPage + 1)) <= clicks.size()) {
-			ItemStack forward = new ItemStack(Material.ARROW);
-			ItemAPI.setDisplayName(forward, ChatColor.GOLD + "Go to next page");
-			Clickable forCl = new Clickable(forward) {
-
-				@Override
-				public void clicked(Player arg0) {
-					if ((45 * (currentPage + 1)) <= clicks.size()) {
-						currentPage++;
-					}
-					showScreen();
-				}
-			};
-			ci.setSlot(forCl, 53);
-		}
-
-		// options
-
-		ci.setSlot(getSuperMenuClickable(), 45);
-		ci.setSlot(createInheritedMemberToggle(), 46);
-		ci.setSlot(createInviteToggle(), 47);
-		ci.setSlot(setupMemberTypeToggle(GroupRank.MEMBERS, showMembers), 48);
-
-		ci.setSlot(setupMemberTypeToggle(GroupRank.MODS, showMods), 50);
-
-		ci.setSlot(setupMemberTypeToggle(GroupRank.ADMINS, showAdmins), 51);
-
-		ci.setSlot(setupMemberTypeToggle(GroupRank.OWNER, showOwners), 52);
-
-		// exit button
-		ItemStack backToOverview = goBackStack(); 
-		ItemAPI.setDisplayName(backToOverview, ChatColor.GOLD + "Close");
-		ci.setSlot(new Clickable(backToOverview) {
-
-			@Override
-			public void clicked(Player arg0) {
-				ClickableInventory.forceCloseInventory(arg0);
-			}
-		}, 49);
-
-		// options at the top
-		ci.setSlot(getInvitePlayerClickable(), 0);
-		ci.setSlot(createBlacklistToggle(), 1);
-		ci.setSlot(getAddBlackListClickable(), 2);
+	private StaticDisplaySection getBottomBar() {
+		bottomBar = new StaticDisplaySection(9);
+		bottomBar.set(getInvitePlayerClickable(), 0);
+		bottomBar.set(getAddBlackListClickable(), 1);
+		bottomBar.set(getVisibilityMenuClickable(), 2);
 		ci.setSlot(getLeaveGroupClickable(), 3);
 		ci.setSlot(getInfoStack(), 4);
 		ci.setSlot(getDefaultGroupStack(), 5);
-		ci.setSlot(getPasswordClickable(), 6);
-		ci.setSlot(getPermOptionClickable(), 7);
-		ci.setSlot(getAdminStuffClickable(), 8);
-		ci.showInventory(player);
+		// edit ranks 6
+		ci.setSlot(getAdminStuffClickable(), 7);
+		// return to super 8
+		return bottomBar;
 	}
 
-	/**
-	 * Creates a list of all Clickables representing members, invitees and
-	 * blacklisted players, if they are supposed to be displayed. This is whats
-	 * directly fed into the middle of the gui
-	 */
-	private List<Clickable> constructClickables() {
-		List<Clickable> clicks = new ArrayList<>();
-		if (showInheritedMembers) {
-			if (group.hasSuperGroup()) {
-				clicks.addAll(getRecursiveInheritedMembers(group.getSuperGroup()));
-			}
-		}
-		if (showBlacklist) {
-			final BlackList black = NameLayerPlugin.getBlackList();
-			for (final UUID uuid : black.getBlacklist(group)) {
-				ItemStack is = new ItemStack(Material.LEATHER_CHESTPLATE);
-				LeatherArmorMeta meta = (LeatherArmorMeta) is.getItemMeta();
-				meta.setColor(Color.BLACK);
-				meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-				is.setItemMeta(meta);
-				ItemAPI.setDisplayName(is, NameAPI.getCurrentName(uuid));
-				Clickable c;
-				if (groupManager.hasAccess(group, player.getUniqueId(),
-						PermissionType.getPermission("BLACKLIST"))) {
-					ItemAPI.addLore(is, ChatColor.GREEN + "Click to remove "
-							+ NameAPI.getCurrentName(uuid), ChatColor.GREEN
-							+ "from the blacklist");
-					c = new Clickable(is) {
+	private IClickable getVisibilityMenuClickable() {
+		return new LClickable(Material.LECTERN, ChatColor.GOLD + "Filter and adjust sorting", p -> {
+			StaticDisplaySection toggles = new StaticDisplaySection(9);
+			toggles.set(
+					constructToggle(showInheritedMembers, 1, "Show inherited members", b -> showInheritedMembers = b),
+					1);
+			toggles.set(
+					constructToggle(showInheritedMembers, 3, "Show invites", b -> showInheritedMembers = b),
+					3);
+			toggles.set(
+					constructToggle(showInheritedMembers, 5, "Show members", b -> showInheritedMembers = b),
+					5);
+			toggles.set(
+					constructToggle(showInheritedMembers, 7, "Show blacklisted players", b -> showInheritedMembers = b),
+					7);
+		});
+	}
 
-						@Override
-						public void clicked(Player arg0) {
-							if (groupManager.hasAccess(group, player.getUniqueId(),
-									PermissionType.getPermission("BLACKLIST"))) {
-								NameLayerPlugin.log(
-										Level.INFO,
-										arg0.getName() + " removed "
-												+ NameAPI.getCurrentName(uuid)
-												+ " from the blacklist of "
-												+ group.getName() + " via the gui");
-								black.removeBlacklistMember(group, uuid, true);
-								player.sendMessage(ChatColor.GREEN + "You removed "
-										+ NameAPI.getCurrentName(uuid)
-										+ " from the blacklist");
-							} else {
-								player.sendMessage(ChatColor.RED
-										+ "You lost permission to remove this player from the blacklist");
-							}
-							showScreen();
-						}
-					};
-				} else {
-					ItemAPI.addLore(is, ChatColor.RED
-							+ "You don't have permission to remove",
-							ChatColor.RED + NameAPI.getCurrentName(uuid)
-						  + "from the blacklist");
-					c = new DecorationStack(is);
-				}
-				clicks.add(c);
-			}
+	private IClickable constructToggle(boolean state, int slot, String name, Consumer<Boolean> setter) {
+		return new LClickable((state ? Material.GREEN_DYE : Material.RED_DYE), ChatColor.GOLD + name, p -> {
+			setter.accept(!state);
+			bottomBar.set(constructToggle(!state, slot, name, setter), slot);
+		});
+	}
 
-		}
+	private List<IClickable> constructContent() {
+		List<IClickable> result = new ArrayList<>();
+		GroupRankHandler rankHandler = group.getGroupRankHandler();
+		List<GroupRank> ranks = new ArrayList<>(ranksShown);
+		boolean sortByRank = NameLayerPlugin.getInstance().getSettingsManager().getGUISortSetting().getValue(player);
+		Map<GroupRank, List<UUID>> invertedInviteList = null;
 		if (showInvites) {
-			Map<UUID, GroupRank> invites = NameLayerPlugin
-					.getGroupManagerDao().getInvitesForGroup(group.getName());
-			for (Entry<UUID, GroupRank> entry : invites.entrySet()) {
-				ItemStack is = new ItemStack(Material.CHAINMAIL_CHESTPLATE);
-				ItemMeta im = is.getItemMeta();
-				im.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-				is.setItemMeta(im);
-				final String playerName = NameAPI
-						.getCurrentName(entry.getKey());
-				ItemAPI.setDisplayName(is, ChatColor.GOLD + playerName);
-				boolean canRevoke = false;
-				switch (entry.getValue()) {
-				case MEMBERS:
-					ItemAPI.addLore(is, ChatColor.AQUA + "Invited as: Member");
-					if (groupManager.hasAccess(group, player.getUniqueId(),
-							PermissionType.getPermission("MEMBERS"))) {
-						canRevoke = true;
-					}
-					break;
-				case MODS:
-					ItemAPI.addLore(is, ChatColor.AQUA + "Invited as: Mod");
-					if (groupManager.hasAccess(group, player.getUniqueId(),
-							PermissionType.getPermission("MODS"))) {
-						canRevoke = true;
-					}
-					break;
-				case ADMINS:
-					ItemAPI.addLore(is, ChatColor.AQUA + "Invited as: Admin");
-					if (groupManager.hasAccess(group, player.getUniqueId(),
-							PermissionType.getPermission("ADMINS"))) {
-						canRevoke = true;
-					}
-					break;
-				case OWNER:
-					ItemAPI.addLore(is, ChatColor.AQUA + "Invited as: Owner");
-					if (groupManager.hasAccess(group, player.getUniqueId(),
-							PermissionType.getPermission("OWNER"))) {
-						canRevoke = true;
-					}
-					break;
-				default:
-					continue;
-				}
-				Clickable c = null;
-				if (canRevoke) {
-					ItemAPI.addLore(is, ChatColor.GREEN
-							+ "Click to revoke this invite");
-					c = new Clickable(is) {
-
-						@Override
-						public void clicked(Player arg0) {
-							UUID invitedUUID = NameAPI.getUUID(playerName);
-							GroupRank pType = group.getInvite(invitedUUID);
-							if (pType == null) {
-								player.sendMessage(ChatColor.RED
-										+ "Failed to revoke invite for "
-										+ playerName
-										+ ". This player isn't invited currently.");
-								showScreen();
-							}
-							// make sure the player still has permission to do
-							// this
-							boolean allowed = false;
-							switch (pType) {
-								case MEMBERS:
-									allowed = groupManager.hasAccess(group, player.getUniqueId(),
-											PermissionType.getPermission("MEMBERS"));
-									break;
-								case MODS:
-									allowed = groupManager.hasAccess(group, player.getUniqueId(),
-											PermissionType.getPermission("MODS"));
-									break;
-								case ADMINS:
-									allowed = groupManager.hasAccess(group, player.getUniqueId(),
-											PermissionType.getPermission("ADMINS"));
-									break;
-								case OWNER:
-									allowed = groupManager.hasAccess(group, player.getUniqueId(),
-											PermissionType.getPermission("OWNER"));
-									break;
-								default:
-									allowed = false;
-									break;
-							}
-							if (!allowed) {
-								player.sendMessage(ChatColor.RED
-										+ "You don't have permission to revoke this invite");
-							} else {
-								NameLayerPlugin.log(Level.INFO, arg0.getName()
-										+ " revoked an invite for " + NameAPI.getCurrentName(invitedUUID)
-										+ " for group " + group.getName() + " via the gui");
-								group.removeInvite(invitedUUID, true);
-								PlayerListener.removeNotification(invitedUUID, group);
-
-								player.sendMessage(ChatColor.GREEN + playerName
-										+ "'s invitation has been revoked.");
-							}
-							showScreen();
-						}
-					};
-				} else {
-					ItemAPI.addLore(is, ChatColor.RED
-							+ "You don't have permission to revoke this invite");
-					c = new DecorationStack(is);
-				}
-				if (c != null) {
-					clicks.add(c);
-				}
+			invertedInviteList = new HashMap<>();
+			for (Entry<UUID, GroupRank> entry : group.getAllInvites().entrySet()) {
+				List<UUID> existingInvites = invertedInviteList.computeIfAbsent(entry.getValue(),
+						s -> new ArrayList<>());
+				existingInvites.add(entry.getKey());
 			}
 		}
-		for (UUID uuid : group.getAllMembers()) {
-			Clickable c = null;
-			switch (group.getRank(uuid)) {
-				case MEMBERS:
-					if (showMembers) {
-						c = constructMemberClickable(Material.LEATHER_CHESTPLATE,
-								uuid, GroupRank.MEMBERS);
-					}
-					break;
-				case MODS:
-					if (showMods) {
-						c = constructMemberClickable(modMat(),
-								uuid, GroupRank.MODS);
-					}
-					break;
-				case ADMINS:
-					if (showAdmins) {
-						c = constructMemberClickable(Material.IRON_CHESTPLATE,
-								uuid, GroupRank.ADMINS);
-					}
-					break;
-				case OWNER:
-					if (showOwners) {
-						c = constructMemberClickable(Material.DIAMOND_CHESTPLATE,
-								uuid, GroupRank.OWNER);
-					}
-					break;
-				default:
-					// should never happen
-			}
-			if (c != null) {
-				clicks.add(c);
-			}
+		if (sortByRank) {
+			Collections.sort(ranks, (r1, r2) -> r1.getName().compareTo(r2.getName()));
 		}
-
-		return clicks;
-	}
-
-	/**
-	 * Convenience method to create the toggles for the displaying of different
-	 * group member types
-	 */
-	private Clickable setupMemberTypeToggle(final GroupRank pType,
-											boolean initialState) {
-		boolean canEdit = groupManager.hasAccess(group, player.getUniqueId(),
-				getAccordingPermission(pType))
-				|| groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("GROUPSTATS"));
-		ItemStack is = MenuUtils.toggleButton(initialState, ChatColor.GOLD
-				+ "Show " + GroupRank.getNiceRankName(pType) + "s", canEdit);
-		Clickable c;
-		if (canEdit) {
-			c = new Clickable(is) {
-
-				@Override
-				public void clicked(Player arg0) {
-					switch (pType) {
-						case MEMBERS:
-							showMembers = !showMembers;
-							break;
-						case MODS:
-							showMods = !showMods;
-							break;
-						case ADMINS:
-							showAdmins = !showAdmins;
-							break;
-						case OWNER:
-							showOwners = !showOwners;
-							break;
-					}
-					currentPage = 0;
-					showScreen();
-				}
-			};
-		} else {
-			c = new DecorationStack(is);
-		}
-
-		return c;
-
-	}
-
-	/**
-	 * Convenience method used when constructing clickables in the middle of the
-	 * gui, which represent members
-	 */
-	private Clickable constructMemberClickable(Material material,
-											   final UUID toDisplay, GroupRank rank) {
-		Clickable c;
-		ItemStack is = new ItemStack(material);
-		ItemMeta im = is.getItemMeta();
-		im.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-		is.setItemMeta(im);
-		ItemAPI.setDisplayName(is, ChatColor.GOLD + NameAPI.getCurrentName(toDisplay));
-		if (group.isOwner(toDisplay)) { // special case for primary owner
-			ItemAPI.addLore(is, ChatColor.AQUA + "Rank: Primary Owner");
-			ItemAPI.addLore(is, ChatColor.RED + "You don't have permission",
-					ChatColor.RED + "to modify the rank of this player");
-			c = new DecorationStack(is);
-
-		} else {
-			ItemAPI.addLore(is, ChatColor.AQUA + "Rank: "
-					+ getRankName(toDisplay));
-			if (groupManager.hasAccess(group, player.getUniqueId(), getAccordingPermission(rank))) {
-				ItemAPI.addLore(is, ChatColor.GREEN
-						+ "Click to modify this player's", ChatColor.GREEN
-						+ "rank or to remove them");
-				c = new Clickable(is) {
-
-					@Override
-					public void clicked(Player arg0) {
-						showDetail(toDisplay);
-					}
-				};
-			} else {
+		for (GroupRank rank : ranks) {
+			if (rank == rankHandler.getDefaultNonMemberRank()) {
+				continue;
+			}
+			if (!showBlacklisted && rankHandler.isBlacklistedRank(rank)) {
+				continue;
+			}
+			if (!showMembers && rankHandler.isMemberRank(rank)) {
+				continue;
+			}
+			boolean canModify = GroupAPI.hasPermission(player, group, rank.getRemovalPermissionType());
+			List<IClickable> tempList = new ArrayList<>();
+			for (UUID uuid : group.getAllTrackedByType(rank)) {
+				ItemStack is = getSkullFor(uuid);
 				ItemAPI.addLore(is,
-						ChatColor.RED + "You don't have permission",
-						ChatColor.RED + "to modify the rank of this player");
-				c = new DecorationStack(is);
+						String.format("%sRank: %s%s", ChatColor.DARK_AQUA, ChatColor.DARK_GRAY, rank.getName()));
+				IClickable click;
+				if (canModify) {
+					ItemAPI.addLore(is, "", ChatColor.AQUA + "Click to modify");
+					click = new LClickable(is, p -> handlePlayerClick(rank, uuid));
+				} else {
+					click = new DecorationStack(is);
+				}
+				tempList.add(click);
 			}
+			if (showInvites) {
+				List<UUID> invitees = invertedInviteList.get(rank);
+				if (invitees != null) {
+					for (UUID uuid : invitees) {
+						ItemStack is = getSkullFor(uuid);
+						ItemAPI.addLore(is, ChatColor.LIGHT_PURPLE.toString() + ChatColor.BOLD + "Pending invite", "",
+								String.format("%sRank: %s%s", ChatColor.DARK_AQUA, ChatColor.DARK_GRAY,
+										rank.getName()));
+						ItemAPI.addGlow(is);
+						IClickable click;
+						if (canModify) {
+							ItemAPI.addLore(is, "", ChatColor.AQUA + "Click to modify");
+							click = new LClickable(is, p -> handleInviteClick(rank, uuid));
+						} else {
+							click = new DecorationStack(is);
+						}
+						tempList.add(click);
+					}
+				}
+			}
+			if (!sortByRank) {
+				// sort by member name, which is included in the items name
+				Collections.sort(tempList, (i1, i2) -> i1.getItemStack().getItemMeta().getDisplayName()
+						.compareTo(i2.getItemStack().getItemMeta().getDisplayName()));
+			}
+			result.addAll(tempList);
 		}
-		return c;
+		return result;
+	}
+
+	private void handlePlayerClick(GroupRank rank, UUID player) {
+
+	}
+
+	private void handleInviteClick(GroupRank rank, UUID player) {
+
+	}
+
+	private static ItemStack getSkullFor(UUID uuid) {
+		ItemStack is = new ItemStack(Material.PLAYER_HEAD);
+		SkullMeta skullMeta = (SkullMeta) is.getItemMeta();
+		skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
+		skullMeta.setDisplayName(ChatColor.GOLD + NameAPI.getCurrentName(uuid));
+		is.setItemMeta(skullMeta);
+		return is;
 	}
 
 	/**
@@ -467,10 +228,6 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 	 * @param uuid the UUID to show the inventory to
 	 */
 	public void showDetail(final UUID uuid) {
-		if (!validGroup()) {
-			showScreen();
-			return;
-		}
 		ClickableInventory ci = new ClickableInventory(27, group.getName());
 		String playerName = NameAPI.getCurrentName(uuid);
 
@@ -480,20 +237,16 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 		ItemAPI.addLore(info, ChatColor.GOLD + "Current rank: " + rankName);
 		ci.setSlot(new DecorationStack(info), 4);
 
-		Clickable memberClick = setupDetailSlot(Material.LEATHER_CHESTPLATE,
-				uuid, GroupRank.MEMBERS);
+		Clickable memberClick = setupDetailSlot(Material.LEATHER_CHESTPLATE, uuid, GroupRank.MEMBERS);
 		ci.setSlot(memberClick, 10);
-		Clickable modClick = setupDetailSlot(modMat(), uuid,
-				GroupRank.MODS);
+		Clickable modClick = setupDetailSlot(modMat(), uuid, GroupRank.MODS);
 		ci.setSlot(modClick, 12);
-		Clickable adminClick = setupDetailSlot(Material.IRON_CHESTPLATE, uuid,
-				GroupRank.ADMINS);
+		Clickable adminClick = setupDetailSlot(Material.IRON_CHESTPLATE, uuid, GroupRank.ADMINS);
 		ci.setSlot(adminClick, 14);
-		Clickable ownerClick = setupDetailSlot(Material.DIAMOND_CHESTPLATE,
-				uuid, GroupRank.OWNER);
+		Clickable ownerClick = setupDetailSlot(Material.DIAMOND_CHESTPLATE, uuid, GroupRank.OWNER);
 		ci.setSlot(ownerClick, 16);
 
-		ItemStack backToOverview = goBackStack(); 
+		ItemStack backToOverview = goBackStack();
 		ItemAPI.setDisplayName(backToOverview, ChatColor.GOLD + "Back to overview");
 		ci.setSlot(new Clickable(backToOverview) {
 
@@ -509,8 +262,7 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 	 * Used by the gui that allows selecting an action for a specific member to
 	 * easily construct the clickables needed
 	 */
-	private Clickable setupDetailSlot(Material slotMaterial,
-									  final UUID toChange, final GroupRank pType) {
+	private Clickable setupDetailSlot(Material slotMaterial, final UUID toChange, final GroupRank pType) {
 		final GroupRank rank = group.getCurrentRank(toChange);
 		ItemStack mod = new ItemStack(slotMaterial);
 		ItemMeta im = mod.getItemMeta();
@@ -520,8 +272,7 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 		if (rank == pType) {
 			ItemAPI.setDisplayName(mod, ChatColor.GOLD + "Remove this player");
 			if (!groupManager.hasAccess(group, player.getUniqueId(), getAccordingPermission(pType))) {
-				ItemAPI.addLore(mod, ChatColor.RED
-						+ "You dont have permission to do this");
+				ItemAPI.addLore(mod, ChatColor.RED + "You dont have permission to do this");
 				modClick = new DecorationStack(mod);
 			} else {
 				modClick = new Clickable(mod) {
@@ -529,8 +280,7 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 					@Override
 					public void clicked(Player arg0) {
 						if (groupManager.hasAccess(group, player.getUniqueId(),
-								getAccordingPermission(group
-										.getCurrentRank(toChange)))) {
+								getAccordingPermission(group.getCurrentRank(toChange)))) {
 							removeMember(toChange);
 							showScreen();
 						}
@@ -538,15 +288,10 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 				};
 			}
 		} else {
-			ItemAPI.setDisplayName(
-					mod,
-					ChatColor.GOLD
-							+ demoteOrPromote(group.getRank(toChange), pType,
-							true) + " this player to "
-							+ GroupRank.getNiceRankName(pType));
+			ItemAPI.setDisplayName(mod, ChatColor.GOLD + demoteOrPromote(group.getRank(toChange), pType, true)
+					+ " this player to " + GroupRank.getNiceRankName(pType));
 			if (!groupManager.hasAccess(group, player.getUniqueId(), getAccordingPermission(pType))) {
-				ItemAPI.addLore(mod, ChatColor.RED
-						+ "You dont have permission to do this");
+				ItemAPI.addLore(mod, ChatColor.RED + "You dont have permission to do this");
 				modClick = new DecorationStack(mod);
 			} else {
 				modClick = new Clickable(mod) {
@@ -556,6 +301,7 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 						changePlayerRank(toChange, pType);
 						showDetail(toChange);
 					}
+
 				};
 			}
 		}
@@ -566,23 +312,18 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 		if (groupManager.hasAccess(group, player.getUniqueId(),
 				getAccordingPermission(group.getCurrentRank(toRemove)))) {
 			if (!group.isMember(toRemove)) {
-				player.sendMessage(ChatColor.RED
-						+ "This player is no longer on the group and can't be removed");
+				player.sendMessage(ChatColor.RED + "This player is no longer on the group and can't be removed");
 				return;
 			}
 			if (group.isOwner(toRemove)) {
-				player.sendMessage(ChatColor.RED
-						+ "This player owns the group and can't be removed");
+				player.sendMessage(ChatColor.RED + "This player owns the group and can't be removed");
 			}
-			NameLayerPlugin.log(Level.INFO,
-					player.getName() + " kicked " + NameAPI.getCurrentName(toRemove)
-							+ " from " + group.getName() + " via the gui");
+			NameLayerPlugin.log(Level.INFO, player.getName() + " kicked " + NameAPI.getCurrentName(toRemove) + " from "
+					+ group.getName() + " via the gui");
 			group.removeMember(toRemove);
-			player.sendMessage(ChatColor.GREEN + NameAPI.getCurrentName(toRemove)
-					+ " has been removed from the group");
+			player.sendMessage(ChatColor.GREEN + NameAPI.getCurrentName(toRemove) + " has been removed from the group");
 		} else {
-			player.sendMessage(ChatColor.RED
-					+ "You have lost permission to remove this player");
+			player.sendMessage(ChatColor.RED + "You have lost permission to remove this player");
 		}
 	}
 
@@ -590,64 +331,49 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 		if (groupManager.hasAccess(group, player.getUniqueId(),
 				getAccordingPermission(group.getCurrentRank(toChange)))) {
 			if (!group.isMember(toChange)) {
-				player.sendMessage(ChatColor.RED
-						+ "This player is no longer on the group and can't be "
-						+ demoteOrPromote(group.getCurrentRank(toChange), newRank,
-						false) + "d");
+				player.sendMessage(ChatColor.RED + "This player is no longer on the group and can't be "
+						+ demoteOrPromote(group.getCurrentRank(toChange), newRank, false) + "d");
 				return;
 			}
 			if (group.isOwner(toChange)) {
-				player.sendMessage(ChatColor.RED
-						+ "This player owns the group and can't be demoted");
+				player.sendMessage(ChatColor.RED + "This player owns the group and can't be demoted");
 			}
 			OfflinePlayer prom = Bukkit.getOfflinePlayer(toChange);
-			NameLayerPlugin.log(
-					Level.INFO,
-					player.getName() + " changed player rank for "
-							+ NameAPI.getCurrentName(toChange) + " from "
-							+ group.getCurrentRank(toChange).toString() + " to "
-							+ newRank.toString() + " for group " + group.getName()
-							+ " via the gui");
+			NameLayerPlugin.log(Level.INFO,
+					player.getName() + " changed player rank for " + NameAPI.getCurrentName(toChange) + " from "
+							+ group.getCurrentRank(toChange).toString() + " to " + newRank.toString() + " for group "
+							+ group.getName() + " via the gui");
 			if (prom.isOnline()) {
 				Player oProm = (Player) prom;
-				PromotePlayerEvent event = new PromotePlayerEvent(oProm, group,
-						group.getCurrentRank(toChange), newRank);
+				PromotePlayerEvent event = new PromotePlayerEvent(oProm, group, group.getCurrentRank(toChange),
+						newRank);
 				Bukkit.getPluginManager().callEvent(event);
 				if (event.isCancelled()) {
-					player.sendMessage(ChatColor.RED
-							+ "Could not change player rank, you should complain about this");
+					player.sendMessage(ChatColor.RED + "Could not change player rank, you should complain about this");
 					return;
 				}
 				group.removeMember(toChange);
 				group.addMember(toChange, newRank);
-				oProm.sendMessage(ChatColor.GREEN
-						+ "You have been promoted to " + getRankName(toChange)
+				oProm.sendMessage(ChatColor.GREEN + "You have been promoted to " + getRankName(toChange)
 						+ " in (Group) " + group.getName());
 			} else {
 				// player is offline change their perms
 				group.removeMember(toChange);
 				group.addMember(toChange, newRank);
 			}
-			player.sendMessage(ChatColor.GREEN
-					+ NameAPI.getCurrentName(toChange)
-					+ " has been "
-					+ demoteOrPromote(group.getCurrentRank(toChange), newRank,
-					false) + "d to " + getRankName(toChange));
+			player.sendMessage(ChatColor.GREEN + NameAPI.getCurrentName(toChange) + " has been "
+					+ demoteOrPromote(group.getCurrentRank(toChange), newRank, false) + "d to "
+					+ getRankName(toChange));
 		} else {
-			player.sendMessage(ChatColor.RED
-					+ "You have lost permission to remove this player");
+			player.sendMessage(ChatColor.RED + "You have lost permission to remove this player");
 		}
 	}
 
 	private Clickable createBlacklistToggle() {
-		ItemStack is = MenuUtils.toggleButton(
-				showBlacklist,
-				ChatColor.GOLD + "Show blacklisted players",
-				groupManager.hasAccess(group, player.getUniqueId(),
-						PermissionType.getPermission("GROUPSTATS")));
+		ItemStack is = MenuUtils.toggleButton(showBlacklist, ChatColor.GOLD + "Show blacklisted players",
+				groupManager.hasAccess(group, player.getUniqueId(), PermissionType.getPermission("GROUPSTATS")));
 		Clickable c;
-		if (groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("GROUPSTATS"))) {
+		if (groupManager.hasAccess(group, player.getUniqueId(), PermissionType.getPermission("GROUPSTATS"))) {
 			c = new Clickable(is) {
 
 				@Override
@@ -687,8 +413,8 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 	private Clickable createInheritedMemberToggle() {
 		boolean canToggle = groupManager.hasAccess(group, player.getUniqueId(),
 				PermissionType.getPermission("GROUPSTATS"));
-		ItemStack is = MenuUtils.toggleButton(showInheritedMembers,
-				ChatColor.GOLD + "Show inherited members", canToggle);
+		ItemStack is = MenuUtils.toggleButton(showInheritedMembers, ChatColor.GOLD + "Show inherited members",
+				canToggle);
 		Clickable c;
 		if (canToggle) {
 			c = new Clickable(is) {
@@ -707,8 +433,7 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 	}
 
 	private Clickable createInviteToggle() {
-		ItemStack is = MenuUtils.toggleButton(showInvites, ChatColor.GOLD
-				+ "Show invited players", true);
+		ItemStack is = MenuUtils.toggleButton(showInvites, ChatColor.GOLD + "Show invited players", true);
 		return new Clickable(is) {
 
 			@Override
@@ -723,21 +448,20 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 		Clickable c;
 		ItemStack is = blacklistStack();
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Add player to blacklist");
-		if (groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("BLACKLIST"))) {
+		if (groupManager.hasAccess(group, player.getUniqueId(), PermissionType.getPermission("BLACKLIST"))) {
 			c = new Clickable(is) {
 
 				@Override
 				public void clicked(final Player p) {
-					p.sendMessage(ChatColor.GOLD + "Enter the name of the player to blacklist or \"cancel\" to exit this prompt");
+					p.sendMessage(ChatColor.GOLD
+							+ "Enter the name of the player to blacklist or \"cancel\" to exit this prompt");
 					ClickableInventory.forceCloseInventory(p);
 					new Dialog(p, NameLayerPlugin.getInstance()) {
 
 						@Override
 						public List<String> onTabComplete(String word, String[] msg) {
 							List<String> players = Bukkit.getOnlinePlayers().stream()
-									.filter(p -> !group.isMember(p.getUniqueId()))
-									.map(Player::getName)
+									.filter(p -> !group.isMember(p.getUniqueId())).map(Player::getName)
 									.collect(Collectors.toList());
 							players.add("cancel");
 
@@ -753,43 +477,31 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 							if (groupManager.hasAccess(group, p.getUniqueId(),
 									PermissionType.getPermission("BLACKLIST"))) {
 								for (String playerName : message) {
-									UUID blackUUID = NameAPI
-											.getUUID(playerName);
+									UUID blackUUID = NameAPI.getUUID(playerName);
 									if (blackUUID == null) {
-										p.sendMessage(ChatColor.RED
-												+ playerName + " doesn't exist");
+										p.sendMessage(ChatColor.RED + playerName + " doesn't exist");
 										continue;
 									}
 									if (group.isMember(blackUUID)) {
-										p.sendMessage(ChatColor.RED
-												+ NameAPI.getCurrentName(blackUUID)
+										p.sendMessage(ChatColor.RED + NameAPI.getCurrentName(blackUUID)
 												+ " is currently a member of this group and can't be blacklisted");
 										continue;
 									}
-									BlackList bl = NameLayerPlugin
-											.getBlackList();
+									BlackList bl = NameLayerPlugin.getBlackList();
 									if (bl.isBlacklisted(group, blackUUID)) {
-										p.sendMessage(ChatColor.RED
-												+ NameAPI.getCurrentName(blackUUID)
+										p.sendMessage(ChatColor.RED + NameAPI.getCurrentName(blackUUID)
 												+ " is already blacklisted");
 										continue;
 									}
-									NameLayerPlugin
-											.log(Level.INFO,
-													p.getName()
-															+ " blacklisted "
-															+ NameAPI.getCurrentName(blackUUID)
-															+ " for group "
-															+ group.getName()
-															+ " via the gui");
+									NameLayerPlugin.log(Level.INFO,
+											p.getName() + " blacklisted " + NameAPI.getCurrentName(blackUUID)
+													+ " for group " + group.getName() + " via the gui");
 									bl.addBlacklistMember(group, blackUUID, true);
-									p.sendMessage(ChatColor.GREEN
-											+ NameAPI.getCurrentName(blackUUID)
+									p.sendMessage(ChatColor.GREEN + NameAPI.getCurrentName(blackUUID)
 											+ " was successfully blacklisted");
 								}
 							} else {
-								p.sendMessage(ChatColor.RED
-										+ "You lost permission to do this");
+								p.sendMessage(ChatColor.RED + "You lost permission to do this");
 							}
 							showScreen();
 						}
@@ -798,8 +510,7 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 				}
 			};
 		} else {
-			ItemAPI.addLore(is, ChatColor.RED
-					+ "You don't have permission to do this");
+			ItemAPI.addLore(is, ChatColor.RED + "You don't have permission to do this");
 			c = new DecorationStack(is);
 		}
 		return c;
@@ -809,122 +520,92 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 		Clickable c;
 		ItemStack is = new ItemStack(Material.OAK_SIGN);
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Add or change password");
-		if (groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("PASSWORD"))) {
+		if (groupManager.hasAccess(group, player.getUniqueId(), PermissionType.getPermission("PASSWORD"))) {
 			String pass = group.getPassword();
 			if (pass == null) {
-				ItemAPI.addLore(is, ChatColor.AQUA
-						+ "This group doesn't have a password currently");
+				ItemAPI.addLore(is, ChatColor.AQUA + "This group doesn't have a password currently");
 			} else {
-				ItemAPI.addLore(is, ChatColor.AQUA
-						+ "The current password is: " + ChatColor.YELLOW + pass);
+				ItemAPI.addLore(is, ChatColor.AQUA + "The current password is: " + ChatColor.YELLOW + pass);
 			}
 			c = new Clickable(is) {
 
 				@Override
 				public void clicked(final Player p) {
-					if (groupManager.hasAccess(group, p.getUniqueId(),
-							PermissionType.getPermission("PASSWORD"))) {
-						p.sendMessage(ChatColor.GOLD
-								+ "Enter the new password for "
-								+ group.getName()
+					if (groupManager.hasAccess(group, p.getUniqueId(), PermissionType.getPermission("PASSWORD"))) {
+						p.sendMessage(ChatColor.GOLD + "Enter the new password for " + group.getName()
 								+ ". Enter \" delete\" to remove an existing password or \"cancel\" to exit this prompt");
 						ClickableInventory.forceCloseInventory(p);
 						new Dialog(p, NameLayerPlugin.getInstance()) {
 
 							@Override
-							public List<String> onTabComplete(
-									String wordCompleted, String[] fullMessage) {
+							public List<String> onTabComplete(String wordCompleted, String[] fullMessage) {
 								return Collections.emptyList();
 							}
 
 							@Override
 							public void onReply(String[] message) {
 								if (message.length == 0) {
-									p.sendMessage(ChatColor.RED
-											+ "You entered nothing, no password was set");
+									p.sendMessage(ChatColor.RED + "You entered nothing, no password was set");
 									return;
 								}
 								if (message.length > 1) {
-									p.sendMessage(ChatColor.RED
-											+ "Your password may not contain spaces");
+									p.sendMessage(ChatColor.RED + "Your password may not contain spaces");
 									return;
 								}
 								String newPassword = message[0];
 								if (newPassword.equals("cancel")) {
-									p.sendMessage(ChatColor.GREEN
-											+ "Left password unchanged");
+									p.sendMessage(ChatColor.GREEN + "Left password unchanged");
 									return;
 								}
 								if (newPassword.equals("delete")) {
 									group.setPassword(null);
-									p.sendMessage(ChatColor.GREEN
-											+ "Removed the password from the group");
-									NameLayerPlugin.log(Level.INFO, p.getName()
-											+ " removed password "
-											+ " for group " + group.getName()
-											+ " via the gui");
+									p.sendMessage(ChatColor.GREEN + "Removed the password from the group");
+									NameLayerPlugin.log(Level.INFO, p.getName() + " removed password " + " for group "
+											+ group.getName() + " via the gui");
 								} else {
-									NameLayerPlugin.log(Level.INFO, p.getName()
-											+ " set password to " + newPassword
-											+ " for group " + group.getName()
-											+ " via the gui");
+									NameLayerPlugin.log(Level.INFO, p.getName() + " set password to " + newPassword
+											+ " for group " + group.getName() + " via the gui");
 									group.setPassword(newPassword);
-									p.sendMessage(ChatColor.GREEN
-											+ "Set new password: "
-											+ ChatColor.YELLOW + newPassword);
+									p.sendMessage(
+											ChatColor.GREEN + "Set new password: " + ChatColor.YELLOW + newPassword);
 								}
 								showScreen();
 							}
 						};
 					} else {
-						p.sendMessage(ChatColor.RED
-								+ "You lost permission to do this");
+						p.sendMessage(ChatColor.RED + "You lost permission to do this");
 						showScreen();
 					}
 				}
 			};
 		} else {
-			ItemAPI.addLore(is, ChatColor.RED
-					+ "You don't have permission to do this");
+			ItemAPI.addLore(is, ChatColor.RED + "You don't have permission to do this");
 			c = new DecorationStack(is);
 		}
 		return c;
 	}
 
-	private Clickable getPermOptionClickable() {
-		ItemStack permStack = permsStack();
-		ItemAPI.setDisplayName(permStack, ChatColor.GOLD
-				+ "View and manage group permissions");
-		Clickable permClickable;
-		if (groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("LIST_PERMS"))) {
-			permClickable = new Clickable(permStack) {
-				@Override
-				public void clicked(Player arg0) {
-					PermissionManageGUI pmgui = new PermissionManageGUI(group, player,
-							MainGroupGUI.this);
-					pmgui.showScreen();
-				}
-			};
-		} else {
-			ItemAPI.addLore(permStack, ChatColor.RED
-					+ "You don't have permission", ChatColor.RED + "to do this");
-			permClickable = new DecorationStack(permStack);
-		}
+	private IClickable getPermOptionClickable() {
+		ItemStack permStack = new ItemStack(Material.OAK_FENCE_GATE);
+		ItemAPI.setDisplayName(permStack, ChatColor.GOLD + "View and manage group permissions");
+		IClickable permClickable;
+		permClickable = new LClickable(permStack, p -> {
+			if (GroupAPI.hasPermission(player, group, permMan.getListPerms())) {
+				PermissionManageGUI pmgui = new PermissionManageGUI(group, player, MainGroupGUI.this);
+				pmgui.showScreen();
+			} else {
+				showScreen();
+			}
+		});
 		return permClickable;
 	}
 
-	private Clickable getInvitePlayerClickable() {
+	private IClickable getInvitePlayerClickable() {
 		ItemStack inviteStack = new ItemStack(Material.COOKIE);
 		ItemAPI.setDisplayName(inviteStack, ChatColor.GOLD + "Invite new member");
-		return new Clickable(inviteStack) {
-
-			@Override
-			public void clicked(Player arg0) {
-				new InvitationGUI(group, player, MainGroupGUI.this);
-			}
-		};
+		return new LClickable(inviteStack, p -> {
+			new InvitationGUI(group, player, MainGroupGUI.this);
+		});
 	}
 
 	private Clickable getDefaultGroupStack() {
@@ -933,33 +614,26 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Default group");
 		final String defGroup = groupManager.getDefaultGroup(player.getUniqueId());
 		if (defGroup != null && defGroup.equals(group.getName())) {
-			ItemAPI.addLore(is, ChatColor.AQUA
-					+ "This group is your current default group");
+			ItemAPI.addLore(is, ChatColor.AQUA + "This group is your current default group");
 			c = new DecorationStack(is);
 		} else {
-			ItemAPI.addLore(is, ChatColor.AQUA
-					+ "Click to make this group your default group");
+			ItemAPI.addLore(is, ChatColor.AQUA + "Click to make this group your default group");
 			if (defGroup != null) {
-				ItemAPI.addLore(is, ChatColor.BLUE
-						+ "Your current default group is : " + defGroup);
+				ItemAPI.addLore(is, ChatColor.BLUE + "Your current default group is : " + defGroup);
 			}
 			c = new Clickable(is) {
 
 				@Override
 				public void clicked(Player p) {
-					NameLayerPlugin.log(Level.INFO, p.getName()
-							+ " set default group to " + group.getName()
-							+ " via the gui");
+					NameLayerPlugin.log(Level.INFO,
+							p.getName() + " set default group to " + group.getName() + " via the gui");
 					if (defGroup == null) {
 						group.setDefaultGroup(p.getUniqueId());
-						p.sendMessage(ChatColor.GREEN
-								+ "You have set your default group to "
-								+ group.getName());
+						p.sendMessage(ChatColor.GREEN + "You have set your default group to " + group.getName());
 					} else {
 						group.changeDefaultGroup(p.getUniqueId());
-						p.sendMessage(ChatColor.GREEN
-								+ "You changed your default group from "
-								+ defGroup + " to " + group.getName());
+						p.sendMessage(ChatColor.GREEN + "You changed your default group from " + defGroup + " to "
+								+ group.getName());
 					}
 					showScreen();
 				}
@@ -967,7 +641,7 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 		}
 		return c;
 	}
-	
+
 	private Clickable getSuperMenuClickable() {
 		ItemStack is = new ItemStack(Material.DIAMOND);
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Return to overview for all your groups");
@@ -988,8 +662,7 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 
 			@Override
 			public void clicked(Player p) {
-				AdminFunctionsGUI subGui = new AdminFunctionsGUI(p, group,
-						MainGroupGUI.this);
+				AdminFunctionsGUI subGui = new AdminFunctionsGUI(p, group, MainGroupGUI.this);
 				subGui.showScreen();
 			}
 		};
@@ -1003,48 +676,39 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 		ItemStack is = new ItemStack(Material.IRON_DOOR);
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Leave group");
 		if (group.isOwner(player.getUniqueId())) {
-			ItemAPI.addLore(is, ChatColor.RED + "You cant leave this group,",
-					ChatColor.RED + "because you own it");
+			ItemAPI.addLore(is, ChatColor.RED + "You cant leave this group,", ChatColor.RED + "because you own it");
 			c = new DecorationStack(is);
 		} else {
 			c = new Clickable(is) {
 
 				@Override
 				public void clicked(Player p) {
-					ClickableInventory confirmInv = new ClickableInventory(27,
-							group.getName());
+					ClickableInventory confirmInv = new ClickableInventory(27, group.getName());
 					ItemStack info = new ItemStack(Material.PAPER);
 					ItemAPI.setDisplayName(info, ChatColor.GOLD + "Leave group");
-					ItemAPI.addLore(info, ChatColor.RED
-							+ "Are you sure that you want to", ChatColor.RED
-							+ "leave this group? You can not undo this!");
+					ItemAPI.addLore(info, ChatColor.RED + "Are you sure that you want to",
+							ChatColor.RED + "leave this group? You can not undo this!");
 					ItemStack yes = yesStack();
-					ItemAPI.setDisplayName(yes,
-							ChatColor.GOLD + "Yes, leave " + group.getName());
+					ItemAPI.setDisplayName(yes, ChatColor.GOLD + "Yes, leave " + group.getName());
 					ItemStack no = noStack();
-					ItemAPI.setDisplayName(no,
-							ChatColor.GOLD + "No, stay in " + group.getName());
+					ItemAPI.setDisplayName(no, ChatColor.GOLD + "No, stay in " + group.getName());
 					confirmInv.setSlot(new Clickable(yes) {
 
 						@Override
 						public void clicked(Player p) {
 							if (!group.isMember(p.getUniqueId())) {
-								p.sendMessage(ChatColor.RED
-										+ "You are not a member of this group.");
+								p.sendMessage(ChatColor.RED + "You are not a member of this group.");
 								showScreen();
 								return;
 							}
 							if (group.isDisciplined()) {
-								p.sendMessage(ChatColor.RED
-										+ "This group is disciplined.");
+								p.sendMessage(ChatColor.RED + "This group is disciplined.");
 								showScreen();
 								return;
 							}
-							NameLayerPlugin.log(Level.INFO, p.getName()
-									+ " left " + group.getName() + " via the gui");
+							NameLayerPlugin.log(Level.INFO, p.getName() + " left " + group.getName() + " via the gui");
 							group.removeMember(p.getUniqueId());
-							p.sendMessage(ChatColor.GREEN + "You have left "
-									+ group.getName());
+							p.sendMessage(ChatColor.GREEN + "You have left " + group.getName());
 						}
 					}, 11);
 					confirmInv.setSlot(new Clickable(no) {
@@ -1066,156 +730,36 @@ public class MainGroupGUI extends NameLayerGroupGUI {
 		Clickable c;
 		ItemStack is = new ItemStack(Material.PAPER);
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Stats for " + group.getName());
-		ItemAPI.addLore(is,
-				ChatColor.DARK_AQUA + "Your current rank: " + ChatColor.YELLOW
-						+ GroupRank.getNiceRankName(group.getRank(player.getUniqueId())));
+		ItemAPI.addLore(is, ChatColor.DARK_AQUA + "Your current rank: " + ChatColor.YELLOW
+				+ GroupRank.getNiceRankName(group.getRank(player.getUniqueId())));
 		boolean hasGroupStatsPerm = groupManager.hasAccess(group, player.getUniqueId(),
 				PermissionType.getPermission("GROUPSTATS"));
-		if (groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("MEMBERS"))
+		if (groupManager.hasAccess(group, player.getUniqueId(), PermissionType.getPermission("MEMBERS"))
 				|| hasGroupStatsPerm) {
-			ItemAPI.addLore(
-					is,
-					ChatColor.AQUA
-							+ String.valueOf(group
-							.getAllMembers(GroupRank.MEMBERS).size())
-							+ " members");
+			ItemAPI.addLore(is,
+					ChatColor.AQUA + String.valueOf(group.getAllMembers(GroupRank.MEMBERS).size()) + " members");
 		}
-		if (groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("MODS"))
+		if (groupManager.hasAccess(group, player.getUniqueId(), PermissionType.getPermission("MODS"))
 				|| hasGroupStatsPerm) {
-			ItemAPI.addLore(
-					is,
-					ChatColor.AQUA
-							+ String.valueOf(group.getAllMembers(GroupRank.MODS)
-							.size()) + " mods");
+			ItemAPI.addLore(is, ChatColor.AQUA + String.valueOf(group.getAllMembers(GroupRank.MODS).size()) + " mods");
 		}
-		if (groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("ADMINS"))
+		if (groupManager.hasAccess(group, player.getUniqueId(), PermissionType.getPermission("ADMINS"))
 				|| hasGroupStatsPerm) {
-			ItemAPI.addLore(
-					is,
-					ChatColor.AQUA
-							+ String.valueOf(group.getAllMembers(GroupRank.ADMINS)
-							.size()) + " admins");
+			ItemAPI.addLore(is,
+					ChatColor.AQUA + String.valueOf(group.getAllMembers(GroupRank.ADMINS).size()) + " admins");
 		}
-		if (groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("OWNER"))
+		if (groupManager.hasAccess(group, player.getUniqueId(), PermissionType.getPermission("OWNER"))
 				|| hasGroupStatsPerm) {
-			ItemAPI.addLore(
-					is,
-					ChatColor.AQUA
-							+ String.valueOf(group.getAllMembers(GroupRank.OWNER)
-							.size()) + " owner");
+			ItemAPI.addLore(is,
+					ChatColor.AQUA + String.valueOf(group.getAllMembers(GroupRank.OWNER).size()) + " owner");
 		}
 		if (hasGroupStatsPerm) {
-			ItemAPI.addLore(
-					is,
-					ChatColor.DARK_AQUA
-							+ String.valueOf(group.getAllMembers().size())
-							+ " total group members");
-			ItemAPI.addLore(is, ChatColor.DARK_AQUA + "Group owner: "
-					+ ChatColor.YELLOW + NameAPI.getCurrentName(group.getOwner()));
+			ItemAPI.addLore(is,
+					ChatColor.DARK_AQUA + String.valueOf(group.getAllMembers().size()) + " total group members");
+			ItemAPI.addLore(is, ChatColor.DARK_AQUA + "Group owner: " + ChatColor.YELLOW
+					+ NameAPI.getCurrentName(group.getOwner()));
 		}
 		c = new DecorationStack(is);
 		return c;
-	}
-
-	/**
-	 * Utility to get a "nice" version of the rank the given player has in the
-	 * group this gui is based on
-	 *
-	 * @param uuid Player whose rank name should be checked
-	 * @return Rankname of the given player ready to be put into the gui or null
-	 * if the given UUID was null or the player didn't have an explicit
-	 * rank in the group
-	 */
-	private String getRankName(UUID uuid) {
-		if (uuid == null) {
-			return null;
-		}
-		GroupRank pType = group.getRank(uuid);
-		if (pType == null) {
-			return null;
-		}
-		return GroupRank.getNiceRankName(pType);
-	}
-
-	/**
-	 * Gets the permission needed to make changes to the given PlayerType
-	 *
-	 * @param pt PlayerType to get permission for
-	 * @return Permission belonging to the given PlayerType or null if the
-	 * permission was NOT_BLACKLISTED or null
-	 */
-	public static PermissionType getAccordingPermission(GroupRank pt) {
-		switch (pt) {
-			case MEMBERS:
-				return PermissionType.getPermission("MEMBERS");
-			case MODS:
-				return PermissionType.getPermission("MODS");
-			case ADMINS:
-				return PermissionType.getPermission("ADMINS");
-			case OWNER:
-				return PermissionType.getPermission("OWNER");
-		}
-		return null;
-	}
-
-	/**
-	 * Utility to determine whether the player is being promoted or demoted
-	 */
-	private static String demoteOrPromote(GroupRank oldRank,
-										  GroupRank newRank, boolean upperCaseFirstLetter) {
-		String res = GroupRank.getID(oldRank) <= GroupRank.getID(newRank) ? "promote"
-				: "demote";
-		if (upperCaseFirstLetter) {
-			return res.substring(0, 1).toUpperCase() + res.substring(1);
-		}
-		return res;
-	}
-
-	private List<Clickable> getRecursiveInheritedMembers(Group g) {
-		List<Clickable> clicks = new ArrayList<>();
-		if (g.hasSuperGroup()) {
-			clicks.addAll(getRecursiveInheritedMembers(g.getSuperGroup()));
-		}
-		for (UUID uuid : g.getAllMembers()) {
-			ItemStack is;
-			switch (g.getRank(uuid)) {
-				case MEMBERS:
-					is = new ItemStack(Material.LEATHER_CHESTPLATE);
-					break;
-				case MODS:
-					is = modStack();
-					break;
-				case ADMINS:
-					is = new ItemStack(Material.IRON_CHESTPLATE);
-					break;
-				case OWNER:
-					is = new ItemStack(Material.DIAMOND_CHESTPLATE);
-					break;
-				default:
-					continue;
-			}
-			ItemAPI.setDisplayName(is, NameAPI.getCurrentName(uuid));
-			ItemAPI.addLore(is, ChatColor.AQUA + "Inherited "
-					+ getRankName(uuid) + " from " + g.getName());
-			clicks.add(new DecorationStack(is));
-		}
-		return clicks;
-	}
-
-	private boolean hasPermissionToViewAnything() {
-		return groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("MEMBERS"))
-				|| groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("MODS"))
-				|| groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("ADMINS"))
-				|| groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("OWNER"))
-				|| groupManager.hasAccess(group, player.getUniqueId(),
-				PermissionType.getPermission("GROUPSTATS"));
 	}
 }

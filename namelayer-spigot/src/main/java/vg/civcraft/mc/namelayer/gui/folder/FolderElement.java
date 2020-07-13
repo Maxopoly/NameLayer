@@ -8,9 +8,15 @@ import vg.civcraft.mc.namelayer.gui.GUIGroupOverview;
 public abstract class FolderElement {
 	
 	private FolderElement parent;
+	private String identifier;
 	
-	public FolderElement(FolderElement parent) {
+	public FolderElement(String identifier, FolderElement parent) {
+		this.identifier = identifier;
 		this.parent = parent;
+	}
+	
+	public String getIdentifier() {
+		return identifier;
 	}
 	
 	public FolderElement getParent() {
@@ -18,5 +24,10 @@ public abstract class FolderElement {
 	}
 	
 	public abstract IClickable getGUIEntry(GUIGroupOverview gui, Player player);
+	
+	protected boolean doMovingCheck(GUIGroupOverview gui, Player player) {
+		//TODO
+		return false;
+	}
 
 }

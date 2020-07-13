@@ -93,7 +93,7 @@ public class GroupInteractionManager {
 			return false;
 		}
 		GroupRankHandler handler = group.getGroupRankHandler();
-		GroupRank targetType = rank != null ? handler.getType(rank) : handler.getDefaultInvitationType();
+		GroupRank targetType = rank != null ? handler.getRank(rank) : handler.getDefaultInvitationRank();
 		// this is designed to not reveal any names of player types to the outside
 		if (targetType == null) {
 			callback.accept(
@@ -106,13 +106,13 @@ public class GroupInteractionManager {
 					ChatColor.RED + "The rank you entered did not exist or you do not permission to blacklist on it");
 			return false;
 		}
-		if (!handler.isBlackListedType(targetType)) {
+		if (!handler.isBlacklistedRank(targetType)) {
 			reply(callback, "%s%s%s is not a blacklist rank in %s", ChatColor.YELLOW, targetType.getName(),
 					ChatColor.RED, group.getColoredName());
 			return false;
 		}
 		GroupRank currentRank = group.getRank(toAdd);
-		if (currentRank != handler.getDefaultNonMemberType()) {
+		if (currentRank != handler.getDefaultNonMemberRank()) {
 			if (!groupMan.hasAccess(group, executor, currentRank.getRemovalPermissionType())) {
 				callback.accept(String.format(
 						"%sThe player %s%s%s is already tracked for %s%s and you do not have permission to remove them from their current rank",
@@ -174,7 +174,7 @@ public class GroupInteractionManager {
 			return false;
 		}
 		GroupRankHandler typeHandler = group.getGroupRankHandler();
-		GroupRank parent = typeHandler.getType(parentName);
+		GroupRank parent = typeHandler.getRank(parentName);
 		if (parent == null) {
 			reply(callback, "%sThe rank %s%s%s does not exist", ChatColor.RED, ChatColor.YELLOW, parentName,
 					ChatColor.RED);
@@ -183,7 +183,7 @@ public class GroupInteractionManager {
 		if (!isConformName(name, callback)) {
 			return false;
 		}
-		if (typeHandler.getType(name) != null) {
+		if (typeHandler.getRank(name) != null) {
 			reply(callback, "%sA rank named %s%s%s already exists", ChatColor.RED, ChatColor.YELLOW, parentName,
 					ChatColor.RED);
 			return false;
@@ -198,7 +198,7 @@ public class GroupInteractionManager {
 		GroupRank added = new GroupRank(name, id, parent, group);
 		reply(callback, "%sSuccessfully added %s%s%s as sub rank of %s%s", ChatColor.GREEN, ChatColor.GOLD, name,
 				ChatColor.GREEN, ChatColor.YELLOW, parent.getName());
-		typeHandler.createNewType(added);
+		typeHandler.createNewRank(added);
 		group.getActionLog().addAction(new CreateRank(System.currentTimeMillis(), executor, name, parent.getName()),
 				true);
 		return true;
@@ -235,11 +235,11 @@ public class GroupInteractionManager {
 			return false;
 		}
 		GroupRankHandler rankHandler = group.getGroupRankHandler();
-		if (rank == rankHandler.getDefaultNonMemberType()) {
+		if (rank == rankHandler.getDefaultNonMemberRank()) {
 			reply(callback, "%sYou can not delete the default type for non-members", ChatColor.RED);
 			return false;
 		}
-		if (rank == rankHandler.getOwnerType()) {
+		if (rank == rankHandler.getOwnerRank()) {
 			// can happen through inherited access
 			reply(callback,
 					"%sYou can not delete the rank %s%s%s of the group %s%s, because it is the last remaining rank",
@@ -288,7 +288,7 @@ public class GroupInteractionManager {
 			return false;
 		}
 		GroupRankHandler handler = group.getGroupRankHandler();
-		GroupRank targetType = rank != null ? handler.getType(rank) : handler.getDefaultInvitationType();
+		GroupRank targetType = rank != null ? handler.getRank(rank) : handler.getDefaultInvitationRank();
 		// this is designed to not reveal any names of player types to the outside
 		if (targetType == null) {
 			callback.accept(
@@ -301,7 +301,7 @@ public class GroupInteractionManager {
 					ChatColor.RED + "The rank you entered did not exist or you do not permission to invite to it");
 			return false;
 		}
-		if (handler.isBlackListedType(targetType)) {
+		if (handler.isBlacklistedRank(targetType)) {
 			reply(callback, "%sYou can not invite players to the blacklist rank %s%s%s in %s", ChatColor.RED,
 					ChatColor.GOLD, targetType.getName(), ChatColor.RED, group.getColoredName());
 			return false;
@@ -342,7 +342,7 @@ public class GroupInteractionManager {
 					group.getColoredName());
 			return false;
 		}
-		GroupRank targetType = group.getGroupRankHandler().getDefaultPasswordJoinType();
+		GroupRank targetType = group.getGroupRankHandler().getDefaultPasswordJoinRank();
 		groupMan.addPlayerToGroup(group, executor, targetType, true);
 		group.getActionLog().addAction(new JoinGroup(System.currentTimeMillis(), executor, targetType.getName()), true);
 		callback.accept(String.format("%You have been added to %s%s as a %s%s", ChatColor.GREEN, group.getColoredName(),
@@ -358,8 +358,8 @@ public class GroupInteractionManager {
 		Map<GroupRank, Set<UUID>> ranks = new HashMap<>();
 		GroupRankHandler rankHandler = group.getGroupRankHandler();
 		boolean showAll = groupMan.hasAccess(group, executor, permManager.getGroupStats());
-		for (GroupRank rank : rankHandler.getAllTypes()) {
-			if (rank == rankHandler.getDefaultNonMemberType()) {
+		for (GroupRank rank : rankHandler.getAllRanks()) {
+			if (rank == rankHandler.getDefaultNonMemberRank()) {
 				continue;
 			}
 			if (showAll || groupMan.hasAccess(group, executor, rank.getListPermissionType())) {
@@ -418,7 +418,7 @@ public class GroupInteractionManager {
 			return false;
 		}
 		GroupRank rank = group.getRank(executor);
-		if (!group.getGroupRankHandler().isMemberType(rank)) {
+		if (!group.getGroupRankHandler().isMemberRank(rank)) {
 			reply(callback, "%sYou are not a member of %s", ChatColor.RED, group.getColoredName());
 			return false;
 		}
@@ -500,7 +500,7 @@ public class GroupInteractionManager {
 			return false;
 		}
 		GroupRankHandler handler = group.getGroupRankHandler();
-		GroupRank targetType = handler.getType(targetRank);
+		GroupRank targetType = handler.getRank(targetRank);
 		// this is designed to not reveal any names of player types to the outside
 		if (targetType == null) {
 			callback.accept(ChatColor.RED
@@ -513,7 +513,7 @@ public class GroupInteractionManager {
 			return false;
 		}
 		GroupRank currentRank = group.getRank(toPromote);
-		if (currentRank == handler.getDefaultNonMemberType()) {
+		if (currentRank == handler.getDefaultNonMemberRank()) {
 			reply(callback, "%s%s%s is not a member of the group or you do not have permission to modify their rank",
 					ChatColor.YELLOW, NameAPI.getCurrentName(toPromote), ChatColor.RED);
 			return false;
@@ -529,7 +529,7 @@ public class GroupInteractionManager {
 					ChatColor.RED, group.getColoredName());
 			return false;
 		}
-		if (handler.isBlackListedType(currentRank) && !handler.isBlackListedType(targetType)) {
+		if (handler.isBlacklistedRank(currentRank) && !handler.isBlacklistedRank(targetType)) {
 			reply(callback,
 					"%s%s%s currently has a blacklisted rank and can not be promoted to a member rank. "
 							+ "Remove them from the blacklist rank and invite them first.",
@@ -723,7 +723,7 @@ public class GroupInteractionManager {
 		// status to the outside
 		GroupRankHandler handler = group.getGroupRankHandler();
 		GroupRank currentRank = group.getRank(toKick);
-		if (currentRank == handler.getDefaultNonMemberType()) {
+		if (currentRank == handler.getDefaultNonMemberRank()) {
 			callback.accept(ChatColor.RED
 					+ "The player is not a member of the group or you do not have sufficient permission to demote them");
 			return false;
@@ -793,7 +793,7 @@ public class GroupInteractionManager {
 			reply(callback, "%sYou can not rename a rank to the exact same name", ChatColor.RED);
 			return false;
 		}
-		if (!newName.equalsIgnoreCase(oldName) && typeHandler.getType(newName) != null) {
+		if (!newName.equalsIgnoreCase(oldName) && typeHandler.getRank(newName) != null) {
 			// allow changing capitalization, but not overwriting another one
 			reply(callback, "%sA rank with the name %s%s%s already exists", ChatColor.RED, ChatColor.YELLOW, newName,
 					ChatColor.RED);
@@ -843,7 +843,7 @@ public class GroupInteractionManager {
 	}
 
 	private static GroupRank getPlayerType(Group group, String rankName, Consumer<String> callback) {
-		GroupRank rank = group.getGroupRankHandler().getType(rankName);
+		GroupRank rank = group.getGroupRankHandler().getRank(rankName);
 		if (rank == null) {
 			reply(callback, "%sThe rank %s%s%s does not exist for the group %s", ChatColor.RED, ChatColor.YELLOW,
 					rankName, ChatColor.RED, group.getColoredName());

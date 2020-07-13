@@ -53,8 +53,8 @@ public final class NameLayerTabCompletion {
 	public static List<String> completePlayerType(String prefix, UUID player, Group group) {
 		GroupRankHandler rankHandler = group.getGroupRankHandler();
 		List<GroupRank> ranks = new ArrayList<>();
-		for(GroupRank rank : rankHandler.getAllTypes()) {
-			if (rank == rankHandler.getDefaultNonMemberType()) {
+		for(GroupRank rank : rankHandler.getAllRanks()) {
+			if (rank == rankHandler.getDefaultNonMemberRank()) {
 				continue;
 			}
 			if(GroupAPI.hasPermission(player, group, rank.getInvitePermissionType())) {

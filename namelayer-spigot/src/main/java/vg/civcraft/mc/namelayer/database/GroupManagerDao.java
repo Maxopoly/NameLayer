@@ -533,7 +533,7 @@ public class GroupManagerDao {
 			GroupRankHandler handler = group.getGroupRankHandler();
 			try (ResultSet set = getPermission.executeQuery();) {
 				while (set.next()) {
-					GroupRank type = handler.getType(set.getInt(1));
+					GroupRank type = handler.getRank(set.getInt(1));
 					List<PermissionType> listPerm = perms.get(type);
 					if (listPerm == null) {
 						listPerm = new ArrayList<>();
@@ -693,7 +693,7 @@ public class GroupManagerDao {
 				Group g = GroupAPI.getGroup(groupId);
 				GroupRank type = null;
 				if (g != null) {
-					type = g.getGroupRankHandler().getType(rankId);
+					type = g.getGroupRankHandler().getRank(rankId);
 				}
 				if (type != null) {
 					g.addInvite(playerUUID, type);
@@ -849,7 +849,7 @@ public class GroupManagerDao {
 					logger.log(Level.WARNING, "Couldnt not load group " + groupId + " from cache to add member");
 					continue;
 				}
-				group.addToTracking(member, group.getGroupRankHandler().getType(rankId));
+				group.addToTracking(member, group.getGroupRankHandler().getRank(rankId));
 			}
 		} catch (SQLException e) {
 			logger.severe("Failed to load group members: " + e.toString());
@@ -870,7 +870,7 @@ public class GroupManagerDao {
 					continue;
 				}
 				if (perm != null) {
-					group.getGroupRankHandler().getType(rankId).addPermission(perm, false);
+					group.getGroupRankHandler().getRank(rankId).addPermission(perm, false);
 				}
 			}
 		} catch (SQLException e) {
@@ -915,12 +915,12 @@ public class GroupManagerDao {
 					logger.log(Level.SEVERE, "Link loaded had no group: " + linkId);
 					continue;
 				}
-				GroupRank originatingPlayerType = originatingGroup.getGroupRankHandler().getType(originatingTypeId);
+				GroupRank originatingPlayerType = originatingGroup.getGroupRankHandler().getRank(originatingTypeId);
 				if (originatingPlayerType == null) {
 					logger.log(Level.SEVERE, "Link loaded had no og type: " + linkId);
 					continue;
 				}
-				GroupRank targetPlayerType = targetGroup.getGroupRankHandler().getType(targetTypeId);
+				GroupRank targetPlayerType = targetGroup.getGroupRankHandler().getRank(targetTypeId);
 				if (targetPlayerType == null) {
 					logger.log(Level.SEVERE, "Link loaded had no target type: " + linkId);
 					continue;

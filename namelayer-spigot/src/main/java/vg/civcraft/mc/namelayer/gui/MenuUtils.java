@@ -45,7 +45,6 @@ public class MenuUtils {
 	 * @return a split list of lores
 	 */
 	public static List<String> splitLore(String lore) {
-		System.out.println("Splitting " + lore);
 		List<String> splitLore = new ArrayList<>();
 		int maxLineLength = 50;
 		StringBuilder sb = new StringBuilder();
