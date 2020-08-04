@@ -1,38 +1,28 @@
 package vg.civcraft.mc.namelayer.gui;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.UUID;
 import java.util.logging.Level;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Tag;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import vg.civcraft.mc.civmodcore.api.ItemAPI;
-import vg.civcraft.mc.civmodcore.api.MaterialAPI;
 import vg.civcraft.mc.civmodcore.chatDialog.Dialog;
 import vg.civcraft.mc.civmodcore.chatDialog.LDialog;
 import vg.civcraft.mc.civmodcore.inventorygui.Clickable;
 import vg.civcraft.mc.civmodcore.inventorygui.ClickableInventory;
-import vg.civcraft.mc.civmodcore.inventorygui.DecorationStack;
 import vg.civcraft.mc.civmodcore.inventorygui.IClickable;
 import vg.civcraft.mc.civmodcore.inventorygui.LClickable;
 import vg.civcraft.mc.civmodcore.inventorygui.components.ComponableInventory;
@@ -41,7 +31,6 @@ import vg.civcraft.mc.civmodcore.inventorygui.components.Scrollbar;
 import vg.civcraft.mc.civmodcore.inventorygui.components.SlotPredicates;
 import vg.civcraft.mc.civmodcore.inventorygui.components.StaticDisplaySection;
 import vg.civcraft.mc.civmodcore.playersettings.impl.JsonSetting;
-import vg.civcraft.mc.namelayer.NameAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.group.GroupManager;

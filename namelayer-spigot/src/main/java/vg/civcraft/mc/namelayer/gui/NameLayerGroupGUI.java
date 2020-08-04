@@ -29,11 +29,11 @@ public abstract class NameLayerGroupGUI {
 		
 	}
 	
-	private Player getPlayer() {
+	protected Player getPlayer() {
 		return player;
 	}
 	
-	private Group getGroup() {
+	protected Group getGroup() {
 		return group;
 	}
 

@@ -31,9 +31,11 @@ public class InvitationGUI extends NameLayerGroupGUI{
 	
 	private GroupRank selectedType;
 	private MainGroupGUI parent;
+	private boolean blacklist;
 	
-	public InvitationGUI(Group g, Player p, MainGroupGUI parent) {
+	public InvitationGUI(Group g, Player p, MainGroupGUI parent, boolean blacklist) {
 		super(g,p);
+		this.blacklist = blacklist;
 		this.parent = parent;
 		showScreen();
 	}
