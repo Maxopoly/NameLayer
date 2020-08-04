@@ -52,6 +52,7 @@ public class MainGroupGUI {
 
 	private final Group group;
 	private final Player player;
+	private final GUIGroupOverview parent;
 
 	private ComponableInventory inventory;
 	private Scrollbar contentComponent;
@@ -64,9 +65,10 @@ public class MainGroupGUI {
 	private Set<GroupRank> ranksViewable;
 	private NameLayerPermissionManager permMan;
 
-	public MainGroupGUI(Player player, Group group) {
+	public MainGroupGUI(GUIGroupOverview parent, Player player, Group group) {
 		this.group = group;
 		this.player = player;
+		this.parent = parent;
 		this.permMan = NameLayerPlugin.getInstance().getNLPermissionManager();
 		ranksShown = new HashSet<>();
 		ranksViewable = new HashSet<>();
@@ -102,7 +104,7 @@ public class MainGroupGUI {
 		ci.setSlot(getDefaultGroupStack(), 5);
 		// edit ranks 6
 		ci.setSlot(getAdminStuffClickable(), 7);
-		// return to super 8
+		bottomBar.set(getSuperMenuClickable(), 8);		
 		return bottomBar;
 	}
 
@@ -112,12 +114,8 @@ public class MainGroupGUI {
 			toggles.set(
 					constructToggle(showInheritedMembers, 1, "Show inherited members", b -> showInheritedMembers = b),
 					1);
-			toggles.set(
-					constructToggle(showInheritedMembers, 3, "Show invites", b -> showInheritedMembers = b),
-					3);
-			toggles.set(
-					constructToggle(showInheritedMembers, 5, "Show members", b -> showInheritedMembers = b),
-					5);
+			toggles.set(constructToggle(showInheritedMembers, 3, "Show invites", b -> showInheritedMembers = b), 3);
+			toggles.set(constructToggle(showInheritedMembers, 5, "Show members", b -> showInheritedMembers = b), 5);
 			toggles.set(
 					constructToggle(showInheritedMembers, 7, "Show blacklisted players", b -> showInheritedMembers = b),
 					7);
@@ -258,56 +256,6 @@ public class MainGroupGUI {
 		ci.showInventory(player);
 	}
 
-	/**
-	 * Used by the gui that allows selecting an action for a specific member to
-	 * easily construct the clickables needed
-	 */
-	private Clickable setupDetailSlot(Material slotMaterial, final UUID toChange, final GroupRank pType) {
-		final GroupRank rank = group.getCurrentRank(toChange);
-		ItemStack mod = new ItemStack(slotMaterial);
-		ItemMeta im = mod.getItemMeta();
-		im.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-		mod.setItemMeta(im);
-		Clickable modClick;
-		if (rank == pType) {
-			ItemAPI.setDisplayName(mod, ChatColor.GOLD + "Remove this player");
-			if (!groupManager.hasAccess(group, player.getUniqueId(), getAccordingPermission(pType))) {
-				ItemAPI.addLore(mod, ChatColor.RED + "You dont have permission to do this");
-				modClick = new DecorationStack(mod);
-			} else {
-				modClick = new Clickable(mod) {
-
-					@Override
-					public void clicked(Player arg0) {
-						if (groupManager.hasAccess(group, player.getUniqueId(),
-								getAccordingPermission(group.getCurrentRank(toChange)))) {
-							removeMember(toChange);
-							showScreen();
-						}
-					}
-				};
-			}
-		} else {
-			ItemAPI.setDisplayName(mod, ChatColor.GOLD + demoteOrPromote(group.getRank(toChange), pType, true)
-					+ " this player to " + GroupRank.getNiceRankName(pType));
-			if (!groupManager.hasAccess(group, player.getUniqueId(), getAccordingPermission(pType))) {
-				ItemAPI.addLore(mod, ChatColor.RED + "You dont have permission to do this");
-				modClick = new DecorationStack(mod);
-			} else {
-				modClick = new Clickable(mod) {
-
-					@Override
-					public void clicked(Player arg0) {
-						changePlayerRank(toChange, pType);
-						showDetail(toChange);
-					}
-
-				};
-			}
-		}
-		return modClick;
-	}
-
 	private void removeMember(UUID toRemove) {
 		if (groupManager.hasAccess(group, player.getUniqueId(),
 				getAccordingPermission(group.getCurrentRank(toRemove)))) {
@@ -367,47 +315,6 @@ public class MainGroupGUI {
 		} else {
 			player.sendMessage(ChatColor.RED + "You have lost permission to remove this player");
 		}
-	}
-
-	private Clickable createBlacklistToggle() {
-		ItemStack is = MenuUtils.toggleButton(showBlacklist, ChatColor.GOLD + "Show blacklisted players",
-				groupManager.hasAccess(group, player.getUniqueId(), PermissionType.getPermission("GROUPSTATS")));
-		Clickable c;
-		if (groupManager.hasAccess(group, player.getUniqueId(), PermissionType.getPermission("GROUPSTATS"))) {
-			c = new Clickable(is) {
-
-				@Override
-				public void clicked(Player arg0) {
-					if (!showBlacklist) {
-						// currently showing members, so save state
-						savedToggleState = new boolean[5];
-						savedToggleState[0] = showInvites;
-						savedToggleState[1] = showMembers;
-						savedToggleState[2] = showMods;
-						savedToggleState[3] = showAdmins;
-						savedToggleState[4] = showOwners;
-						showInvites = false;
-						showMembers = false;
-						showMods = false;
-						showAdmins = false;
-						showOwners = false;
-						showBlacklist = true;
-					} else {
-						// load state
-						showInvites = savedToggleState[0];
-						showMembers = savedToggleState[1];
-						showMods = savedToggleState[2];
-						showAdmins = savedToggleState[3];
-						showOwners = savedToggleState[4];
-						showBlacklist = false;
-					}
-					showScreen();
-				}
-			};
-		} else {
-			c = new DecorationStack(is);
-		}
-		return c;
 	}
 
 	private Clickable createInheritedMemberToggle() {
@@ -642,17 +549,15 @@ public class MainGroupGUI {
 		return c;
 	}
 
-	private Clickable getSuperMenuClickable() {
-		ItemStack is = new ItemStack(Material.DIAMOND);
-		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Return to overview for all your groups");
-		return new Clickable(is) {
-
-			@Override
-			public void clicked(Player p) {
-				GUIGroupOverview gui = new GUIGroupOverview(p);
-				gui.showScreen();
+	private IClickable getSuperMenuClickable() {
+		return new LClickable(Material.DIAMOND, ChatColor.GOLD + "Return to overview for all your groups", p -> {
+			if (parent != null) {
+				parent.showScreen();
+				return;
 			}
-		};
+			GUIGroupOverview gui = new GUIGroupOverview(p, inventory);
+			gui.showScreen();
+		});
 	}
 
 	private Clickable getAdminStuffClickable() {
@@ -672,6 +577,14 @@ public class MainGroupGUI {
 	 * Constructs the icon used in the gui for leaving a group
 	 */
 	private Clickable getLeaveGroupClickable() {
+		return new LClickable(Material.IRON_DOOR, ChatColor.GOLD + "Leave group", p -> {
+			if (parent != null) {
+				parent.showScreen();
+				return;
+			}
+			GUIGroupOverview gui = new GUIGroupOverview(p, inventory);
+			gui.showScreen();
+		});
 		Clickable c;
 		ItemStack is = new ItemStack(Material.IRON_DOOR);
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Leave group");

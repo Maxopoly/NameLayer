@@ -63,9 +63,10 @@ public class GUIGroupOverview {
 	private StaticDisplaySection bottomBar;
 	private static final String TOP_MOST_FOLDER = "$parent";
 
-	public GUIGroupOverview(Player player) {
+	public GUIGroupOverview(Player player, ComponableInventory inventory) {
 		groupManager = NameLayerPlugin.getInstance().getGroupManager();
 		this.player = player;
+		this.inventory = inventory;
 	}
 
 	private void reconstructInventory() {
