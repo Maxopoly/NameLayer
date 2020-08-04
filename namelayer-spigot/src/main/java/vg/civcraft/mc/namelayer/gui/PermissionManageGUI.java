@@ -19,7 +19,6 @@ import vg.civcraft.mc.civmodcore.inventorygui.ClickableInventory;
 import vg.civcraft.mc.civmodcore.inventorygui.DecorationStack;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.group.Group;
-import vg.civcraft.mc.namelayer.permission.GroupPermission;
 import vg.civcraft.mc.namelayer.permission.GroupRank;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
 
@@ -138,10 +137,23 @@ public class PermissionManageGUI extends NameLayerGroupGUI {
 			ItemAPI.setDisplayName(is, perm.getName());
 			String desc = perm.getDescription();
 			if (desc != null) {
-				ItemAPI.addLore(is, ChatColor.GREEN + desc);
+				final int MAX_CHARS = 35;
+				String[] words = desc.split(" ");
+				StringBuilder line = new StringBuilder();
+				for  (int i = 0; i < words.length; i++) {
+					line.append(words[i]).append(" ");
+					if (line.length() >= MAX_CHARS || i == words.length - 1){
+						ItemAPI.addLore(is, ChatColor.GREEN + line.toString().trim());
+						line = new StringBuilder();
+					}
+				}
 			}
+<<<<<<< HEAD
 
 			if (pType == GroupRank.NOT_BLACKLISTED && !perm.getCanBeBlacklisted()) {
+=======
+			if (pType == PlayerType.NOT_BLACKLISTED && !perm.getCanBeBlacklisted()) {
+>>>>>>> civclassic/master
 				canEdit = false;
 
 				ItemAPI.addLore(
