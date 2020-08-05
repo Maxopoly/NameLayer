@@ -1,7 +1,8 @@
 package vg.civcraft.mc.namelayer.gui;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -9,216 +10,99 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import vg.civcraft.mc.civmodcore.api.ItemAPI;
-import vg.civcraft.mc.civmodcore.inventorygui.Clickable;
 import vg.civcraft.mc.civmodcore.inventorygui.ClickableInventory;
-import vg.civcraft.mc.civmodcore.inventorygui.DecorationStack;
-import vg.civcraft.mc.namelayer.NameLayerPlugin;
+import vg.civcraft.mc.civmodcore.inventorygui.IClickable;
+import vg.civcraft.mc.civmodcore.inventorygui.LClickable;
+import vg.civcraft.mc.civmodcore.inventorygui.components.ComponableInventory;
+import vg.civcraft.mc.civmodcore.inventorygui.components.Scrollbar;
+import vg.civcraft.mc.civmodcore.inventorygui.components.StaticDisplaySection;
+import vg.civcraft.mc.civmodcore.inventorygui.components.impl.CommonGUIs;
 import vg.civcraft.mc.namelayer.group.Group;
-import vg.civcraft.mc.namelayer.group.GroupManager;
-import vg.civcraft.mc.namelayer.permission.PermissionType;
 
 public class MergeGUI extends NameLayerGroupGUI {
 
 	private AdminFunctionsGUI parent;
 	private boolean mergeIntoThisGroup;
-	private int currentPage;
+	private ComponableInventory inventory;
 
 	public MergeGUI(Group g, Player p, AdminFunctionsGUI parent) {
 		super(g, p);
 		this.parent = parent;
-		this.currentPage = 0;
 	}
 
 	public void showScreen() {
-		ClickableInventory ci = new ClickableInventory(27, group.getName());
 		ItemStack mergeThisIntoOtherStack = new ItemStack(Material.MINECART);
 		ItemAPI.setDisplayName(mergeThisIntoOtherStack, ChatColor.GOLD + "Merge this group into a different one");
 		ItemAPI.addLore(mergeThisIntoOtherStack, ChatColor.AQUA
-				+ "This action will transfer all members, reinforcements, snitches of this group to the one you chose next. "
+				+ "This action will transfer all reinforcements, bastions and snitches of this group to the one you chose next. "
 				+ "This group will be deleted in the process");
-		ItemStack mergeOtherIntoThisStack = mergeStack();
+		ItemStack mergeOtherIntoThisStack = new ItemStack(Material.CHEST_MINECART);
 		ItemAPI.setDisplayName(mergeOtherIntoThisStack, ChatColor.GOLD + "Merge a different group into this one");
 		ItemAPI.addLore(mergeOtherIntoThisStack, ChatColor.AQUA
-				+ "This action will transfer all members, reinforcements and snitches of the group you chose next to this group. "
+				+ "This action will transfer all reinforcements, bastions and snitches of the group you chose next to this group. "
 				+ "The group chosen will be deleted in the process");
-		ci.setSlot(new Clickable(mergeOtherIntoThisStack) {
+		StaticDisplaySection display = new StaticDisplaySection(54);
+		display.set(new LClickable(mergeThisIntoOtherStack, p -> {
+			mergeIntoThisGroup = false;
+			showMergeGroupSelector();
+		}), 20);
+		display.set(new LClickable(mergeOtherIntoThisStack, p -> {
+			mergeIntoThisGroup = true;
+			showMergeGroupSelector();
+		}), 26);
 
-			@Override
-			public void clicked(Player arg0) {
-				mergeIntoThisGroup = true;
-				showMergeGroupSelector();
-			}
-		}, 11);
-		ci.setSlot(new Clickable(mergeThisIntoOtherStack) {
-
-			@Override
-			public void clicked(Player arg0) {
-				mergeIntoThisGroup = false;
-				showMergeGroupSelector();
-			}
-		}, 15);
 		// exit button
-		ItemStack backToOverview = goBackStack();
+		ItemStack backToOverview = new ItemStack(Material.ARROW);
 		ItemAPI.setDisplayName(backToOverview, ChatColor.GOLD + "Go back to previous menu");
-		ci.setSlot(new Clickable(backToOverview) {
-
-			@Override
-			public void clicked(Player arg0) {
-				parent.showScreen();
-			}
-		}, 22);
-		ci.showInventory(player);
+		display.set(new LClickable(backToOverview, p -> {
+			parent.showScreen();
+		}), 49);
+		inventory.clear();
+		inventory.addComponent(display, i -> true);
+		inventory.show();
 	}
 
 	private void showMergeGroupSelector() {
-		ClickableInventory ci = new ClickableInventory(54, group.getName());
-		final List<String> gName = groupManager.getAllGroupNames(player.getUniqueId());
-		if (gName.size() < 45 * currentPage) {
-			// would show an empty page, so go to previous
-			currentPage--;
-			showScreen();
-		}
-		for (int i = 45 * currentPage; i < 45 * (currentPage + 1) && i < gName.size(); i++) {
-			final String currentName = gName.get(i);
-			if (!groupManager.hasAccess(currentName, player.getUniqueId(), PermissionType.getPermission("MERGE"))) {
-				// dont show groups player cant merge
-				continue;
-			}
-			if (currentName.equals(group.getName())) {
-				// cant merge with itself
-				continue;
-			}
-			ItemStack is = new ItemStack(Material.MAGMA_CREAM);
-			ItemAPI.setDisplayName(is, ChatColor.GOLD + currentName);
-			ci.setSlot(new Clickable(is) {
-
-				@Override
-				public void clicked(Player arg0) {
-					requestConfirmation(currentName);
+		List<IClickable> clicks = new ArrayList<>();
+		List<Group> groups = new ArrayList<>(groupManager.getGroupsForPlayer(player.getUniqueId()));
+		Collections.sort(groups);
+		for (Group otherGroup : groups) {
+			ItemStack is = GUIGroupOverview.getHashedItem(otherGroup.getName().hashCode());
+			ItemAPI.setDisplayName(is, otherGroup.getColoredName());
+			clicks.add(new LClickable(is, p -> {
+				Group toKeep;
+				Group toRemove;
+				if (mergeIntoThisGroup) {
+					toKeep = this.group;
+					toRemove = otherGroup;
+				} else {
+					toKeep = otherGroup;
+					toRemove = this.group;
 				}
-			}, 9 + i - (45 * currentPage));
-		}
-		// back button
-		if (currentPage > 0) {
-			ItemStack back = new ItemStack(Material.ARROW);
-			ItemAPI.setDisplayName(back, ChatColor.GOLD + "Go to previous page");
-			Clickable baCl = new Clickable(back) {
-
-				@Override
-				public void clicked(Player arg0) {
-					if (currentPage > 0) {
-						currentPage--;
+				CommonGUIs.genConfirmationGUI(6, 9, () -> {
+					interactionManager.mergeGroups(player.getUniqueId(), toKeep.getName(), toRemove.getName(),
+							p::sendMessage);
+					if (mergeIntoThisGroup) {
+						parent.showScreen();
+					} else {
+						ClickableInventory.forceCloseInventory(p);
 					}
-					showMergeGroupSelector();
-				}
-			};
-			ci.setSlot(baCl, 45);
+				}, String.format("%sYes, merge %s%s into %s", ChatColor.GREEN, toRemove.getColoredName(),
+						ChatColor.GREEN, toKeep.getName()), () -> {
+							parent.showScreen();
+						}, ChatColor.RED + "No, cancel merging");
+			}));
 		}
-		// next button
-		if ((45 * (currentPage + 1)) <= gName.size()) {
-			ItemStack forward = new ItemStack(Material.ARROW);
-			ItemAPI.setDisplayName(forward, ChatColor.GOLD + "Go to next page");
-			Clickable forCl = new Clickable(forward) {
-
-				@Override
-				public void clicked(Player arg0) {
-					if ((45 * (currentPage + 1)) <= gName.size()) {
-						currentPage++;
-					}
-					showMergeGroupSelector();
-				}
-			};
-			ci.setSlot(forCl, 53);
-		}
-
-		// exit button
-		ItemStack backToOverview = goBackStack();
-		ItemAPI.setDisplayName(backToOverview, ChatColor.GOLD + "Exit selection");
-		ci.setSlot(new Clickable(backToOverview) {
-
-			@Override
-			public void clicked(Player arg0) {
-				parent.showScreen();
-			}
-		}, 49);
-		ci.showInventory(player);
-	}
-
-	private void requestConfirmation(final String groupName) {
-		ClickableInventory confirmInv = new ClickableInventory(27, group.getName());
-		String fromGroup = mergeIntoThisGroup ? groupName : group.getName();
-		String targetGroup = mergeIntoThisGroup ? group.getName() : groupName;
-		ItemStack info = new ItemStack(Material.PAPER);
-		ItemAPI.setDisplayName(info, ChatColor.GOLD + "Merge group");
-		ItemAPI.addLore(info, ChatColor.RED + "Are you sure that you want to merge " + fromGroup + " into "
-				+ targetGroup + "? You can not undo this!");
-		ItemAPI.addLore(info, ChatColor.AQUA + "This will transfer all members, reinforcements, snitches etc. from "
-				+ fromGroup + " to " + targetGroup + ". " + fromGroup + " will be deleted in the process");
-		ItemStack yes = yesStack();
-		ItemAPI.setDisplayName(yes, ChatColor.GOLD + "Yes, merge " + fromGroup + " into " + targetGroup);
-		ItemStack no = noStack();
-		ItemAPI.setDisplayName(no, ChatColor.GOLD + "No, don't merge " + group.getName());
-		confirmInv.setSlot(new Clickable(yes) {
-
-			@Override
-			public void clicked(Player p) {
-				requestMerge(groupName);
-			}
-		}, 11);
-		confirmInv.setSlot(new Clickable(no) {
-
-			@Override
-			public void clicked(Player p) {
-				showScreen();
-			}
-		}, 15);
-		confirmInv.setSlot(new DecorationStack(info), 4);
-		confirmInv.showInventory(player);
-	}
-
-	private void requestMerge(String mergeGroupName) {
-		final Group otherGroup = GroupManager.getGroup(mergeGroupName);
-		if (otherGroup == null) {
-			player.sendMessage(ChatColor.RED + "Something went wrong, please try again");
-			showScreen();
-			return;
-		}
-		if (!groupManager.hasAccess(otherGroup, player.getUniqueId(), PermissionType.getPermission("MERGE"))) {
-			player.sendMessage(ChatColor.RED + "You dont have permission to merge " + otherGroup.getName());
-			showScreen();
-			return;
-		}
-		if (!groupManager.hasAccess(group, player.getUniqueId(), PermissionType.getPermission("MERGE"))) {
-			player.sendMessage(ChatColor.RED + "You dont have permission to merge " + group.getName());
-			showScreen();
-			return;
-		}
-		if (group.isDisciplined() || otherGroup.isDisciplined()) {
-			player.sendMessage(ChatColor.RED + "One of the groups is disciplined, merging them failed");
-			showScreen();
-			return;
-		}
-		if (mergeGroupName.equals(group.getName())) {
-			player.sendMessage(ChatColor.RED + "You cant merge a group with itself");
-			showScreen();
-			return;
-		}
-		NameLayerPlugin.log(Level.INFO, player.getName() + " merged " + group.getName() + " and " + mergeGroupName + "via gui, "
-				+ (mergeIntoThisGroup ? group.getName() : mergeGroupName) + " was the group merged into");
-		try {
-			if (mergeIntoThisGroup) {
-				groupManager.mergeGroup(group, otherGroup);
-				player.sendMessage(ChatColor.GREEN + "Successfully merged " + otherGroup.getName() + " into " + group.getName());
-				parent.showScreen();
-			} else {
-				groupManager.mergeGroup(otherGroup, group);
-				player.sendMessage(ChatColor.GREEN + "Successfully merged " + group.getName() + " into " + otherGroup.getName());
-			}
-		} catch (Exception e) {
-			NameLayerPlugin.getInstance().getLogger().log(Level.SEVERE, "Group merging failed", e);
-			player.sendMessage(ChatColor.GREEN + "Group merging may have failed.");
-		}
-		player.sendMessage(ChatColor.GREEN + "Group is under going merge.");
+		Scrollbar groupScroll = new Scrollbar(clicks, 45);
+		inventory.addComponent(groupScroll, i -> true);
+		StaticDisplaySection section = new StaticDisplaySection(9);
+		ItemStack backToOverview = new ItemStack(Material.ARROW);
+		ItemAPI.setDisplayName(backToOverview, ChatColor.GOLD + "Go back to previous menu");
+		section.set(new LClickable(backToOverview, p -> {
+			parent.showScreen();
+		}), 4);
+		inventory.addComponent(section, i -> true);
+		inventory.show();
 	}
 
 }

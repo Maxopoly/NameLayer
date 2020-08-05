@@ -69,6 +69,10 @@ public class MainGroupGUI {
 		showMembers = true;
 		showBlacklisted = false;
 	}
+	
+	ComponableInventory getInventory() {
+		return inventory;
+	}
 
 	/**
 	 * Shows the main gui overview for a specific group based on the properties of
@@ -261,7 +265,7 @@ public class MainGroupGUI {
 		});
 	}
 
-	private void showParent() {
+	public void showParent() {
 		if (parent != null) {
 			parent.showScreen();
 			return;

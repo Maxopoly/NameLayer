@@ -2,41 +2,8 @@ package vg.civcraft.mc.namelayer.gui;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-
-import org.bukkit.ChatColor;
-import org.bukkit.inventory.ItemStack;
-
-import vg.civcraft.mc.civmodcore.api.ItemAPI;
 
 public class MenuUtils {
-	public static ItemStack toggleButton(boolean initState, String name, boolean canModify) {
-		ItemStack is = null;
-		if (initState) {
-			is = NameLayerGroupGUI.yesStack();
-		} else {
-			is = NameLayerGroupGUI.noStack();
-		}
-		if (initState) {
-			if (canModify) {
-				ItemAPI.addLore(is, ChatColor.GOLD + "Currently turned on", ChatColor.AQUA + "Click to turn off");
-			}
-		}
-		else {
-			if  (canModify) {
-				ItemAPI.addLore(is, ChatColor.GOLD + "Currently turned off", ChatColor.AQUA + "Click to turn on");
-			}
-		}
-		if (!canModify) {
-			ItemAPI.addLore(is, ChatColor.RED + "You don't have permission to", ChatColor.RED + "modify this setting");
-		}
-		ItemAPI.setDisplayName(is, name);
-		return is;
-	}
-	
-	public static ItemStack getPlayerSkull(UUID uuid) {
-		return null; // TODO?
-	}
 	
 	/**
 	 * Doesn't work

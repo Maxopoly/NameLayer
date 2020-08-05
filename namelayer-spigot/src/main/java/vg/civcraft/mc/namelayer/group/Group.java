@@ -19,7 +19,7 @@ import vg.civcraft.mc.namelayer.group.log.GroupActionLog;
 import vg.civcraft.mc.namelayer.permission.GroupRank;
 import vg.civcraft.mc.namelayer.permission.GroupRankHandler;
 
-public class Group {
+public class Group implements Comparable<Group> {
 
 	private String name;
 	private final int id;
@@ -390,5 +390,10 @@ public class Group {
 		}
 		Group g = (Group) obj;
 		return g.getPrimaryId() == getPrimaryId();
+	}
+
+	@Override
+	public int compareTo(Group o) {
+		return this.name.compareToIgnoreCase(o.name);
 	}
 }

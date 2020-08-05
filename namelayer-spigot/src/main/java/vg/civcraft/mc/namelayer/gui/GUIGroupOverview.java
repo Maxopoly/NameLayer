@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -37,8 +36,6 @@ import vg.civcraft.mc.namelayer.group.GroupManager;
 import vg.civcraft.mc.namelayer.gui.folder.FolderElement;
 import vg.civcraft.mc.namelayer.gui.folder.GroupEntry;
 import vg.civcraft.mc.namelayer.gui.folder.GroupFolder;
-import vg.civcraft.mc.namelayer.permission.GroupRank;
-import vg.civcraft.mc.namelayer.permission.PermissionType;
 
 public class GUIGroupOverview {
 
@@ -109,10 +106,9 @@ public class GUIGroupOverview {
 				}
 				JsonObject groupObj = json.get("groups").getAsJsonObject();
 				if (currentFolder.getParent().getParent() == null) {
-					//top most
+					// top most
 					groupObj.remove(elementToMove.getIdentifier());
-				}
-				else {
+				} else {
 					groupObj.addProperty(elementToMove.getIdentifier(), currentFolder.getParent().getIdentifier());
 				}
 			}
@@ -257,13 +253,10 @@ public class GUIGroupOverview {
 		};
 	}
 
-	private Clickable getJoinGroupClickable() {
+	private IClickable getJoinGroupClickable() {
 		ItemStack is = new ItemStack(Material.CHEST);
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Join password protected group");
-		return new Clickable(is) {
-
-			@Override
-			public void clicked(final Player p) {
+		return new LClickable(is, p -> {
 				p.sendMessage(ChatColor.YELLOW + "Enter the name of the group or \"cancel\" to leave this prompt");
 				ClickableInventory.forceCloseInventory(p);
 				new Dialog(p, NameLayerPlugin.getInstance()) {
@@ -285,19 +278,19 @@ public class GUIGroupOverview {
 							showScreen();
 							return;
 						}
-						final Group g = groupManager.getGroup(groupName);
-						if (g == null) {
+						final Group group = groupManager.getGroup(groupName);
+						if (group == null) {
 							p.sendMessage(ChatColor.RED + "This group doesn't exist");
 							showScreen();
 							return;
 						}
-						if (g.isMember(p.getUniqueId())) {
+						if (group.isMember(p.getUniqueId())) {
 							p.sendMessage(ChatColor.RED + "You are already a member of this group");
 							showScreen();
 							return;
 						}
 						p.sendMessage(ChatColor.YELLOW + "Enter the group password");
-						Dialog passDia = new Dialog(p, NameLayerPlugin.getInstance()) {
+						new Dialog(p, NameLayerPlugin.getInstance()) {
 
 							@Override
 							public List<String> onTabComplete(String wordCompleted, String[] fullMessage) {
@@ -306,42 +299,15 @@ public class GUIGroupOverview {
 
 							@Override
 							public void onReply(String[] message) {
-								if (g.getPassword() == null || !g.getPassword().equals(message[0])) {
-									p.sendMessage(ChatColor.RED + "Wrong password");
-									showScreen();
-								} else {
-									Group gro = ensureFreshGroup(g);
-									GroupPermission groupPerm = groupManager.getPermissionforGroup(gro);
-									GroupRank pType = groupPerm
-											.getFirstWithPerm(PermissionType.getPermission("JOIN_PASSWORD"));
-									if (pType == null) {
-										p.sendMessage(ChatColor.RED
-												+ "Someone derped. This group does not have the specified permission to let you join, sorry.");
-										showScreen();
-										return;
-									}
-									if (NameLayerPlugin.getBlackList().isBlacklisted(gro, p.getUniqueId())) {
-										p.sendMessage(ChatColor.RED
-												+ "You can not join a group you have been blacklisted from");
-										showScreen();
-										return;
-									}
-
-									NameLayerPlugin.log(Level.INFO, p.getName() + " joined with password "
-											+ " to group " + g.getName() + " via the gui");
-									gro.addMember(p.getUniqueId(), pType);
-									p.sendMessage(
-											ChatColor.GREEN + "You have successfully been added to " + gro.getName());
-									showScreen();
-								}
-
+								NameLayerPlugin.getInstance().getGroupInteractionManager().joinGroup(
+										player.getUniqueId(), group.getName(), String.join(" ", message),
+										p::sendMessage);
 							}
 						};
 					}
 				};
 
-			}
-		};
+			});
 	}
 
 	private static Map<Integer, ItemStack> idToItem;
