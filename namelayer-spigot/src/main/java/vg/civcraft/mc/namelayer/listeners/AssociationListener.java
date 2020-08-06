@@ -19,7 +19,8 @@ public class AssociationListener implements Listener {
 	private AssociationList associations;
 
 
-	public AssociationListener() {
+	public AssociationListener(AssociationList associations) {
+		this.associations = associations;
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)

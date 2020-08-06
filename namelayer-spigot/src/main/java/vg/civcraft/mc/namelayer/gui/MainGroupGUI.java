@@ -21,6 +21,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import vg.civcraft.mc.civmodcore.api.ItemAPI;
 import vg.civcraft.mc.civmodcore.inventorygui.Clickable;
+import vg.civcraft.mc.civmodcore.inventorygui.ClickableInventory;
 import vg.civcraft.mc.civmodcore.inventorygui.DecorationStack;
 import vg.civcraft.mc.civmodcore.inventorygui.IClickable;
 import vg.civcraft.mc.civmodcore.inventorygui.LClickable;
@@ -69,7 +70,7 @@ public class MainGroupGUI {
 		showMembers = true;
 		showBlacklisted = false;
 	}
-	
+
 	ComponableInventory getInventory() {
 		return inventory;
 	}
@@ -88,6 +89,7 @@ public class MainGroupGUI {
 		List<IClickable> clicks = constructContent();
 		this.contentComponent = new Scrollbar(clicks, 45);
 		inventory.addComponent(contentComponent, SlotPredicates.rows(5));
+		inventory.show();
 	}
 
 	private StaticDisplaySection getBottomBar() {
@@ -197,12 +199,15 @@ public class MainGroupGUI {
 		return result;
 	}
 
-	private void handlePlayerClick(GroupRank rank, UUID player) {
-
+	private void handlePlayerClick(GroupRank rank, UUID victimPlayer) {
+		//TODO
+		showScreen();
 	}
 
-	private void handleInviteClick(GroupRank rank, UUID player) {
-
+	private void handleInviteClick(GroupRank rank, UUID playerInviteIsFor) {
+		NameLayerPlugin.getInstance().getGroupInteractionManager().revokeInvite(player.getUniqueId(), group.getName(),
+				NameAPI.getCurrentName(playerInviteIsFor), player::sendMessage);
+		showScreen();
 	}
 
 	private static ItemStack getSkullFor(UUID uuid) {
@@ -299,8 +304,10 @@ public class MainGroupGUI {
 			}, String.format("%sYes, leave %s", ChatColor.GREEN, group.getColoredName()), () -> {
 				showScreen();
 			}, String.format("%sNo, do not leave %s", ChatColor.RED, group.getColoredName()));
-
-		});
+			inventory.clear();
+			inventory.addComponent(yesNoSec, i -> true);
+			inventory.show();
+		});		
 	}
 
 	private IClickable getInfoStack() {

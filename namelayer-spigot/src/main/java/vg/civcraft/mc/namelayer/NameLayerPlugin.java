@@ -65,7 +65,7 @@ public class NameLayerPlugin extends ACivMod {
 	}
 
 	public void registerListeners() {
-		getServer().getPluginManager().registerEvents(new AssociationListener(), this);
+		getServer().getPluginManager().registerEvents(new AssociationListener(associations), this);
 		getServer().getPluginManager().registerEvents(new PlayerListener(groupManager), this);
 	}
 

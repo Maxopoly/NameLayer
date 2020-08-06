@@ -84,6 +84,7 @@ public class GUIGroupOverview {
 	}
 
 	public void showScreen() {
+		reconstructInventory();
 		inventory.show();
 	}
 
@@ -144,7 +145,7 @@ public class GUIGroupOverview {
 				allGroups.remove(groupMan.getGroup(entry.getKey()));
 			}
 		}
-		List<String> existing = folderToFolderMapping.computeIfAbsent(TOP_MOST_FOLDER, s -> new ArrayList<>());
+		List<String> existing = folderToGroupMapping.computeIfAbsent(TOP_MOST_FOLDER, s -> new ArrayList<>());
 		for (Group group : allGroups) {
 			existing.add(group.getName());
 		}
@@ -199,11 +200,17 @@ public class GUIGroupOverview {
 	private static GroupFolder constructFolder(String name, Map<String, List<String>> folderToFolderMapping,
 			Map<String, List<String>> folderToGroupMapping, GroupFolder parent) {
 		GroupFolder folder = new GroupFolder(name, parent);
-		for (String folderName : folderToFolderMapping.get(TOP_MOST_FOLDER)) {
-			folder.addElement(constructFolder(folderName, folderToFolderMapping, folderToGroupMapping, folder));
+		List<String> subFolders = folderToFolderMapping.get(name);
+		if (subFolders != null) {
+			for (String folderName : subFolders) {
+				folder.addElement(constructFolder(folderName, folderToFolderMapping, folderToGroupMapping, folder));
+			}
 		}
-		for (String groupName : folderToGroupMapping.get(TOP_MOST_FOLDER)) {
-			folder.addElement(new GroupEntry(folder, groupName));
+		List<String> containedGroups = folderToGroupMapping.get(name);
+		if (containedGroups != null) {
+			for (String groupName : containedGroups) {
+				folder.addElement(new GroupEntry(folder, groupName));
+			}
 		}
 		return folder;
 	}
@@ -257,57 +264,56 @@ public class GUIGroupOverview {
 		ItemStack is = new ItemStack(Material.CHEST);
 		ItemAPI.setDisplayName(is, ChatColor.GOLD + "Join password protected group");
 		return new LClickable(is, p -> {
-				p.sendMessage(ChatColor.YELLOW + "Enter the name of the group or \"cancel\" to leave this prompt");
-				ClickableInventory.forceCloseInventory(p);
-				new Dialog(p, NameLayerPlugin.getInstance()) {
+			p.sendMessage(ChatColor.YELLOW + "Enter the name of the group or \"cancel\" to leave this prompt");
+			ClickableInventory.forceCloseInventory(p);
+			new Dialog(p, NameLayerPlugin.getInstance()) {
 
-					@Override
-					public List<String> onTabComplete(String wordCompleted, String[] fullMessage) {
-						return Collections.emptyList();
+				@Override
+				public List<String> onTabComplete(String wordCompleted, String[] fullMessage) {
+					return Collections.emptyList();
+				}
+
+				@Override
+				public void onReply(String[] message) {
+					if (message.length > 1) {
+						p.sendMessage(ChatColor.RED + "Group names can't contain spaces");
+						showScreen();
+						return;
 					}
-
-					@Override
-					public void onReply(String[] message) {
-						if (message.length > 1) {
-							p.sendMessage(ChatColor.RED + "Group names can't contain spaces");
-							showScreen();
-							return;
-						}
-						String groupName = message[0];
-						if (groupName.equals("cancel")) {
-							showScreen();
-							return;
-						}
-						final Group group = groupManager.getGroup(groupName);
-						if (group == null) {
-							p.sendMessage(ChatColor.RED + "This group doesn't exist");
-							showScreen();
-							return;
-						}
-						if (group.isMember(p.getUniqueId())) {
-							p.sendMessage(ChatColor.RED + "You are already a member of this group");
-							showScreen();
-							return;
-						}
-						p.sendMessage(ChatColor.YELLOW + "Enter the group password");
-						new Dialog(p, NameLayerPlugin.getInstance()) {
-
-							@Override
-							public List<String> onTabComplete(String wordCompleted, String[] fullMessage) {
-								return Collections.emptyList();
-							}
-
-							@Override
-							public void onReply(String[] message) {
-								NameLayerPlugin.getInstance().getGroupInteractionManager().joinGroup(
-										player.getUniqueId(), group.getName(), String.join(" ", message),
-										p::sendMessage);
-							}
-						};
+					String groupName = message[0];
+					if (groupName.equals("cancel")) {
+						showScreen();
+						return;
 					}
-				};
+					final Group group = groupManager.getGroup(groupName);
+					if (group == null) {
+						p.sendMessage(ChatColor.RED + "This group doesn't exist");
+						showScreen();
+						return;
+					}
+					if (group.isMember(p.getUniqueId())) {
+						p.sendMessage(ChatColor.RED + "You are already a member of this group");
+						showScreen();
+						return;
+					}
+					p.sendMessage(ChatColor.YELLOW + "Enter the group password");
+					new Dialog(p, NameLayerPlugin.getInstance()) {
 
-			});
+						@Override
+						public List<String> onTabComplete(String wordCompleted, String[] fullMessage) {
+							return Collections.emptyList();
+						}
+
+						@Override
+						public void onReply(String[] message) {
+							NameLayerPlugin.getInstance().getGroupInteractionManager().joinGroup(player.getUniqueId(),
+									group.getName(), String.join(" ", message), p::sendMessage);
+						}
+					};
+				}
+			};
+
+		});
 	}
 
 	private static Map<Integer, ItemStack> idToItem;
