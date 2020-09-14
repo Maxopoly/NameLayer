@@ -7,6 +7,8 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.bukkit.Bukkit;
+import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.map.MapRenderer;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
@@ -34,6 +36,7 @@ public final class PermissionType {
 		permissionById = new TreeMap<>();
 		maximumExistingId = 0;
 		registerRankPermissions();
+		MapMeta r;
 	}
 
 	/**
