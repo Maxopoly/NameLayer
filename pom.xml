@@ -25,6 +25,9 @@
   	<module>namelayer-all</module>
     <module>namelayer-spigot</module>
     <module>namelayer-bungee</module>
+    <module>namelayer-zeus</module>
+     <module>namelayer-mc</module>
+     <module>namelayer-core</module>
   </modules>
 
   <repositories>

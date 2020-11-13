@@ -1,0 +1,61 @@
+package vg.civcraft.mc.namelayer.mc.rabbit.playerrequests;
+
+import java.util.UUID;
+
+import org.bukkit.ChatColor;
+import org.json.JSONObject;
+
+import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
+import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.mc.GroupTracker;
+
+public class RabbitAcceptInvite extends RabbitGroupAction {
+	public enum FailureReason {
+		GROUP_DOES_NOT_EXIST, ALREADY_MEMBER, NO_EXISTING_INVITE;
+	}
+
+	public RabbitAcceptInvite(UUID executor, String groupName) {
+		super(executor, groupName);
+	}
+
+	@Override
+	public void handleReply(JSONObject reply, boolean success) {
+		Group group = getGroup();
+		if (success) {
+			int rankId = reply.getInt("rank");
+			GroupRank rank = group.getGroupRankHandler().getRank(rankId);
+			GroupTracker groupTrack = NameLayerPlugin.getInstance().getGroupTracker();
+			groupTrack.addPlayerToGroup(group, executor, rank);
+			groupTrack.deleteInvite(group, executor);
+			// TODO group.getActionLog().addAction(new
+			// AcceptInvitation(System.currentTimeMillis(), executor, rank.getName()),
+			// true);
+			// TODO PlayerListener.removeNotification(executor, group);
+			sendMessage(String.format("%sYou have been added to %s%s as a %s%s", ChatColor.GREEN,
+					group.getColoredName(), ChatColor.GREEN, ChatColor.YELLOW, rank.getName()));
+			return;
+		}
+		FailureReason reason = FailureReason.valueOf(reply.getString("reason"));
+		switch (reason) {
+		case ALREADY_MEMBER:
+			sendMessage(ChatColor.RED + "You are already a member or blacklisted. You cannot join again.");
+			return;
+		case GROUP_DOES_NOT_EXIST:
+			sendMessage(String.format("%sThe group %s does not exist", ChatColor.RED, groupName));
+			return;
+		case NO_EXISTING_INVITE:
+			sendMessage(String.format("%sYou were not invited to %s", ChatColor.RED, group.getColoredName()));
+			return;
+		default:
+			break;
+
+		}
+	}
+
+	@Override
+	protected void fillJson(JSONObject json) {
+		// all handled in super class
+	}
+
+}
