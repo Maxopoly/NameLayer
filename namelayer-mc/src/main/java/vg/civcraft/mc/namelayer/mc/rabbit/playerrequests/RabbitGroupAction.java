@@ -1,19 +1,13 @@
 package vg.civcraft.mc.namelayer.mc.rabbit.playerrequests;
 
-import java.nio.Buffer;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 import org.json.JSONObject;
 
 import com.github.civcraft.artemis.rabbit.MCStandardRequest;
-import com.google.common.base.Preconditions;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
-import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
 public abstract class RabbitGroupAction extends MCStandardRequest {

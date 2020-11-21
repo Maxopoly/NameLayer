@@ -1,11 +1,5 @@
 package vg.civcraft.mc.namelayer.core;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-
 public class PermissionType {
 	
 	private String registeringPlugin;

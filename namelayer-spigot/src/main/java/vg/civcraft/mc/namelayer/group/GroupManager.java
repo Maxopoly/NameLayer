@@ -25,7 +25,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import vg.civcraft.mc.civmodcore.command.MailBoxAPI;
 import vg.civcraft.mc.namelayer.NameAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
-import vg.civcraft.mc.namelayer.database.GroupManagerDao;
 import vg.civcraft.mc.namelayer.events.GroupCreateEvent;
 import vg.civcraft.mc.namelayer.events.GroupLinkEvent;
 import vg.civcraft.mc.namelayer.events.PostGroupMergeEvent;
@@ -34,6 +33,7 @@ import vg.civcraft.mc.namelayer.group.log.impl.AcceptInvitation;
 import vg.civcraft.mc.namelayer.permission.GroupRank;
 import vg.civcraft.mc.namelayer.permission.GroupRankHandler;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
+import vg.civcraft.mc.namelayer.zeus.GroupManagerDao;
 
 public class GroupManager {
 

@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 
 import vg.civcraft.mc.civmodcore.ACivMod;
 import vg.civcraft.mc.namelayer.database.AssociationList;
-import vg.civcraft.mc.namelayer.database.GroupManagerDao;
 import vg.civcraft.mc.namelayer.group.GroupInteractionManager;
 import vg.civcraft.mc.namelayer.group.GroupManager;
 import vg.civcraft.mc.namelayer.group.NameLayerMetaData;
@@ -19,6 +18,7 @@ import vg.civcraft.mc.namelayer.misc.NameCleanser;
 import vg.civcraft.mc.namelayer.misc.NameLayerSettingManager;
 import vg.civcraft.mc.namelayer.permission.NameLayerPermissionManager;
 import vg.civcraft.mc.namelayer.permission.PermissionType;
+import vg.civcraft.mc.namelayer.zeus.GroupManagerDao;
 
 public class NameLayerPlugin extends ACivMod {
 	private AssociationList associations;

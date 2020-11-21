@@ -6,11 +6,10 @@ import org.bukkit.ChatColor;
 import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.requests.MergeGroups;
 
 public class RabbitMergeGroup extends RabbitGroupAction {
-	public enum FailureReason {
-		NO_PERMISSION_ORIG_GROUP, NO_PERMISSION_TARGET_GROUP, CANNOT_MERGE_INTO_SELF, GROUP_DOES_NOT_EXIST, HAS_INCOMING_LINKS, HAS_OUTGOING_LINKS;
-	}
+
 	
 	Group groupToDelete;
 
@@ -27,7 +26,7 @@ public class RabbitMergeGroup extends RabbitGroupAction {
 				groupKept.getColoredName()));
 			return;
 		}
-		FailureReason reason = FailureReason.valueOf(reply.getString("reason"));
+		MergeGroups.FailureReason reason = MergeGroups.FailureReason.valueOf(reply.getString("reason"));
 		String missingPerm = reply.optString("missing_perm", null);
 		switch (reason) {
 		case CANNOT_MERGE_INTO_SELF:
@@ -59,6 +58,11 @@ public class RabbitMergeGroup extends RabbitGroupAction {
 	@Override
 	protected void fillJson(JSONObject json) {
 		json.put("groupTDoelete", groupToDelete.getName());
+	}
+	
+	@Override
+	public String getIdentifier() {
+		return MergeGroups.REQUEST_ID;
 	}
 
 }

@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import net.minecraft.server.v1_16_R1.ServerConnection;
 import vg.civcraft.mc.namelayer.core.DefaultPermissionLevel;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.PermissionType;

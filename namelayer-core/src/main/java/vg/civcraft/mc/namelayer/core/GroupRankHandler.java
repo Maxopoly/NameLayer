@@ -1,11 +1,8 @@
 package vg.civcraft.mc.namelayer.core;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -14,8 +11,6 @@ import java.util.TreeMap;
  * register, deleted and renamed. Each group has its own instance of this class
  */
 public class GroupRankHandler {
-
-	private Group group;
 	private GroupRank root;
 	private GroupRank defaultInvitationRank;
 	private GroupRank defaultPasswordJoinRank;
@@ -29,9 +24,8 @@ public class GroupRankHandler {
 	public static final int DEFAULT_MEMBER_ID = 3;
 	private static final int DEFAULT_NON_MEMBER_ID = 4;
 
-	public GroupRankHandler(GroupRank root, Group group) {
+	public GroupRankHandler(GroupRank root) {
 		this.root = root;
-		this.group = group;
 		this.ranksByName = new HashMap<>();
 		this.ranksById = new TreeMap<>();
 		putRank(root);
@@ -51,19 +45,6 @@ public class GroupRankHandler {
 	}
 
 	/**
-	 * @return Highest unused id available for this instance or -1 if no id is
-	 *         available
-	 */
-	public int getUnusedId() {
-		for (int i = 0; i < MAXIMUM_TYPE_COUNT; i++) {
-			if (ranksById.get(i) == null) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	/**
 	 * @return The maximum amount of player types a group may have and also the
 	 *         highest possible id a player type might have
 	 */
@@ -79,7 +60,7 @@ public class GroupRankHandler {
 	 * @return True if the given rank is a blacklist type, false if not
 	 */
 	public boolean isBlacklistedRank(GroupRank type) {
-		return isRelated(type, getDefaultNonMemberRank());
+		return isRelated(type, getDefaultNonMemberRank()) && !getDefaultNonMemberRank().equals(type);
 	}
 
 	/**
@@ -188,28 +169,6 @@ public class GroupRankHandler {
 		if (rank.getParent() != null) {
 			rank.getParent().removeChild(rank);
 		}
-		PermissionType invPermission = PermissionType.getInvitePermission(rank.getId());
-		PermissionType remPermission = PermissionType.getRemovePermission(rank.getId());
-		PermissionType listPermission = PermissionType.getListPermission(rank.getId());
-		Map<GroupRank, List<PermissionType>> permsToRemove = new HashMap<>();
-		for (GroupRank otherRank : getAllRanks()) {
-			List<PermissionType> perms = new LinkedList<>();
-			if (otherRank.hasPermission(invPermission)) {
-				otherRank.removePermission(invPermission);
-				perms.add(invPermission);
-			}
-			if (otherRank.hasPermission(remPermission)) {
-				otherRank.removePermission(remPermission);
-				perms.add(remPermission);
-			}
-			if (otherRank.hasPermission(listPermission)) {
-				otherRank.removePermission(listPermission);
-				perms.add(listPermission);
-			}
-			if (!perms.isEmpty()) {
-				permsToRemove.put(otherRank, perms);
-			}
-		}
 		if (defaultInvitationRank == rank) {
 			defaultInvitationRank = null;
 		}
@@ -221,8 +180,7 @@ public class GroupRankHandler {
 	}
 
 	/**
-	 * Registers the given rank for this instance. A new rank will
-	 * always inherit all permissions of it's parent initially.
+	 * Registers the given rank for this instance.
 	 * 
 	 * @param rank Rank to add
 	 */
@@ -232,10 +190,7 @@ public class GroupRankHandler {
 		// all other nodes should have a parent
 		if (rank == null || rank.getParent() == null || doesTypeExist(rank.getName())
 				|| !doesTypeExist(rank.getParent().getName())) {
-			return false;
-		}
-		for (PermissionType perm : rank.getParent().getAllPermissions()) {
-			rank.addPermission(perm);
+			throw new IllegalGroupStateException();
 		}
 		putRank(rank);
 		return true;

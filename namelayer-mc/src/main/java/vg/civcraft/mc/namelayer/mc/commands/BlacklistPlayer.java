@@ -13,7 +13,10 @@ import com.github.civcraft.artemis.ArtemisPlugin;
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.GroupRankHandler;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
+import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitAcceptInvite;
 
 @CivCommand(id = "nlbl")

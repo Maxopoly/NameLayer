@@ -4,11 +4,10 @@ import org.json.JSONObject;
 
 import com.github.civcraft.zeus.rabbit.incoming.StaticRabbitCommand;
 import com.github.civcraft.zeus.servers.ConnectedServer;
-import com.google.gson.JsonObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.GroupTracker;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
-import vg.civcraft.mc.namelayer.mc.GroupTracker;
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 public abstract class AbstractGroupModificationHandler extends StaticRabbitCommand {

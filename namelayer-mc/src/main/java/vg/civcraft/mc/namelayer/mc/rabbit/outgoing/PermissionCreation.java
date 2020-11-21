@@ -1,4 +1,4 @@
-package vg.civcraft.mc.namelayer.mc.rabbit.playerrequests;
+package vg.civcraft.mc.namelayer.mc.rabbit.outgoing;
 
 import org.json.JSONObject;
 

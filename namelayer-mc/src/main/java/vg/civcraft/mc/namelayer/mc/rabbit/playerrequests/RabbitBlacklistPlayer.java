@@ -7,17 +7,15 @@ import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.requests.BlacklistPlayer;
 
 public class RabbitBlacklistPlayer extends RabbitGroupAction {
-	public enum FailureReason {
-		GROUP_DOES_NOT_EXIST, PLAYER_DOES_NOT_EXIST, RANK_DOES_NOT_EXIST, NO_PERMISSION, NOT_BLACKLISTED_RANK;
-	}
 	
 	private String targetPlayer;
 	private GroupRank rank;
 
-	public RabbitBlacklistPlayer(UUID executor, String groupName, String targetPlayer, GroupRank rank) {
-		super(executor, groupName);
+	public RabbitBlacklistPlayer(UUID executor, Group group, String targetPlayer, GroupRank rank) {
+		super(executor, group.getName());
 		this.targetPlayer = targetPlayer;
 		this.rank = rank;
 	}
@@ -30,7 +28,7 @@ public class RabbitBlacklistPlayer extends RabbitGroupAction {
 				this.targetPlayer, ChatColor.GREEN, ChatColor.YELLOW, rank.getName(),
 				ChatColor.YELLOW, group.getColoredName()));
 		}
-		FailureReason reason = FailureReason.valueOf(reply.getString("reason"));
+		BlacklistPlayer.FailureReason reason = BlacklistPlayer.FailureReason.valueOf(reply.getString("reason"));
 		switch (reason) {
 		case GROUP_DOES_NOT_EXIST:
 			groupDoesNotExistMessage();
@@ -51,13 +49,17 @@ public class RabbitBlacklistPlayer extends RabbitGroupAction {
 			break;
 			
 		}
-		
 	}
 
 	@Override
 	protected void fillJson(JSONObject json) {
 		json.put("target_player", targetPlayer);
-		json.put("rank", rank);
+		json.put("rank_id", rank.getId());
+	}
+
+	@Override
+	public String getIdentifier() {
+		return BlacklistPlayer.REQUEST_ID;
 	}
 
 }

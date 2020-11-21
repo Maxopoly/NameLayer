@@ -2,39 +2,18 @@ package vg.civcraft.mc.namelayer.core;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
+import java.util.Set;
 
 public class GroupRank {
-	
-	public static GroupRank fromJson(JSONObject json) {
-		int id = json.getInt("id");
-		String name = json.getString("name");
-		JSONArray permArray = json.optJSONArray("perms");
-		List<PermissionType> perms = new ArrayList<>();
-		if (permArray != null) {
-			for(int i = 0; i < permArray.length(); i++) {
-				int permID = permArray.getInt(i);
-				PermissionType perm = PermissionType.getPermission(permID);
-				if (perm == null) {
-					throw new IllegalGroupStateException();
-				}
-				perms.add(perm);
-			}
-		}
-		GroupRank rank = new GroupRank(name, id, null);
-		rank.perms = perms;
-		return rank;
-	}
 
 	private String name;
 	private int id;
 	private List<GroupRank> children;
 	private GroupRank parent;
-	private List<PermissionType> perms;
+	private Set<Integer> perms;
 
 	/**
 	 * For creating completly new ranks
@@ -44,7 +23,7 @@ public class GroupRank {
 		this.parent = parent;
 		this.id = id;
 		this.children = new LinkedList<>();
-		this.perms = new ArrayList<>();
+		this.perms = new HashSet<>();
 	}
 
 	/**
@@ -166,34 +145,30 @@ public class GroupRank {
 	 * Adds the given permission to this instance
 	 * 
 	 * @param perm     Permission to add
-	 * @return True if the permission was sucessfully added, false if not
 	 */
-	public boolean addPermission(PermissionType perm) {
-		if (perms.contains(perm)) {
+	public void addPermission(PermissionType perm) {
+		if (hasPermission(perm)) {
 			// already exists
-			return false;
+			throw new IllegalGroupStateException();
 		}
-		perms.add(perm);
-		return true;
+		perms.add(perm.getId());
 	}
 
 	/**
 	 * Removes the given permission from this instance
 	 * 
 	 * @param perm     Permission to remove
-	 * @return True if the permission was sucessfully removed, false if not
 	 */
-	public boolean removePermission(PermissionType perm) {
+	public void removePermission(PermissionType perm) {
 		if (parent == null) {
 			// is root and shouldnt be modified
-			return false;
+			throw new IllegalGroupStateException();
 		}
-		if (!perms.contains(perm)) {
+		if (!perms.contains(perm.getId())) {
 			// doesn't exist
-			return false;
+			throw new IllegalGroupStateException();
 		}
-		perms.remove(perm);
-		return true;
+		perms.remove(perm.getId());
 	}
 
 	/**
@@ -203,14 +178,14 @@ public class GroupRank {
 	 * @return True if this player type has the given permission, false if not
 	 */
 	public boolean hasPermission(PermissionType perm) {
-		return perms.contains(perm);
+		return perms.contains(perm.getId());
 	}
 
 	/**
 	 * @return Copy of the list containing all permissions this instance has
 	 */
-	public List<PermissionType> getAllPermissions() {
-		return Collections.unmodifiableList(perms);
+	public Set<Integer> getAllPermissions() {
+		return Collections.unmodifiableSet(perms);
 	}
 
 	/**
@@ -222,27 +197,6 @@ public class GroupRank {
 	 */
 	public int getId() {
 		return id;
-	}
-
-	/**
-	 * @return The permission required to add/invite players to this rank
-	 */
-	public PermissionType getInvitePermissionType() {
-		return PermissionType.getInvitePermission(getId());
-	}
-
-	/**
-	 * @return The permission required to remove players from this rank
-	 */
-	public PermissionType getRemovalPermissionType() {
-		return PermissionType.getRemovePermission(getId());
-	}
-
-	/**
-	 * @return The permission required to list players for this rank
-	 */
-	public PermissionType getListPermissionType() {
-		return PermissionType.getListPermission(getId());
 	}
 
 	/**

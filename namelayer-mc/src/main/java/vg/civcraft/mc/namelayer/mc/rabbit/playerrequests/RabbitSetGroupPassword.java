@@ -5,12 +5,11 @@ import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.json.JSONObject;
 
-import vg.civcraft.mc.namelayer.core.rabbit.Group;
+import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.requests.SetPassword;
 
 public class RabbitSetGroupPassword extends RabbitGroupAction {
-	public enum FailureReason {
-		NO_PERMISSION, NULL_PASSWORD, GROUP_DOES_NOT_EXIST;
-	}
+
 	
 	private String password;
 
@@ -27,10 +26,10 @@ public class RabbitSetGroupPassword extends RabbitGroupAction {
 				ChatColor.GREEN));
 			return;	
 		}
-		FailureReason reason = FailureReason.valueOf(reply.getString("reply"));
+		SetPassword.FailureReason reason = SetPassword.FailureReason.valueOf(reply.getString("reply"));
 		switch (reason) {
 		case GROUP_DOES_NOT_EXIST:
-			groupDoesNotExistMessage(;
+			groupDoesNotExistMessage();
 			return;
 		case NO_PERMISSION:
 			String missingPerm = reply.optString("missing_perm", null);
@@ -49,6 +48,11 @@ public class RabbitSetGroupPassword extends RabbitGroupAction {
 	protected void fillJson(JSONObject json) {
 		json.put("password", password);
 		
+	}
+	
+	@Override
+	public String getIdentifier() {
+		return SetPassword.REQUEST_ID;
 	}
 
 }

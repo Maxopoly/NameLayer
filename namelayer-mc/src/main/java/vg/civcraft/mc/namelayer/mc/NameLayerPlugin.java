@@ -1,6 +1,7 @@
 package vg.civcraft.mc.namelayer.mc;
 
 import vg.civcraft.mc.civmodcore.ACivMod;
+import vg.civcraft.mc.namelayer.core.GroupTracker;
 
 public class NameLayerPlugin extends ACivMod {
 	

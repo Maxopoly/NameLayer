@@ -5,18 +5,17 @@ import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.json.JSONObject;
 
+import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.requests.CreateRank;
 
 public class RabbitCreateRank extends RabbitGroupAction {
-	public enum FailureReason {
-		RANK_ALREADY_EXISTS, NO_PERMISSION, RANK_LIMIT_REACHED, PARENT_RANK_DOES_NOT_EXIST;
-	}
 
 	private String newRankName;
 	private GroupRank parentRank;
 
-	public RabbitCreateRank(UUID executor, String groupName, GroupRank parentRank, String newRankName) {
-		super(executor, groupName);
+	public RabbitCreateRank(UUID executor, Group group, GroupRank parentRank, String newRankName) {
+		super(executor, group.getName());
 		this.newRankName = newRankName;
 		this.parentRank = parentRank;
 	}
@@ -28,8 +27,11 @@ public class RabbitCreateRank extends RabbitGroupAction {
 				ChatColor.GREEN, ChatColor.YELLOW, parentRank.getName()));
 			return;
 		}
-		FailureReason reason = FailureReason.valueOf(reply.getString("reason"));
+		CreateRank.FailureReason reason = CreateRank.FailureReason.valueOf(reply.getString("reason"));
 		switch (reason) {
+		case GROUP_DOES_NOT_EXIST:
+			groupDoesNotExistMessage();
+			return;	
 		case NO_PERMISSION:
 			String missingPerm = reply.getString("missing_perm");
 			noPermissionMessage(missingPerm);
@@ -41,6 +43,9 @@ public class RabbitCreateRank extends RabbitGroupAction {
 		case RANK_ALREADY_EXISTS:
 			sendMessage(String.format("%sA rank named %s%s%s already exists", ChatColor.RED, ChatColor.YELLOW, parentRank.getName(),
 					ChatColor.RED));
+			return;
+		case INVALID_RANK_NAME:
+			sendMessage(String.format("%sThe rank %s%s%s is an invalid format", ChatColor.RED, ChatColor.YELLOW, newRankName, ChatColor.RED));
 			return;
 		case RANK_LIMIT_REACHED:
 			int maxRanks = reply.getInt("max_ranks");
@@ -58,6 +63,11 @@ public class RabbitCreateRank extends RabbitGroupAction {
 		json.put("newRankName", newRankName);
 		json.put("parentRank", parentRank.getId());
 		
+	}
+
+	@Override
+	public String getIdentifier() {
+		return CreateRank.REQUEST_ID;
 	}
 
 }

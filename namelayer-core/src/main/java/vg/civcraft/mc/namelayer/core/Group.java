@@ -17,7 +17,9 @@ import org.json.JSONObject;
 
 import com.google.common.base.Preconditions;
 
-public class Group implements Comparable<Group> {
+import vg.civcraft.mc.namelayer.core.serial.JSONSerializable;
+
+public class Group implements Comparable<Group>, JSONSerializable {
 
 	private String name;
 	private final int id;
@@ -34,6 +36,7 @@ public class Group implements Comparable<Group> {
 	private GroupRankHandler rankHandler;
 
 	private Set<Integer> secondaryIds;
+	private Map<String, String> metaData;
 
 	/**
 	 * Instanciates a new group with no members, no invites, no links, an empty
@@ -56,6 +59,7 @@ public class Group implements Comparable<Group> {
 		this.outgoingLinks = new ArrayList<>();
 		this.groupActionLog = new GroupActionLog(this);
 		this.secondaryIds = new HashSet<>();
+		this.metaData = new HashMap<>();
 	}
 
 	/**
@@ -140,7 +144,28 @@ public class Group implements Comparable<Group> {
 	 *         this group
 	 */
 	public String getColoredName() {
-		return NameLayerPlugin.getInstance().getNameLayerMeta().getMetaData(this).getChatColor() + this.name;
+		return getMetaData(NameLayerMetaData.CHAT_COLOR_KEY) + name;
+	}
+
+	/**
+	 * Gets the meta data value set for this group for the given key. May be null if
+	 * no data for that key exists
+	 * 
+	 * @param metaDataKey Unique identifying key of the data
+	 * @return Meta data with the given key, as string
+	 */
+	public String getMetaData(String metaDataKey) {
+		return metaData.get(metaDataKey);
+	}
+
+	/**
+	 * Sets a meta data value for this group
+	 * 
+	 * @param metaDataKey Unique key of the value to set
+	 * @param value       Value to set
+	 */
+	public void setMetaData(String metaDataKey, String value) {
+		metaData.put(metaDataKey, value);
 	}
 
 	/**
@@ -374,25 +399,48 @@ public class Group implements Comparable<Group> {
 	 */
 	public void setGroupRankHandler(GroupRankHandler handler) {
 		this.rankHandler = handler;
-		for(GroupRank rank : handler.getAllRanks()) {
+		for (GroupRank rank : handler.getAllRanks()) {
 			if (rank != rankHandler.getDefaultNonMemberRank()) {
 				this.playersByRank.put(rank, new HashSet<>());
 			}
 		}
 	}
-	
+
 	public static Group fromJson(JSONObject json) {
 		String name = json.getString("name");
 		int id = json.getInt("id");
 		Group group = new Group(name, id);
 		JSONArray secondaryIds = json.optJSONArray("secondary_ids");
 		if (secondaryIds != null) {
-			for(int i = 0; i < secondaryIds.length(); i++) {
+			for (int i = 0; i < secondaryIds.length(); i++) {
 				group.addSecondaryId(secondaryIds.getInt(i));
 			}
 		}
-		
+		JSONArray rankArray = json.getJSONArray("ranks");
+		for(int i = 0; i < rankArray.length(); i++) {
+			JSONObject rankObject = rankArray.getJSONObject(i);
+		}
 		return group;
+	}
+
+	public static GroupRank fromJson(JSONObject json) {
+		int id = json.getInt("id");
+		String name = json.getString("name");
+		JSONArray permArray = json.optJSONArray("perms");
+		List<PermissionType> perms = new ArrayList<>();
+		if (permArray != null) {
+			for (int i = 0; i < permArray.length(); i++) {
+				int permID = permArray.getInt(i);
+				PermissionType perm = PermissionType.getPermission(permID);
+				if (perm == null) {
+					throw new IllegalGroupStateException();
+				}
+				perms.add(perm);
+			}
+		}
+		GroupRank rank = new GroupRank(name, id, null);
+		rank.perms = perms;
+		return rank;
 	}
 
 	@Override
@@ -407,5 +455,11 @@ public class Group implements Comparable<Group> {
 	@Override
 	public int compareTo(Group o) {
 		return this.name.compareToIgnoreCase(o.name);
+	}
+
+	@Override
+	public JSONObject serialize() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

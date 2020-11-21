@@ -7,15 +7,12 @@ import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
-import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitDeleteGroup.FailureReason;
+import vg.civcraft.mc.namelayer.core.requests.LeaveGroup;
 
 public class RabbitLeaveGroup extends RabbitGroupAction {
-	public enum FailureReason {
-		NOT_A_MEMBER, NO_OTHER_OWNER, GROUP_DOES_NOT_EXIST;
-	}
 
-	public RabbitLeaveGroup(UUID executor, String groupName) {
-		super(executor, groupName);
+	public RabbitLeaveGroup(UUID executor, Group group) {
+		super(executor, group.getName());
 	}
 
 	@Override
@@ -25,7 +22,7 @@ public class RabbitLeaveGroup extends RabbitGroupAction {
 			sendMessage(String.format("%sYou have left %s", ChatColor.GREEN, group.getColoredName()));
 			return;
 		}
-		FailureReason reason = FailureReason.valueOf(reply.getString("reason"));
+		LeaveGroup.FailureReason reason = LeaveGroup.FailureReason.valueOf(reply.getString("reason"));
 		switch (reason) {
 		case GROUP_DOES_NOT_EXIST:
 			groupDoesNotExistMessage();
@@ -48,6 +45,11 @@ public class RabbitLeaveGroup extends RabbitGroupAction {
 	@Override
 	protected void fillJson(JSONObject json) {
 		//Already handled by super class
+	}
+	
+	@Override
+	public String getIdentifier() {
+		return LeaveGroup.REQUEST_ID;
 	}
 
 }

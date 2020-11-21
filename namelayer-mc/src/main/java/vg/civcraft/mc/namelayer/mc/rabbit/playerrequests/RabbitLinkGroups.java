@@ -7,12 +7,9 @@ import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
-import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitDeleteGroup.FailureReason;
+import vg.civcraft.mc.namelayer.core.requests.LinkGroups;
 
 public class RabbitLinkGroups extends RabbitGroupAction {
-	public enum FailureReason {
-		CANNOT_LINK_TO_SELF, NO_PERMISSION_ORIG_GROUP, NO_PERMISSION_TARGET_GROUP, ATTEMPTED_GROUP_CYCLING;
-	}
 	
 	private Group targetGroup;
 	private GroupRank originatingRank;
@@ -32,7 +29,7 @@ public class RabbitLinkGroups extends RabbitGroupAction {
 				originatingRank.getName(), ChatColor.GREEN, getGroup().getColoredName(), ChatColor.GREEN,
 				ChatColor.YELLOW, targetRank.getName(), ChatColor.GREEN, targetGroup.getColoredName()));
 		}
-		FailureReason reason = FailureReason.valueOf(reply.getString("reason"));
+		LinkGroups.FailureReason reason = LinkGroups.FailureReason.valueOf(reply.getString("reason"));
 		String missingPerm = reply.optString("missing_perm", null);	
 		switch (reason) {
 		case ATTEMPTED_GROUP_CYCLING:
@@ -59,6 +56,11 @@ public class RabbitLinkGroups extends RabbitGroupAction {
 		json.put("originatingRank", originatingRank.getId());
 		json.put("targetRank", targetRank.getId());
 		
+	}
+	
+	@Override
+	public String getIdentifier() {
+		return LinkGroups.REQUEST_ID;
 	}
 
 }

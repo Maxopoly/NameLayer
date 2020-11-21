@@ -5,25 +5,23 @@ import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.json.JSONObject;
 
-import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
-import vg.civcraft.mc.namelayer.mc.GroupTracker;
+import vg.civcraft.mc.namelayer.core.GroupTracker;
+import vg.civcraft.mc.namelayer.core.requests.AcceptInvite;
+import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 public class RabbitAcceptInvite extends RabbitGroupAction {
-	public enum FailureReason {
-		GROUP_DOES_NOT_EXIST, ALREADY_MEMBER, NO_EXISTING_INVITE;
-	}
 
-	public RabbitAcceptInvite(UUID executor, String groupName) {
-		super(executor, groupName);
+	public RabbitAcceptInvite(UUID executor, Group group) {
+		super(executor, group.getName());
 	}
 
 	@Override
 	public void handleReply(JSONObject reply, boolean success) {
 		Group group = getGroup();
 		if (success) {
-			int rankId = reply.getInt("rank");
+			int rankId = reply.getInt("rank_id");
 			GroupRank rank = group.getGroupRankHandler().getRank(rankId);
 			GroupTracker groupTrack = NameLayerPlugin.getInstance().getGroupTracker();
 			groupTrack.addPlayerToGroup(group, executor, rank);
@@ -36,7 +34,7 @@ public class RabbitAcceptInvite extends RabbitGroupAction {
 					group.getColoredName(), ChatColor.GREEN, ChatColor.YELLOW, rank.getName()));
 			return;
 		}
-		FailureReason reason = FailureReason.valueOf(reply.getString("reason"));
+		AcceptInvite.FailureReason reason = AcceptInvite.FailureReason.valueOf(reply.getString("reason"));
 		switch (reason) {
 		case ALREADY_MEMBER:
 			sendMessage(ChatColor.RED + "You are already a member or blacklisted. You cannot join again.");
@@ -56,6 +54,11 @@ public class RabbitAcceptInvite extends RabbitGroupAction {
 	@Override
 	protected void fillJson(JSONObject json) {
 		// all handled in super class
+	}
+
+	@Override
+	public String getIdentifier() {
+		return AcceptInvite.REQUEST_ID;
 	}
 
 }

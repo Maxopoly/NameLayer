@@ -7,11 +7,10 @@ import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.requests.PromotePlayer;
 
 public class RabbitPromotePlayer extends RabbitGroupAction {
-	public enum FailureReason {
-		NO_PERMISSION, GROUP_DOES_NOT_EXIST, PLAYER_DOES_NOT_EXIST, RANK_DOES_NOT_EXIST, SAME_AS_CURRENT_RANK, BLACKLISTED;
-	}
+
 	
 	private String playerName;
 	private GroupRank targetRank;
@@ -33,7 +32,7 @@ public class RabbitPromotePlayer extends RabbitGroupAction {
 				ChatColor.GREEN, ChatColor.YELLOW, targetRank.getName(), ChatColor.GREEN, group.getColoredName()));
 			return;	
 		}
-		FailureReason reason = FailureReason.valueOf(reply.getString("reason"));
+		PromotePlayer.FailureReason reason = PromotePlayer.FailureReason.valueOf(reply.getString("reason"));
 		switch (reason) {
 		case BLACKLISTED:
 			sendMessage(String.format("%s%s%s currently has a blacklisted rank and can not be promoted to a member rank. "
@@ -66,6 +65,11 @@ public class RabbitPromotePlayer extends RabbitGroupAction {
 	protected void fillJson(JSONObject json) {
 		json.put("playerName", playerName);
 		json.put("targetRank", targetRank.getId());
+	}
+	
+	@Override
+	public String getIdentifier() {
+		return PromotePlayer.REQUEST_ID;
 	}
 
 }

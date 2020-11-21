@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
-import vg.civcraft.mc.namelayer.NameLayerPlugin;
+import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 @CivCommand(id = "nlmp")
 public class ModifyPermissions extends StandaloneCommand {

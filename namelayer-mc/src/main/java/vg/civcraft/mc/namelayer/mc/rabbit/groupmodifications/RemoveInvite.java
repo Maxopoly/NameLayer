@@ -5,7 +5,6 @@ import java.util.UUID;
 import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
-import vg.civcraft.mc.namelayer.core.GroupRank;
 
 public class RemoveInvite extends AbstractGroupModificationHandler {
 

@@ -7,18 +7,14 @@ import org.json.JSONObject;
 import net.md_5.bungee.api.ChatColor;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
-import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitDeleteGroup.FailureReason;
+import vg.civcraft.mc.namelayer.core.requests.DeleteRank;
 
 public class RabbitDeleteRank extends RabbitGroupAction {
-	public enum FailureReason {
-		RANK_DOES_NOT_EXIST, NO_PERMISSION, RANK_HAS_CHILDREN, LAST_REMAINING_RANK, STILL_HAS_MEMBERS,
-		 HAS_INCOMING_LINKS, HAS_OUTGOING_LINKS, DEFAULT_NON_MEMBER_RANK;
-	}
 
 	private GroupRank rankToDelete;
 	
-	public RabbitDeleteRank(UUID executor, String groupName, GroupRank rankToDelete) {
-		super(executor, groupName);
+	public RabbitDeleteRank(UUID executor, Group group, GroupRank rankToDelete) {
+		super(executor, group.getName());
 		this.rankToDelete = rankToDelete;
 	}
 
@@ -30,10 +26,13 @@ public class RabbitDeleteRank extends RabbitGroupAction {
 				rankToDelete.getName(), ChatColor.GREEN, group.getColoredName(), ChatColor.GREEN));
 			return;
 		}
-		FailureReason reason = FailureReason.valueOf(reply.getString("reason"));
+		DeleteRank.FailureReason reason = DeleteRank.FailureReason.valueOf(reply.getString("reason"));
 		switch (reason) {
+		case GROUP_DOES_NOT_EXIST:
+			groupDoesNotExistMessage();
+			return;	
 		case NO_PERMISSION:
-			String missingPerm = reply.getString("missing_perm");
+			String missingPerm = reply.optString("missing_perm", null);
 			noPermissionMessage(missingPerm);
 			return;
 		case RANK_DOES_NOT_EXIST:
@@ -72,6 +71,11 @@ public class RabbitDeleteRank extends RabbitGroupAction {
 	@Override
 	protected void fillJson(JSONObject json) {
 		json.put("rankToDelete", rankToDelete.getId());	
+	}
+
+	@Override
+	public String getIdentifier() {
+		return DeleteRank.REQUEST_ID;
 	}
 
 }

@@ -13,13 +13,12 @@ import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import vg.civcraft.mc.namelayer.GroupAPI;
-import vg.civcraft.mc.namelayer.NameLayerPlugin;
-import vg.civcraft.mc.namelayer.group.Group;
+import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.GroupRankHandler;
+import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.listeners.PlayerListener;
-import vg.civcraft.mc.namelayer.permission.GroupRank;
-import vg.civcraft.mc.namelayer.permission.GroupRankHandler;
-import vg.civcraft.mc.namelayer.permission.PermissionType;
+import vg.civcraft.mc.namelayer.mc.GroupAPI;
+import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 public final class NameLayerTabCompletion {
 

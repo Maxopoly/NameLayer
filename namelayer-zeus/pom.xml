@@ -21,9 +21,9 @@
 			<version>1.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.github.civcraft</groupId>
-			<artifactId>artemis</artifactId>
-			<version>1.0.0</version>
+			<groupId>vg.civcraft.mc.namelayer</groupId>
+			<artifactId>namelayer-core</artifactId>
+			<version>3.0.0</version>
 		</dependency>
 	</dependencies>
 

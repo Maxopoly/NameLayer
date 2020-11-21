@@ -6,16 +6,15 @@ import org.bukkit.ChatColor;
 import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.requests.JoinGroup;
 
 public class RabbitJoinGroup extends RabbitGroupAction {
-	public enum FailureReason {
-		GROUP_DOES_NOT_EXIST, WRONG_PASSWORD, GROUP_HAS_NO_PASSWORD, ALREADY_MEMBER_OR_BLACKLISTED;
-	}
+
 	
 	private String submittedPassword;
 
-	public RabbitJoinGroup(UUID executor, String groupName, String submittedPassword) {
-		super(executor, groupName);
+	public RabbitJoinGroup(UUID executor, Group group, String submittedPassword) {
+		super(executor, group.getName());
 		this.submittedPassword = submittedPassword;
 	}
 
@@ -28,7 +27,7 @@ public class RabbitJoinGroup extends RabbitGroupAction {
 				ChatColor.GREEN, ChatColor.YELLOW, targetRank));
 				return;
 		}
-		FailureReason reason = FailureReason.valueOf(reply.getString("reason"));
+		JoinGroup.FailureReason reason = JoinGroup.FailureReason.valueOf(reply.getString("reason"));
 		switch (reason) {
 		case ALREADY_MEMBER_OR_BLACKLISTED:
 			sendMessage(String.format("%sYou either already are a member or blacklisted on %s", ChatColor.RED,
@@ -54,6 +53,11 @@ public class RabbitJoinGroup extends RabbitGroupAction {
 	protected void fillJson(JSONObject json) {
 		json.put("submittedPassword", submittedPassword);
 		
+	}
+	
+	@Override
+	public String getIdentifier() {
+		return JoinGroup.REQUEST_ID;
 	}
 
 }

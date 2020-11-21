@@ -12,7 +12,6 @@ import org.bukkit.Bukkit;
 
 import vg.civcraft.mc.namelayer.GroupAPI;
 import vg.civcraft.mc.namelayer.NameLayerPlugin;
-import vg.civcraft.mc.namelayer.database.GroupManagerDao;
 import vg.civcraft.mc.namelayer.group.Group;
 import vg.civcraft.mc.namelayer.group.log.abstr.LoggedGroupAction;
 import vg.civcraft.mc.namelayer.group.log.impl.AcceptInvitation;
@@ -36,6 +35,7 @@ import vg.civcraft.mc.namelayer.group.log.impl.RemoveMember;
 import vg.civcraft.mc.namelayer.group.log.impl.RemovePermission;
 import vg.civcraft.mc.namelayer.group.log.impl.RevokeInvite;
 import vg.civcraft.mc.namelayer.group.log.impl.SetPassword;
+import vg.civcraft.mc.namelayer.zeus.GroupManagerDao;
 
 public class LoggedGroupActionFactory {
 

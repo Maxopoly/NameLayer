@@ -6,11 +6,10 @@ import org.bukkit.ChatColor;
 import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.requests.DeleteGroup;
 
 public class RabbitDeleteGroup extends RabbitGroupAction {
-	public enum FailureReason {
-		GROUP_DOES_NOT_EXIST, NO_PERMISSION;
-	}
+
 
 	public RabbitDeleteGroup(UUID executor, String groupName) {
 		super(executor, groupName);
@@ -23,7 +22,7 @@ public class RabbitDeleteGroup extends RabbitGroupAction {
 			sendMessage(String.format("%s%s has been deleted", ChatColor.GREEN, group.getName()));
 			return;
 		}
-		FailureReason reason = FailureReason.valueOf(reply.getString("reason"));
+		DeleteGroup.FailureReason reason = DeleteGroup.FailureReason.valueOf(reply.getString("reason"));
 		switch (reason) {
 			case GROUP_DOES_NOT_EXIST:
 			groupDoesNotExistMessage();
@@ -41,6 +40,11 @@ public class RabbitDeleteGroup extends RabbitGroupAction {
 	protected void fillJson(JSONObject json) {
 		//Alrehaandled by super class
 		
+	}
+
+	@Override
+	public String getIdentifier() {
+		return DeleteGroup.REQUEST_ID;
 	}
 
 }
