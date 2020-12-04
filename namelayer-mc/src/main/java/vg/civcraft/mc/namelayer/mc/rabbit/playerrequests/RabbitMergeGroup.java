@@ -6,12 +6,13 @@ import org.bukkit.ChatColor;
 import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.requests.MergeGroups;
+import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
 public class RabbitMergeGroup extends RabbitGroupAction {
-
 	
-	Group groupToDelete;
+	private Group groupToDelete;
 
 	public RabbitMergeGroup(UUID executor, Group groupToKeep, Group groupToDelete) {
 		super(executor, groupToKeep.getName());
@@ -32,14 +33,13 @@ public class RabbitMergeGroup extends RabbitGroupAction {
 		case CANNOT_MERGE_INTO_SELF:
 			sendMessage(ChatColor.RED + "You can not merge a group into itself");
 			return;
-		case GROUP_DOES_NOT_EXIST:
+		case ORIGINAL_GROUP_DOES_NOT_EXIST:
 			groupDoesNotExistMessage();
 			return;
-		case HAS_INCOMING_LINKS:
-			sendMessage(String.format("%s%s has active links, you need to remove them before merging",
-					groupToDelete.getColoredName(), ChatColor.RED));
-			return;
-		case HAS_OUTGOING_LINKS:
+		case TARGET_GROUP_DOES_NOT_EXIST:
+			sendMessage(String.format("%sGroup: %s%s%s does not exist", ChatColor.RED, ChatColor.YELLOW, groupToDelete.getName(), ChatColor.RED));
+			return;	
+		case HAS_ACTIVE_LINKS:
 			sendMessage(String.format("%s%s has active links, you need to remove them before merging",
 					groupToDelete.getColoredName(), ChatColor.RED));
 			return;
@@ -47,7 +47,7 @@ public class RabbitMergeGroup extends RabbitGroupAction {
 			noPermissionMessage(missingPerm);
 			return;
 		case NO_PERMISSION_TARGET_GROUP:
-			noPermissionMessage(missingPerm);
+			MsgUtils.sendNoPermissionMsg(executor, NameLayerPermissions.MERGE_GROUP, groupToDelete.getColoredName());
 			return;
 		default:
 			break;
@@ -57,7 +57,7 @@ public class RabbitMergeGroup extends RabbitGroupAction {
 
 	@Override
 	protected void fillJson(JSONObject json) {
-		json.put("groupTDoelete", groupToDelete.getName());
+		json.put("groupToDelete", groupToDelete.getName());
 	}
 	
 	@Override

@@ -23,5 +23,10 @@ public abstract class MemberRankChange extends LoggedGroupAction {
 	protected void fillJson(JSONObject json) {
 		json.put("rank", rank);
 	}
+	
+	@Override
+	public LoggedGroupActionPersistence getPersistence() {
+		return new LoggedGroupActionPersistence(time, player, rank, null, null);
+	}
 
 }

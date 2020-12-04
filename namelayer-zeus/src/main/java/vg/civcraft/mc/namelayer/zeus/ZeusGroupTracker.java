@@ -1,29 +1,41 @@
 package vg.civcraft.mc.namelayer.zeus;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import com.github.civcraft.zeus.ZeusMain;
 import com.github.civcraft.zeus.rabbit.RabbitMessage;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.GroupRankHandler;
 import vg.civcraft.mc.namelayer.core.GroupTracker;
 import vg.civcraft.mc.namelayer.core.IllegalGroupStateException;
+import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddMemberMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.ChangeMemberRankMessage;
+import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.DeleteGroupMessage;
+import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.DeleteRankMessage;
+import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.MergeGroupMessage;
+import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RecacheGroupMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RemoveInviteMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RemoveMemberMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RenameGroupMessage;
+import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RenameRankMessage;
 
 public class ZeusGroupTracker extends GroupTracker {
 
-	private GroupManagerDao database;
+	private NameLayerDAO database;
+	private Map<Integer, Object> groupsBeingLoaded;
 
-	public ZeusGroupTracker(GroupManagerDao database) {
+	public ZeusGroupTracker(NameLayerDAO database) {
 		super();
 		this.database = database;
+		this.groupsBeingLoaded = new HashMap<>();
 	}
 
 	public void acceptInvite(Group group, UUID player) {
@@ -33,35 +45,138 @@ public class ZeusGroupTracker extends GroupTracker {
 			addPlayerToGroup(group, player, rank);
 		}
 	}
-	
+
 	@Override
 	public void renameGroup(Group group, String newName) {
 		synchronized (group) {
 			super.renameGroup(group, newName);
 			database.renameGroup(group, newName);
-			sendGroupUpdate(new RenameGroupMessage(group.getPrimaryId(), newName));
+			sendGroupUpdate(group, () -> new RenameGroupMessage(group.getPrimaryId(), newName));
 		}
 	}
 	
+	public void setMetaDataValue(Group group, String key, String value) {
+		group.setMetaData(key, value);
+	}
+	
+	public void renameRank(Group group, GroupRank rank, String newName) {
+		synchronized (group) {
+			super.renameRank(group, rank, newName);
+			database.updateRankName(group, rank);
+			sendGroupUpdate(group, () -> new RenameRankMessage(group.getPrimaryId(), rank.getId(), rank.getName()));
+		}
+	}
+	
+	
+
 	@Override
 	public void updatePlayerRankInGroup(Group group, UUID player, GroupRank rank) {
 		synchronized (group) {
 			super.updatePlayerRankInGroup(group, player, rank);
 			database.updateMember(player, group, rank);
-			sendGroupUpdate(new ChangeMemberRankMessage(group.getPrimaryId(), player, rank.getId()));
+			sendGroupUpdate(group, () -> new ChangeMemberRankMessage(group.getPrimaryId(), player, rank.getId()));
 		}
 	}
-	
+
+	@Override
 	public void removePlayerFromGroup(Group group, UUID player) {
 		synchronized (group) {
 			super.removePlayerFromGroup(group, player);
 			database.removeMember(player, group);
-			sendGroupUpdate(new RemoveMemberMessage(group.getPrimaryId(), player));
+			sendGroupUpdate(group, () -> new RemoveMemberMessage(group.getPrimaryId(), player));
 		}
 	}
 
-	public Group createGroup(String name, UUID creator) {
-		return null; // TODO
+	@Override
+	public void deleteRank(Group group, GroupRank rank) {
+		synchronized (group) {
+			super.deleteRank(group, rank);
+			database.deleteRank(group, rank);
+			sendGroupUpdate(group, () -> new DeleteRankMessage(group.getPrimaryId(), rank.getId()));
+		}
+	}
+
+	@Override
+	public void deleteGroup(Group group) {
+		synchronized (group) {
+			super.deleteGroup(group);
+			database.deleteGroup(group);
+			sendGroupUpdate(group, () -> new DeleteGroupMessage(group.getPrimaryId()));
+		}
+	}
+
+	public Group loadGroup(int id) {
+		Group result;
+		synchronized (groupsBeingLoaded) {
+			result = getGroup(id);
+			if (result != null) {
+				return result;
+			}
+			Object loadingKey = groupsBeingLoaded.get(id);
+			if (loadingKey != null) {
+				// already being loaded, we will block until the loading is done
+				synchronized (loadingKey) {
+					while (groupsBeingLoaded.containsKey(id)) {
+						try {
+							loadingKey.wait();
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+					return getGroup(id);
+				}
+			}
+			groupsBeingLoaded.put(id, new Object());
+		}
+		Group group = database.getGroup(id, getPermissionTracker());
+		addGroup(group);
+		Object lock = groupsBeingLoaded.remove(id);
+		synchronized (lock) {
+			lock.notifyAll();
+		}
+		return group;
+	}
+
+	public synchronized Group createGroup(String name, UUID creator) {
+		int groupID = database.createGroup(name, creator);
+		if (groupID == -1) {
+			return null;
+		}
+		Group group = new Group(name, groupID);
+		synchronized (group) {
+			Map<GroupRank, List<PermissionType>> permsToSave = new HashMap<>();
+			GroupRank owner = new GroupRank("Owner", GroupRankHandler.OWNER_ID, null);
+			GroupRankHandler handler = new GroupRankHandler(owner);
+			GroupRank admin = new GroupRank("Admin", GroupRankHandler.DEFAULT_ADMIN_ID, owner);
+			handler.putRank(admin);
+			GroupRank mod = new GroupRank("Mod", GroupRankHandler.DEFAULT_MOD_ID, admin);
+			handler.putRank(mod);
+			GroupRank member = new GroupRank("Member", GroupRankHandler.DEFAULT_MEMBER_ID, mod);
+			handler.putRank(member);
+			GroupRank defaultNonMember = new GroupRank("Default", GroupRankHandler.DEFAULT_NON_MEMBER_ID, owner);
+			handler.putRank(defaultNonMember);
+			GroupRank blacklisted = new GroupRank("Blacklisted", GroupRankHandler.DEFAULT_BLACKLIST_ID,
+					defaultNonMember);
+			handler.putRank(blacklisted);
+			for (GroupRank rank : handler.getAllRanks()) {
+				if (rank == owner) {
+					continue;
+				}
+				List<PermissionType> permList = new ArrayList<>();
+				for (PermissionType perm : getPermissionTracker().getAllPermissions()) {
+					if (perm.getDefaultPermLevels().getAllowedRankIds().contains(rank.getId())) {
+						rank.addPermission(perm);
+						permList.add(perm);
+					}
+				}
+				permsToSave.put(rank, permList);
+			}
+			handler.setDefaultPasswordJoinRank(member);
+			handler.setDefaultInvitationRank(member);
+			database.addAllPermissions(groupID, permsToSave);
+			addGroup(group);
+		}
+		return group;
 	}
 
 	public void blacklistPlayer(Group group, UUID player, GroupRank rank) {
@@ -69,26 +184,55 @@ public class ZeusGroupTracker extends GroupTracker {
 	}
 
 	public GroupRank createRank(Group group, String name, GroupRank parent) {
-		return null; //TODO 	
+		synchronized (group) {
+			//TODO
+		}
 	}
 
-	private static void sendGroupUpdate(RabbitMessage msg) {
-		ZeusMain.getInstance().getBroadcastInterestTracker().broadcastMessage(msg);
+	public void mergeGroups(Group toKeep, Group toRemove) {
+		if (toKeep.equals(toRemove)) {
+			throw new IllegalGroupStateException();
+		}
+		// Acquire locks in id order to avoid deadlocks
+		Group lowerID = toKeep.getPrimaryId() < toRemove.getPrimaryId() ? toKeep : toRemove;
+		Group upperID = toKeep.getPrimaryId() < toRemove.getPrimaryId() ? toRemove : toKeep;
+		synchronized (lowerID) {
+			synchronized (upperID) {
+				if (!toRemove.getIncomingLinks().isEmpty()) {
+					throw new IllegalGroupStateException();
+				}
+				if (!toRemove.getOutgoingLinks().isEmpty()) {
+					throw new IllegalGroupStateException();
+				}
+				deleteGroup(toRemove);
+				// ensure both groups exist on all clients that have one or the other
+				sendGroupUpdate(toRemove, () -> new RecacheGroupMessage(toKeep));
+				sendGroupUpdate(toKeep, () -> new RecacheGroupMessage(toRemove));
+				// Clients will issue delete based on the merge message and add the appropriate secondary id, we do not send it explicitly
+				sendGroupUpdate(toRemove, () -> new MergeGroupMessage(toRemove.getPrimaryId(), toKeep.getPrimaryId()));
+			}
+		}
 	}
 
+	private static void sendGroupUpdate(Group group, Supplier<RabbitMessage> msg) {
+		NameLayerZPlugin.getInstance().getGroupKnowledgeTracker().sendToInterestedServers(group, msg);
+	}
+
+	@Override
 	public void deleteInvite(Group group, UUID player) {
 		synchronized (group) {
 			super.deleteInvite(group, player);
 			database.removeGroupInvitation(player, group);
-			sendGroupUpdate(new RemoveInviteMessage(group.getPrimaryId(), player));
+			sendGroupUpdate(group, () -> new RemoveInviteMessage(group.getPrimaryId(), player));
 		}
 	}
 
+	@Override
 	public void addPlayerToGroup(Group group, UUID player, GroupRank rank) {
 		synchronized (group) {
 			super.addPlayerToGroup(group, player, rank);
 			database.addMember(player, group, rank);
-			sendGroupUpdate(new AddMemberMessage(group.getPrimaryId(), player, rank.getId()));
+			sendGroupUpdate(group, () -> new AddMemberMessage(group.getPrimaryId(), player, rank.getId()));
 		}
 	}
 

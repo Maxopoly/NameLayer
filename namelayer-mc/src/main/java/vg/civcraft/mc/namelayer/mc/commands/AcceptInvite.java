@@ -10,7 +10,11 @@ import com.github.civcraft.artemis.ArtemisPlugin;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
+import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.mc.GroupAPI;
+import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitAcceptInvite;
+import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
 @CivCommand(id = "nlag")
 public class AcceptInvite extends StandaloneCommand {
@@ -26,8 +30,13 @@ public class AcceptInvite extends StandaloneCommand {
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		Player player = (Player) sender;
+		Group group = GroupAPI.getGroup(args [0]);
+		if (group == null) {
+			MsgUtils.sendGroupNotExistMsg(player.getUniqueId(), args [0]);
+			return true;
+		}
 		ArtemisPlugin.getInstance().getRabbitHandler()
-				.sendMessage(new RabbitAcceptInvite(player.getUniqueId(), args[0]));
+				.sendMessage(new RabbitAcceptInvite(player.getUniqueId(), group));
 		return true;
 	}
 }

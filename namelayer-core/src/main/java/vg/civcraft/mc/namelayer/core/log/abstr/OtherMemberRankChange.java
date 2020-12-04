@@ -24,5 +24,9 @@ public abstract class OtherMemberRankChange extends MemberRankChange {
 		super.fillJson(json);
 		json.put("victim", affectedPlayer);
 	}
-
+	
+	@Override
+	public LoggedGroupActionPersistence getPersistence() {
+		return new LoggedGroupActionPersistence(time, player, rank, affectedPlayer.toString(), null);
+	}
 }

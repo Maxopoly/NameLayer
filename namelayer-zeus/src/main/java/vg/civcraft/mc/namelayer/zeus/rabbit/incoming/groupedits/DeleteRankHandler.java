@@ -31,7 +31,7 @@ public class DeleteRankHandler extends GroupRequestHandler {
 					.getPermission(NameLayerPermissions.DELETE_RANK);
 			if (!getGroupTracker().hasAccess(group, executor, perm)) {
 				Map<String, Object> repValues = new HashMap<>();
-				repValues.put("missing_perm", NameLayerPermissions.DELETE_RANK);
+				repValues.put("missing_perm", perm);
 				sendReject(ticket, DeleteRank.REPLY_ID, sendingServer, DeleteRank.FailureReason.NO_PERMISSION,
 						repValues);
 				return;
@@ -39,8 +39,7 @@ public class DeleteRankHandler extends GroupRequestHandler {
 			int rankToDeleteID = data.getInt("rankToDelete");
 			GroupRank rankToDelete = rankHandler.getRank(rankToDeleteID);
 			if (rankToDelete == null) {
-				sendReject(ticket, DeleteRank.REPLY_ID, sendingServer, DeleteRank.FailureReason.RANK_DOES_NOT_EXIST,
-						new HashMap<>());
+				sendReject(ticket, DeleteRank.REPLY_ID, sendingServer, DeleteRank.FailureReason.RANK_DOES_NOT_EXIST);
 				return;
 			}
 			if (!rankToDelete.getChildren(false).isEmpty()) {
@@ -76,7 +75,7 @@ public class DeleteRankHandler extends GroupRequestHandler {
 					return;
 				}
 			}
-			rankHandler.deleteRank(rankToDelete);
+			getGroupTracker().deleteRank(group, rankToDelete);
 			sendAccept(ticket, DeleteRank.REPLY_ID, sendingServer);
 		}
 

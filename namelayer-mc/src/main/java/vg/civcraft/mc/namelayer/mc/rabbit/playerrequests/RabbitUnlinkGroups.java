@@ -63,7 +63,7 @@ public class RabbitUnlinkGroups extends RabbitGroupAction {
 
 	@Override
 	protected void fillJson(JSONObject json) {
-		json.put("targetGroup", targetGroup);
+		json.put("targetGroup", targetGroup.getName());
 		json.put("originatingRank", originatingRank.getId());
 		json.put("targetRank", targetRank.getId());
 		

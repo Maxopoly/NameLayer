@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupAction;
+import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupActionPersistence;
 
 public class MergeGroup extends LoggedGroupAction {
 	
@@ -29,6 +30,15 @@ public class MergeGroup extends LoggedGroupAction {
 	@Override
 	protected void fillJson(JSONObject json) {
 		json.put("group_merged", groupMergedIn);
+	}
+
+	@Override
+	public LoggedGroupActionPersistence getPersistence() {
+		return new LoggedGroupActionPersistence(time, player, null, groupMergedIn, null);
+	}
+	
+	public static MergeGroup load(LoggedGroupActionPersistence persist) {
+		return new MergeGroup(persist.getTimeStamp(), persist.getPlayer(), persist.getName());
 	}
 
 }

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
 /**
  * The different ranks players can have in a group. Ranks can dynamically be
  * register, deleted and renamed. Each group has its own instance of this class
@@ -22,7 +23,8 @@ public class GroupRankHandler {
 	public static final int DEFAULT_ADMIN_ID = 1;
 	public static final int DEFAULT_MOD_ID = 2;
 	public static final int DEFAULT_MEMBER_ID = 3;
-	private static final int DEFAULT_NON_MEMBER_ID = 4;
+	public static final int DEFAULT_NON_MEMBER_ID = 4;
+	public static final int DEFAULT_BLACKLIST_ID = 5;
 
 	public GroupRankHandler(GroupRank root) {
 		this.root = root;
@@ -75,6 +77,16 @@ public class GroupRankHandler {
 	}
 
 	/**
+	 * Sets the rank to which players are invited if no explicit rank is specified
+	 * in the command
+	 * 
+	 * @param rank Rank implicitly invited to
+	 */
+	public void setDefaultInvitationRank(GroupRank rank) {
+		this.defaultInvitationRank = rank;
+	}
+
+	/**
 	 * Retrieves a Rank by it's id
 	 * 
 	 * @param id
@@ -103,10 +115,9 @@ public class GroupRankHandler {
 	}
 
 	/**
-	 * Each instance has an undeleteable rank, which is initially called
-	 * "Owner" and will always be the root of the tree graph representing this
-	 * instance's permission hierarchy. This rank will additionally always
-	 * have the id 0.
+	 * Each instance has an undeleteable rank, which is initially called "Owner" and
+	 * will always be the root of the tree graph representing this instance's
+	 * permission hierarchy. This rank will additionally always have the id 0.
 	 * 
 	 * @return Owner player type
 	 */
@@ -152,10 +163,19 @@ public class GroupRankHandler {
 	}
 
 	/**
-	 * Deletes the given rank from this instance. If this player type still
-	 * has any children, they will all be deleted recursively
+	 * Sets the rank players get when they join the group by password
 	 * 
-	 * @param rank    Rank to delete
+	 * @param rank Rank players get upon joining by password
+	 */
+	public void setDefaultPasswordJoinRank(GroupRank rank) {
+		this.defaultPasswordJoinRank = rank;
+	}
+
+	/**
+	 * Deletes the given rank from this instance. If this player type still has any
+	 * children, they will all be deleted recursively
+	 * 
+	 * @param rank Rank to delete
 	 */
 	public void deleteRank(GroupRank rank) {
 		List<GroupRank> types = rank.getChildren(true);
@@ -231,10 +251,10 @@ public class GroupRankHandler {
 	/**
 	 * Renames the given rank and updates it's name to the given one
 	 * 
-	 * @param rank      Rank to update
-	 * @param name      New name for the player type
+	 * @param rank Rank to update
+	 * @param name New name for the player type
 	 */
-	public void renameType(GroupRank rank, String name) {
+	public void renameRank(GroupRank rank, String name) {
 		ranksByName.remove(rank.getName().toLowerCase());
 		rank.setName(name);
 		ranksByName.put(name.toLowerCase(), rank);

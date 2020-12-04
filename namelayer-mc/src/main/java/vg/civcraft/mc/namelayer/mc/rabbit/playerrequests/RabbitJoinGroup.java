@@ -6,6 +6,8 @@ import org.bukkit.ChatColor;
 import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.GroupRankHandler;
 import vg.civcraft.mc.namelayer.core.requests.JoinGroup;
 
 public class RabbitJoinGroup extends RabbitGroupAction {
@@ -22,9 +24,11 @@ public class RabbitJoinGroup extends RabbitGroupAction {
 	public void handleReply(JSONObject reply, boolean success) {
 		Group group = getGroup();
 		if (success) {
-			String targetRank = reply.getString("targetRank");
+			int rankID = reply.getInt("targetRank");
+			GroupRankHandler handler = group.getGroupRankHandler();
+			GroupRank targetRank = handler.getRank(rankID);
 			sendMessage(String.format("%You have been added to %s%s as a %s%s", ChatColor.GREEN, group.getColoredName(),
-				ChatColor.GREEN, ChatColor.YELLOW, targetRank));
+				ChatColor.GREEN, ChatColor.YELLOW, targetRank.getName()));
 				return;
 		}
 		JoinGroup.FailureReason reason = JoinGroup.FailureReason.valueOf(reply.getString("reason"));

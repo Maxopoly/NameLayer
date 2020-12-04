@@ -31,7 +31,7 @@ public class CreateGroupHandler extends GroupRequestHandler {
 				sendReject(ticket, CreateGroup.REPLY_ID, sendingServer, CreateGroup.FailureReason.UNKNOWN_ERROR);
 				return;
 			}
-			sendReply(sendingServer, new DynamicRabbitMessage(ticket, CreateGroup.REPLY_ID, new HashMap<>()));
+			sendAccept(ticket, CreateGroup.REPLY_ID, sendingServer);
 		}
 
 	}

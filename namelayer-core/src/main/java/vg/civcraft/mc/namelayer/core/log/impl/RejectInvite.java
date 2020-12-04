@@ -2,6 +2,7 @@ package vg.civcraft.mc.namelayer.core.log.impl;
 
 import java.util.UUID;
 
+import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.core.log.abstr.MemberRankChange;
 
 public class RejectInvite extends MemberRankChange {
@@ -15,6 +16,10 @@ public class RejectInvite extends MemberRankChange {
 	@Override
 	public String getIdentifier() {
 		return ID;
+	}
+	
+	public static RejectInvite load(LoggedGroupActionPersistence persist) {
+		return new RejectInvite(persist.getTimeStamp(), persist.getPlayer(), persist.getRank());
 	}
 
 }

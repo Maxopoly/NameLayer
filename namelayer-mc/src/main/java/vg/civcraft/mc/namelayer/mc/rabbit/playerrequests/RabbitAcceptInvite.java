@@ -23,13 +23,6 @@ public class RabbitAcceptInvite extends RabbitGroupAction {
 		if (success) {
 			int rankId = reply.getInt("rank_id");
 			GroupRank rank = group.getGroupRankHandler().getRank(rankId);
-			GroupTracker groupTrack = NameLayerPlugin.getInstance().getGroupTracker();
-			groupTrack.addPlayerToGroup(group, executor, rank);
-			groupTrack.deleteInvite(group, executor);
-			// TODO group.getActionLog().addAction(new
-			// AcceptInvitation(System.currentTimeMillis(), executor, rank.getName()),
-			// true);
-			// TODO PlayerListener.removeNotification(executor, group);
 			sendMessage(String.format("%sYou have been added to %s%s as a %s%s", ChatColor.GREEN,
 					group.getColoredName(), ChatColor.GREEN, ChatColor.YELLOW, rank.getName()));
 			return;

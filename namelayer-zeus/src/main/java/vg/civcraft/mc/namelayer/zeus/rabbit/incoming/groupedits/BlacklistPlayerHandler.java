@@ -1,5 +1,7 @@
 package vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.json.JSONObject;
@@ -35,7 +37,9 @@ public class BlacklistPlayerHandler extends GroupRequestHandler {
 			}
 			PermissionType requiredPermission = getGroupTracker().getPermissionTracker().getInvitePermission(rank.getId());
 			if (!getGroupTracker().hasAccess(group, executor, requiredPermission)) {
-				sendReject(ticket, BlacklistPlayer.REPLY_ID, sendingServer, BlacklistPlayer.FailureReason.NO_PERMISSION);
+				Map<String, Object> repValues = new HashMap<>();
+				repValues.put("missing_perm", requiredPermission);
+				sendReject(ticket, BlacklistPlayer.REPLY_ID, sendingServer, BlacklistPlayer.FailureReason.NO_PERMISSION, repValues);
 				return;
 			}
 			if (!group.getGroupRankHandler().isBlacklistedRank(rank)) {

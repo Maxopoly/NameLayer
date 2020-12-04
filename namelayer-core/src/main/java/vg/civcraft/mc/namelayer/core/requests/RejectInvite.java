@@ -8,6 +8,6 @@ public final class RejectInvite {
 	public static final String REPLY_ID = "nl_ans_reject_invite";
 	
 	public enum FailureReason {
-		NOT_INVITED;
+		NOT_INVITED, GROUP_DOES_NOT_EXIST;
 	}
 }

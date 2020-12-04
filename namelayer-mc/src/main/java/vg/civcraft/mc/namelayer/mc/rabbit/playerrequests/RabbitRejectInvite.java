@@ -28,6 +28,9 @@ public class RabbitRejectInvite extends RabbitGroupAction {
 			case NOT_INVITED:
 				sendMessage(String.format("%sYou have not been invited to %s", ChatColor.RED, group.getColoredName()));
 				return;
+			case GROUP_DOES_NOT_EXIST:
+				groupDoesNotExistMessage();	
+				return;
 			default:
 				break;
 		}

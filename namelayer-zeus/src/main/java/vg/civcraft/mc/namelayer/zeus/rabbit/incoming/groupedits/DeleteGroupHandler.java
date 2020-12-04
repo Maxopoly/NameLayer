@@ -26,7 +26,7 @@ public class DeleteGroupHandler extends GroupRequestHandler {
 					.getPermission(NameLayerPermissions.DELETE_GROUP);
 			if (!getGroupTracker().hasAccess(group, executor, perm)) {
 				Map<String, Object> repValues = new HashMap<>();
-				repValues.put("missing_perm", NameLayerPermissions.DELETE_GROUP);
+				repValues.put("missing_perm", perm);
 				sendReject(ticket, DeleteGroup.REPLY_ID, sendingServer, DeleteGroup.FailureReason.NO_PERMISSION,
 						repValues);
 				return;

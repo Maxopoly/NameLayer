@@ -11,8 +11,9 @@ public abstract class LinkStateChange extends LoggedGroupAction {
 	protected final String otherGroup;
 	protected final String otherGroupRank;
 	protected final boolean isSelfOrigin;
-	
-	public LinkStateChange(long time, UUID player, String ownRankLinked, String otherGroup, String otherGroupRank, boolean isSelfOrigin) {
+
+	public LinkStateChange(long time, UUID player, String ownRankLinked, String otherGroup, String otherGroupRank,
+			boolean isSelfOrigin) {
 		super(time, player);
 		Preconditions.checkNotNull(ownRankLinked, "Own rank may not be null");
 		Preconditions.checkNotNull(otherGroup, "Other group may not be null");
@@ -22,27 +23,34 @@ public abstract class LinkStateChange extends LoggedGroupAction {
 		this.otherGroupRank = otherGroup;
 		this.isSelfOrigin = isSelfOrigin;
 	}
-	
+
 	protected void fillJson(JSONObject json) {
 		json.put("own_rank", ownRankLinked);
 		json.put("other_group", otherGroup);
 		json.put("other_rank", otherGroupRank);
 		json.put("self_origin", isSelfOrigin);
 	}
-	
+
 	public String getOwnRankLinked() {
 		return ownRankLinked;
 	}
-	
+
 	public String getOtherGroup() {
 		return otherGroup;
 	}
-	
+
 	public String getRankLinkedOtherGroup() {
 		return otherGroupRank;
 	}
-	
+
 	public boolean isSelfOrigin() {
 		return isSelfOrigin;
+	}
+
+	@Override
+	public LoggedGroupActionPersistence getPersistence() {
+		String extra = isSelfOrigin ? "t" : "f";
+		extra += otherGroupRank;
+		return new LoggedGroupActionPersistence(time, player, ownRankLinked, otherGroup, extra);
 	}
 }

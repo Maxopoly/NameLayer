@@ -44,5 +44,7 @@ public abstract class LoggedGroupAction {
 		fillJson(json);
 		return json;
 	}
+	
+	public abstract LoggedGroupActionPersistence getPersistence();
 
 }

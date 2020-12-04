@@ -4,8 +4,6 @@ import java.util.UUID;
 
 import org.json.JSONObject;
 
-import vg.civcraft.mc.namelayer.core.GroupRank;
-
 public abstract class GroupMemberRankModifyMessage extends GroupMemberModifyMessage {
 
 	private int rankID;

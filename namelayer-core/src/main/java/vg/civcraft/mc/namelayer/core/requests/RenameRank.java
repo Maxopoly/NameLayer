@@ -8,6 +8,6 @@ public final class RenameRank {
 	public static final String REPLY_ID = "nl_ans_rename_rank";
 	
 	public enum FailureReason {
-		GROUP_DOES_NOT_EXIST, NO_PERMISSION, SAME_NAME, NAME_ALREADY_TAKEN;
+		GROUP_DOES_NOT_EXIST, NO_PERMISSION, SAME_NAME, NAME_ALREADY_TAKEN, BAD_NAME, RANK_DOES_NOT_EXIST;
 	}
 }

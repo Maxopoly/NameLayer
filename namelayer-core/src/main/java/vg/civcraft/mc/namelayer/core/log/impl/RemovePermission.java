@@ -2,6 +2,7 @@ package vg.civcraft.mc.namelayer.core.log.impl;
 
 import java.util.UUID;
 
+import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.core.log.abstr.PermissionEdit;
 
 public class RemovePermission extends PermissionEdit {
@@ -15,6 +16,10 @@ public class RemovePermission extends PermissionEdit {
 	@Override
 	public String getIdentifier() {
 		return ID;
+	}
+	
+	public static RemovePermission load(LoggedGroupActionPersistence persist) {
+		return new RemovePermission(persist.getTimeStamp(), persist.getPlayer(), persist.getRank(),persist.getName());
 	}
 
 }

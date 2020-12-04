@@ -2,6 +2,7 @@ package vg.civcraft.mc.namelayer.core.log.impl;
 
 import java.util.UUID;
 
+import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.core.log.abstr.MemberRankChange;
 
 public class LeaveGroup extends MemberRankChange {
@@ -15,6 +16,10 @@ public class LeaveGroup extends MemberRankChange {
 	@Override
 	public String getIdentifier() {
 		return ID;
+	}
+	
+	public static LeaveGroup load(LoggedGroupActionPersistence persist) {
+		return new LeaveGroup(persist.getTimeStamp(), persist.getPlayer(), persist.getRank());
 	}
 
 }

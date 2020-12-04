@@ -44,6 +44,12 @@ public class RabbitRenameRank extends RabbitGroupAction {
 		case SAME_NAME:
 			sendMessage(String.format("%sYou can not rename a rank to the exact same name", ChatColor.RED));
 			return;
+		case BAD_NAME:
+			sendMessage(String.format("%sThe name you entered contains illegal characters", ChatColor.RED));
+			return;	
+		case RANK_DOES_NOT_EXIST:
+			sendMessage(String.format("%sThis rank no longer exists", ChatColor.RED));
+			return;
 		default:
 			break;
 			

@@ -20,6 +20,11 @@ public abstract class PermissionEdit extends MemberRankChange {
 		return permission;
 	}
 	
+	@Override
+	public LoggedGroupActionPersistence getPersistence() {
+		return new LoggedGroupActionPersistence(time, player, rank, permission, null);
+	}
+	
 	protected void fillJson(JSONObject json) {
 		super.fillJson(json);
 		json.put("permission", permission);

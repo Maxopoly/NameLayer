@@ -3,6 +3,7 @@ package vg.civcraft.mc.namelayer.core;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -39,6 +40,26 @@ public class GroupTracker {
 
 	public void addInvite(UUID toInvite, GroupRank rank, Group group) {
 		group.addInvite(toInvite, rank);
+	}
+	
+	public void addPermissionToRank(Group group, GroupRank rank, PermissionType permission) {
+		rank.addPermission(permission);
+	}
+	
+	public void removePermissionFromRank(Group group, GroupRank rank, PermissionType permission) {
+		rank.removePermission(permission);
+	}
+	
+	public void addRank(Group group, GroupRank rank) {
+		group.getGroupRankHandler().putRank(rank);
+	}
+	
+	public void renameRank(Group group, GroupRank rank, String newName) {
+		group.getGroupRankHandler().renameRank(rank,newName);
+	}
+	
+	public void setMetaDataValue(Group group, String key, String value) {
+		group.setMetaData(key, value);
 	}
 
 	public void addGroup(Group group) {
@@ -79,11 +100,29 @@ public class GroupTracker {
 	}
 
 	public void deleteGroup(Group group) {
+		groupsByName.remove(group.getName().toLowerCase());
+		groupsById.remove(group.getPrimaryId());
+		for(int id : group.getSecondaryIds()) {
+			groupsById.remove(id);
+		}
+		for(UUID member : group.getAllTracked()) {
+			Set<Group> perPlayer = groupsByMember.get(member);
+			if (perPlayer != null) {
+				perPlayer.remove(group);
+			}
+		}
 
 	}
 	
 	public void deleteRank(Group group, GroupRank rank) {
-		
+		List<GroupRank> children = rank.getChildren(true);
+		if (!children.isEmpty()) {
+			throw new IllegalGroupStateException();
+		}
+		if (!group.getAllTrackedByType(rank).isEmpty()) {
+			throw new IllegalGroupStateException();
+		}
+		group.getGroupRankHandler().deleteRank(rank);
 	}
 
 	public Group getGroup(String name) {

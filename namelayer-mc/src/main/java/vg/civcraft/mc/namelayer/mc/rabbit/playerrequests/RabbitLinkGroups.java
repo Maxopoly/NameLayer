@@ -44,6 +44,18 @@ public class RabbitLinkGroups extends RabbitGroupAction {
 		case NO_PERMISSION_TARGET_GROUP:
 			noPermissionMessage(missingPerm);
 			return;
+		case ORIGINAL_GROUP_DOES_NOT_EXIST:
+			sendMessage(String.format("%s%s%s does not exist", ChatColor.YELLOW, getGroup().getName(), ChatColor.RED));
+			return;
+		case TARGET_GROUP_DOES_NOT_EXIST:
+			sendMessage(String.format("%s%s%s does not exist", ChatColor.YELLOW, targetGroup.getName(), ChatColor.RED));
+			return;
+		case ORIGINAL_GROUP_RANK_DOES_NOT_EXIST:
+			sendMessage(String.format("%s%s%s rank does not exist", ChatColor.YELLOW,  originatingRank.getName(), ChatColor.RED));
+			return;
+		case TARGET_GROUP_RANK_DOES_NOT_EXIST:
+			sendMessage(String.format("%s%s%s rank does not exist", ChatColor.YELLOW,  targetRank.getName(), ChatColor.RED));
+			return;				
 		default:
 			break;
 			

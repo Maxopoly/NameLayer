@@ -8,6 +8,6 @@ public class InvitePlayer {
 	public static final String REPLY_ID = "nl_ans_invite_player";
 	
 	public enum FailureReason {
-		GROUP_DOES_NOT_EXIST, PLAYER_DOES_NOT_EXIST, NO_PERMISSION;
+		GROUP_DOES_NOT_EXIST, PLAYER_DOES_NOT_EXIST, RANK_DOES_NOT_EXIST, NO_PERMISSION, BLACKLISTED_RANK, ALREADY_INVITED;
 	}
 }

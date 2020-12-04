@@ -2,6 +2,7 @@ package vg.civcraft.mc.namelayer.core.log.impl;
 
 import java.util.UUID;
 
+import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.core.log.abstr.MemberRankChange;
 
 public class DeleteRank extends MemberRankChange {
@@ -17,4 +18,7 @@ public class DeleteRank extends MemberRankChange {
 		return ID;
 	}
 	
+	public static DeleteRank load(LoggedGroupActionPersistence persist) {
+		return new DeleteRank(persist.getTimeStamp(), persist.getPlayer(), persist.getRank());
+	}
 }

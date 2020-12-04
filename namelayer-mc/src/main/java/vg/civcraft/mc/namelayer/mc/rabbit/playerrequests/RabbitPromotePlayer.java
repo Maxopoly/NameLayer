@@ -54,6 +54,12 @@ public class RabbitPromotePlayer extends RabbitGroupAction {
 					playerName, ChatColor.RED, ChatColor.GOLD, oldRank.getName(),
 					ChatColor.RED, group.getColoredName()));
 			return;
+		case CANNOT_CHANGE_YOURSELF:
+			sendMessage(ChatColor.RED + "You cannot change your own rank");
+			return;
+		case NOT_A_MEMBER:
+			sendMessage(String.format("%s%s%s is not a member of the group or you do not have permission to modify their rank",
+					ChatColor.YELLOW, playerName, ChatColor.RED));	
 		default:
 			break;
 			

@@ -47,6 +47,18 @@ public class RabbitInvitePlayer extends RabbitGroupAction {
 		case PLAYER_DOES_NOT_EXIST:
 			playerDoesNotExistMessage(playerName);
 			return;
+		case RANK_DOES_NOT_EXIST:
+			sendMessage(String.format("%sThe rank you invited %s%s%s to does not exist", ChatColor.RED, ChatColor.YELLOW, targetRank.getName(), ChatColor.RED));
+			return;
+		case ALREADY_INVITED:
+			sendMessage(String.format("%sThe player %s%s%s is already tracked for %s%s. You have to modify their rank instead of inviting them.",
+					ChatColor.RED, ChatColor.YELLOW, playerName, ChatColor.RED,
+					group.getColoredName(), ChatColor.RED));
+			return;
+		case BLACKLISTED_RANK:
+			sendMessage(String.format("%sYou can not invite players to the blacklist rank %s%s%s in %s", ChatColor.RED,
+					ChatColor.GOLD, targetRank.getName(), ChatColor.RED, group.getColoredName()));
+			return;		
 		default:
 			break;
 

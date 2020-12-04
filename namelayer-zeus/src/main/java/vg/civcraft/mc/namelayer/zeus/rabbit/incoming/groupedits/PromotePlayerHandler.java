@@ -1,5 +1,71 @@
 package vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits;
 
-public class PromotePlayerHandler {
+import java.util.UUID;
+
+import org.json.JSONObject;
+
+import com.github.civcraft.zeus.ZeusMain;
+import com.github.civcraft.zeus.servers.ConnectedServer;
+
+import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.GroupRankHandler;
+import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.core.requests.PromotePlayer;
+
+public class PromotePlayerHandler extends GroupRequestHandler {
+
+	@Override
+	public void handle(String ticket, ConnectedServer sendingServer, JSONObject data, UUID executor, Group group) {
+		if (group == null) {
+			sendReject(ticket, PromotePlayer.REPLY_ID, sendingServer, PromotePlayer.FailureReason.GROUP_DOES_NOT_EXIST);
+			return;
+		}
+		String targetPlayerName = data.getString("playerName");
+		UUID targetPlayer = ZeusMain.getInstance().getPlayerManager().getOfflinePlayerUUID(targetPlayerName);
+		if (targetPlayer == null) {
+			sendReject(ticket, PromotePlayer.REPLY_ID, sendingServer, PromotePlayer.FailureReason.PLAYER_DOES_NOT_EXIST);
+			return;
+		}
+		synchronized (group) {
+			if (targetPlayer.equals(executor)) {
+				sendReject(ticket, PromotePlayer.REPLY_ID, sendingServer, PromotePlayer.FailureReason.CANNOT_CHANGE_YOURSELF);
+				return;
+			}
+			GroupRankHandler handler = group.getGroupRankHandler();
+			GroupRank targetType = handler.getRank(data.getInt("targetRank"));
+			if (targetType == null) {
+				sendReject(ticket, PromotePlayer.REPLY_ID, sendingServer, PromotePlayer.FailureReason.RANK_DOES_NOT_EXIST);
+				return;
+			}
+			PermissionType permNeeded = getGroupTracker().getPermissionTracker().getInvitePermission(targetType.getId());
+			if (!getGroupTracker().hasAccess(group, executor, permNeeded)) {
+				sendReject(ticket, PromotePlayer.REPLY_ID, sendingServer, PromotePlayer.FailureReason.NO_PERMISSION);
+				return;
+			}
+			GroupRank currentRank = group.getRank(targetPlayer);
+			if (currentRank == handler.getDefaultNonMemberRank()) {
+				sendReject(ticket, PromotePlayer.REPLY_ID, sendingServer, PromotePlayer.FailureReason.NOT_A_MEMBER);
+				return;
+			}
+			//TODO
+			PermissionType removalPerm = getGroupTracker().getPermissionTracker().getRemovePermission(currentRank.getId());
+			if (!getGroupTracker().hasAccess(group, executor, removalPerm)) {
+				sendReject(ticket, PromotePlayer.REPLY_ID, sendingServer, PromotePlayer.FailureReason.NO_PERMISSION);
+				return;
+			}
+			if (handler.isBlacklistedRank(currentRank) && !handler.isBlacklistedRank(targetType)) {
+				sendReject(ticket, PromotePlayer.REPLY_ID, sendingServer, PromotePlayer.FailureReason.BLACKLISTED);
+				return;
+			}
+			getGroupTracker().updatePlayerRankInGroup(group, targetPlayer, targetType);
+			sendAccept(ticket, PromotePlayer.REPLY_ID, sendingServer);
+		}
+	}
+
+	@Override
+	public String getIdentifier() {
+		return PromotePlayer.REQUEST_ID;
+	}
 
 }

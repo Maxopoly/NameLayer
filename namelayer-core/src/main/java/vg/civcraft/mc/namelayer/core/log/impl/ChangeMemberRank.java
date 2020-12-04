@@ -6,6 +6,7 @@ import org.json.JSONObject;
 
 import com.google.common.base.Preconditions;
 
+import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.core.log.abstr.OtherMemberRankChange;
 
 public class ChangeMemberRank extends OtherMemberRankChange {
@@ -32,5 +33,14 @@ public class ChangeMemberRank extends OtherMemberRankChange {
 	@Override
 	public String getIdentifier() {
 		return ID;
+	}
+	
+	@Override
+	public LoggedGroupActionPersistence getPersistence() {
+		return new LoggedGroupActionPersistence(time, player, rank, affectedPlayer.toString(), oldRank);
+	}
+	
+	public static ChangeMemberRank load(LoggedGroupActionPersistence persist) {
+		return new ChangeMemberRank(persist.getTimeStamp(), persist.getPlayer(), persist.getRank(), UUID.fromString(persist.getName()), persist.getExtraText());
 	}
 }

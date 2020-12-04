@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -416,30 +417,54 @@ public class Group implements Comparable<Group>, JSONSerializable {
 				group.addSecondaryId(secondaryIds.getInt(i));
 			}
 		}
+		GroupRankHandler rankHandler = null;
 		JSONArray rankArray = json.getJSONArray("ranks");
-		for(int i = 0; i < rankArray.length(); i++) {
+		for (int i = 0; i < rankArray.length(); i++) {
 			JSONObject rankObject = rankArray.getJSONObject(i);
+			if (rankHandler == null) { // root node
+				GroupRank root = rankFromJson(rankObject, null);
+				rankHandler = new GroupRankHandler(root);
+				group.setGroupRankHandler(rankHandler);
+				continue;
+			}
+			int parentID = rankObject.getInt("parent_id");
+			GroupRank parent = rankHandler.getRank(parentID);
+			GroupRank rank = rankFromJson(rankObject, parent);
+			parent.addChild(rank);
+			group.getGroupRankHandler().putRank(rank);
+		}
+		JSONObject memberObj = json.getJSONObject("members");
+		for (String key : memberObj.keySet()) {
+			UUID member = UUID.fromString(key);
+			int rankId = memberObj.getInt(key);
+			GroupRank rank = rankHandler.getRank(rankId);
+			group.addToTracking(member, rank);
+		}
+		JSONObject inviteObj = json.optJSONObject("invites");
+		if (inviteObj != null) {
+			for (String key : memberObj.keySet()) {
+				UUID uuid = UUID.fromString(key);
+				int rankId = memberObj.getInt(key);
+				GroupRank rank = rankHandler.getRank(rankId);
+				group.addInvite(uuid,rank);
+			}
 		}
 		return group;
 	}
 
-	public static GroupRank fromJson(JSONObject json) {
+	private static GroupRank rankFromJson(JSONObject json, GroupRank parent) {
 		int id = json.getInt("id");
 		String name = json.getString("name");
 		JSONArray permArray = json.optJSONArray("perms");
-		List<PermissionType> perms = new ArrayList<>();
+		GroupRank rank = new GroupRank(name, id, parent);
 		if (permArray != null) {
+			List<Integer> perms = new ArrayList<>(permArray.length());
 			for (int i = 0; i < permArray.length(); i++) {
 				int permID = permArray.getInt(i);
-				PermissionType perm = PermissionType.getPermission(permID);
-				if (perm == null) {
-					throw new IllegalGroupStateException();
-				}
-				perms.add(perm);
+				perms.add(permID);
 			}
+			rank.setAllPermissions(perms);
 		}
-		GroupRank rank = new GroupRank(name, id, null);
-		rank.perms = perms;
 		return rank;
 	}
 
@@ -459,7 +484,46 @@ public class Group implements Comparable<Group>, JSONSerializable {
 
 	@Override
 	public JSONObject serialize() {
-		// TODO Auto-generated method stub
-		return null;
+		JSONObject json = new JSONObject();
+		json.put("id", id);
+		json.put("name", name);
+		if (!secondaryIds.isEmpty()) {
+			JSONArray secondaryIdArray = new JSONArray(secondaryIds);
+			json.put("secondary_ids", secondaryIdArray);
+		}
+		JSONArray rankArray = new JSONArray();
+		List<GroupRank> ranksToAdd = new LinkedList<>();
+		// Insert ranks in BFS order to make sure parent is always available when
+		// parsing in order
+		ranksToAdd.add(rankHandler.getOwnerRank());
+		while (!ranksToAdd.isEmpty()) {
+			GroupRank current = ranksToAdd.remove(0);
+			for (GroupRank child : current.getChildren(false)) {
+				ranksToAdd.add(child);
+			}
+			JSONObject currentJson = new JSONObject();
+			currentJson.put("id", current.getId());
+			currentJson.put("name", current.getName());
+			if (current.getParent() != null) {
+				currentJson.put("parent_id", current.getParent().getId());
+			}
+			JSONArray permArray = new JSONArray(current.getAllPermissions());
+			currentJson.put("perms", permArray);
+			rankArray.put(currentJson);
+		}
+		json.put("ranks", rankArray);
+		JSONObject memberObj = new JSONObject();
+		for (Entry<UUID, GroupRank> memberEntry : players.entrySet()) {
+			memberObj.put(memberEntry.getKey().toString(), memberEntry.getValue().getId());
+		}
+		json.put("members", memberObj);
+		if (!invites.isEmpty()) {
+			JSONObject inviteObj = new JSONObject();
+			for (Entry<UUID, GroupRank> inviteEntry : invites.entrySet()) {
+				inviteObj.put(inviteEntry.getKey().toString(), inviteEntry.getValue().getId());
+			}
+			json.put("invites", inviteObj);
+		}
+		return json;
 	}
 }

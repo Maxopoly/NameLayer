@@ -15,6 +15,11 @@ public abstract class PropertyChange extends LoggedGroupAction {
 		this.oldValue = oldValue;
 	}
 	
+	@Override
+	public LoggedGroupActionPersistence getPersistence() {
+		return new LoggedGroupActionPersistence(time, player, oldValue, newValue, null);
+	}
+	
 	protected void fillJson(JSONObject json) {
 		json.put("old_value", oldValue);
 		json.put("new_value", newValue);

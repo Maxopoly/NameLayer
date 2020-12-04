@@ -1,6 +1,7 @@
 package vg.civcraft.mc.namelayer.core;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -179,6 +180,14 @@ public class GroupRank {
 	 */
 	public boolean hasPermission(PermissionType perm) {
 		return perms.contains(perm.getId());
+	}
+	
+	/**
+	 * Used during initial instance creation to put all permissions based on their id when the matching PermissionType may not have been registered yet
+	 * @param permIds Ids of all permissions this rank has
+	 */
+	void setAllPermissions(Collection <Integer> permIds) {
+		this.perms = new HashSet<>(permIds);
 	}
 
 	/**

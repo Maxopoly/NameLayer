@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import com.google.common.base.Preconditions;
 
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupAction;
+import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupActionPersistence;
 
 public class CreateGroup extends LoggedGroupAction {
 
@@ -32,6 +33,15 @@ public class CreateGroup extends LoggedGroupAction {
 	@Override
 	protected void fillJson(JSONObject json) {
 		json.put("name", name);
+	}
+
+	@Override
+	public LoggedGroupActionPersistence getPersistence() {
+		return new LoggedGroupActionPersistence(time, player,null, name, null);
+	}
+	
+	public static CreateGroup load(LoggedGroupActionPersistence persist) {
+		return new CreateGroup(persist.getTimeStamp(), persist.getPlayer(), persist.getName());
 	}
 
 }

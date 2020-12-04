@@ -2,6 +2,7 @@ package vg.civcraft.mc.namelayer.core.log.impl;
 
 import java.util.UUID;
 
+import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.core.log.abstr.PropertyChange;
 
 public class ChangeRankName extends PropertyChange {
@@ -15,6 +16,10 @@ public class ChangeRankName extends PropertyChange {
 	@Override
 	public String getIdentifier() {
 		return ID;
+	}
+	
+	public static ChangeRankName load(LoggedGroupActionPersistence persist) {
+		return new ChangeRankName(persist.getTimeStamp(), persist.getPlayer(), persist.getRank(), persist.getName());
 	}
 
 }
