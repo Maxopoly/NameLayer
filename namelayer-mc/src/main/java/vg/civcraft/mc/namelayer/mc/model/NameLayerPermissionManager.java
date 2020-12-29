@@ -2,7 +2,7 @@ package vg.civcraft.mc.namelayer.mc.model;
 
 import vg.civcraft.mc.namelayer.core.DefaultPermissionLevel;
 import vg.civcraft.mc.namelayer.core.PermissionType;
-import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
+import vg.civcraft.mc.namelayer.mc.GroupAPI;
 
 public class NameLayerPermissionManager {
 
@@ -20,40 +20,43 @@ public class NameLayerPermissionManager {
 	private PermissionType changeGroupColor;
 
 	public NameLayerPermissionManager() {
-		NameLayerPlugin plugin = NameLayerPlugin.getInstance();
+		registerInternalPermissions();
+	}
+
+	private void registerInternalPermissions() {
 		// allows adding/modifying a password for the group
-		password = PermissionType.registerPermission(plugin, "PASSWORD", DefaultPermissionLevel.ADMIN,
+		GroupAPI.registerPermission("PASSWORD", DefaultPermissionLevel.ADMIN,
 				"Allows viewing this groups password and changing or removing it");
 		// allows to list the permissions for each permission group
-		listPerms = PermissionType.registerPermission(plugin, "LIST_PERMS", DefaultPermissionLevel.ADMIN,
+		GroupAPI.registerPermission("LIST_PERMS", DefaultPermissionLevel.ADMIN,
 				"Allows viewing how permissions for this group are set up");
 		// allows to see general group stats
-		groupStats = PermissionType.registerPermission(plugin, "GROUPSTATS", DefaultPermissionLevel.ADMIN,
+		GroupAPI.registerPermission("GROUPSTATS", DefaultPermissionLevel.ADMIN,
 				"Gives access to various group statistics such as member "
 						+ "counts by permission type, who owns the group etc.");
 		// allows to modify the permissions for different permissions groups
-		modifyPerms = PermissionType.registerPermission(plugin, "PERMS", DefaultPermissionLevel.OWNER,
+		GroupAPI.registerPermission("PERMS", DefaultPermissionLevel.OWNER,
 				"Allows modifying permissions for this group");
 		// allows deleting the group
-		deleteGroup = PermissionType.registerPermission(plugin, "DELETE", DefaultPermissionLevel.OWNER,
+		GroupAPI.registerPermission("DELETE", DefaultPermissionLevel.OWNER,
 				"Allows deleting this group");
 		// allows merging the group with another one
-		mergeGroup = PermissionType.registerPermission(plugin, "MERGE", DefaultPermissionLevel.OWNER,
+		GroupAPI.registerPermission("MERGE", DefaultPermissionLevel.OWNER,
 				"Allows merging this group into another or merging another group into this one");
 		// allows creating player types
-		createPlayerType = PermissionType.registerPermission(plugin, "CREATE_PLAYERTYPE", DefaultPermissionLevel.OWNER,
+		GroupAPI.registerPermission("CREATE_PLAYERTYPE", DefaultPermissionLevel.OWNER,
 				"Allows creating new player types for this group");
 		// allows deleting player types
-		deletePlayerType = PermissionType.registerPermission(plugin, "DELETE_PLAYERTYPE", DefaultPermissionLevel.OWNER,
+		GroupAPI.registerPermission("DELETE_PLAYERTYPE", DefaultPermissionLevel.OWNER,
 				"Allows deleting player types for this group");
 		// allows deleting player types
-		renamePlayerType = PermissionType.registerPermission(plugin, "RENAME_PLAYERTYPE", DefaultPermissionLevel.OWNER,
+		GroupAPI.registerPermission("RENAME_PLAYERTYPE", DefaultPermissionLevel.OWNER,
 				"Allows renaming player types for this group");
-		renameGroup = PermissionType.registerPermission(plugin, "RENAME_GROUP", DefaultPermissionLevel.OWNER,
+		GroupAPI.registerPermission("RENAME_GROUP", DefaultPermissionLevel.OWNER,
 				"Allows renaming the group");
-		linkGroup = PermissionType.registerPermission(plugin, "LINK_GROUP", DefaultPermissionLevel.OWNER,
+		GroupAPI.registerPermission("LINK_GROUP", DefaultPermissionLevel.OWNER,
 				"Allows linking and unlinking the group");
-		changeGroupColor = PermissionType.registerPermission(plugin, "GROUP_COLOR", DefaultPermissionLevel.ADMIN,
+		GroupAPI.registerPermission("GROUP_COLOR", DefaultPermissionLevel.ADMIN,
 				"Allows changing the groups color prefix");
 	}
 

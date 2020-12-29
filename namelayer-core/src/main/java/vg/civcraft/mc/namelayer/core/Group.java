@@ -446,7 +446,7 @@ public class Group implements Comparable<Group>, JSONSerializable {
 				UUID uuid = UUID.fromString(key);
 				int rankId = memberObj.getInt(key);
 				GroupRank rank = rankHandler.getRank(rankId);
-				group.addInvite(uuid,rank);
+				group.addInvite(uuid, rank);
 			}
 		}
 		return group;

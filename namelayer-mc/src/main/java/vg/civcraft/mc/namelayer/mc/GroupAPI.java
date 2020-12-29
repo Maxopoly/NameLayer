@@ -3,12 +3,13 @@ package vg.civcraft.mc.namelayer.mc;
 import java.util.UUID;
 
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 
-import net.minecraft.server.v1_16_R1.ServerConnection;
+import com.github.civcraft.artemis.ArtemisPlugin;
+
 import vg.civcraft.mc.namelayer.core.DefaultPermissionLevel;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.mc.rabbit.outgoing.PermissionCreation;
 
 /**
  * Access point for anything relating to groups and their permissions
@@ -103,7 +104,6 @@ public final class GroupAPI {
 	 * Allows external plugins to register their own permissions which will work
 	 * exactly like NameLayers own permissions and loaded/persisted automatically
 	 * 
-	 * @param plugin           Plugin registering the permission, may not be null
 	 * @param name             Name and primary identifier of the permission, must
 	 *                         be unique globally and may not change after being
 	 *                         used once, otherwise the permission will reset for
@@ -111,12 +111,14 @@ public final class GroupAPI {
 	 * @param defaultPermLevel Minimum rank required to have this permission in a
 	 *                         newly created group
 	 * @param description      Description of this permission to use in UIs
-	 * @return PermissionType object created which can be used to do permission
-	 *         checks via other methods in this class
 	 */
-	public PermissionType registerPermission(JavaPlugin plugin, String name, DefaultPermissionLevel defaultPermLevel,
+	public static void registerPermission(String name, DefaultPermissionLevel defaultPermLevel,
 			String description) {
-		return PermissionType.registerPermission(plugin, name, defaultPermLevel, description);
+		PermissionType perm = NameLayerPlugin.getInstance().getGroupTracker().getPermissionTracker().getPermission(name);
+		if (perm != null) {
+			return;
+		}
+		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new PermissionCreation(name, defaultPermLevel));
 	}
 
 }

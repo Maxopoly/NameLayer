@@ -5,27 +5,35 @@ import org.json.JSONObject;
 import com.github.civcraft.artemis.rabbit.MCStandardRequest;
 
 import vg.civcraft.mc.namelayer.core.DefaultPermissionLevel;
+import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 public class PermissionCreation extends MCStandardRequest {
 	
-	private String registeringPlugin;
 	private String name;
 	private DefaultPermissionLevel defaultPermLevel;
-	
-	public PermissionCreation() {
-		// TODO Auto-generated constructor stub
+
+	public PermissionCreation(String name, DefaultPermissionLevel defaultPermLevel) {
+		this.name = name;
+		this.defaultPermLevel = defaultPermLevel;
 	}
 
 	@Override
 	public void handleReply(JSONObject reply) {
 		int id = reply.getInt("perm_id");
+		doSync(() -> NameLayerPlugin.getInstance().getGroupTracker()
+				.registerPermission(new PermissionType(name, id, defaultPermLevel, name)));
 	}
 
 	@Override
 	protected void enrichJson(JSONObject json) {
-		json.put("registering_plugin", registeringPlugin);
 		json.put("name", name);
 		json.put("default_perm", defaultPermLevel.toString());
+	}
+
+	@Override
+	public String getIdentifier() {
+		return "nl_register_permission";
 	}
 
 }

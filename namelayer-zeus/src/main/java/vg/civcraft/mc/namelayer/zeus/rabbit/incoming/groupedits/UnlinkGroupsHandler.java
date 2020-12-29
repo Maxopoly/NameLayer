@@ -59,13 +59,13 @@ public class UnlinkGroupsHandler extends GroupRequestHandler {
 			}
 			GroupLink foundLink = null;
 				for (GroupLink link : group.getOutgoingLinks()) {
-					if (!link.getOriginatingType().equals(originalRank)) {
+					if (!link.getOriginatingRank().equals(originalRank)) {
 						continue;
 					}
 					if (!link.getTargetGroup().equals(targetGroup)) {
 						continue;
 					}
-					if (!link.getTargetType().equals(targetRank)) {
+					if (!link.getTargetRank().equals(targetRank)) {
 						continue;
 					}
 					foundLink = link;

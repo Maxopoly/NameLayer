@@ -7,23 +7,28 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import com.github.civcraft.zeus.ZeusMain;
 import com.github.civcraft.zeus.rabbit.RabbitMessage;
 
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.GroupLink;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.GroupRankHandler;
 import vg.civcraft.mc.namelayer.core.GroupTracker;
 import vg.civcraft.mc.namelayer.core.IllegalGroupStateException;
 import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddInviteMessage;
+import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddLinkMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddMemberMessage;
+import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddPermissionMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.ChangeMemberRankMessage;
+import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.CreateRankMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.DeleteGroupMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.DeleteRankMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.MergeGroupMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RecacheGroupMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RemoveInviteMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RemoveMemberMessage;
+import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RemovePermissionMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RenameGroupMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RenameRankMessage;
 
@@ -36,6 +41,46 @@ public class ZeusGroupTracker extends GroupTracker {
 		super();
 		this.database = database;
 		this.groupsBeingLoaded = new HashMap<>();
+	}
+	
+	@Override
+	public void registerPermission(PermissionType perm) {
+		synchronized (permissionTracker) {
+			if (permissionTracker.getPermission(perm.getName()) != null) {
+				return;
+			}
+			database.registerPermission(perm);
+			super.registerPermission(perm);
+		}
+	}
+
+	@Override
+	public void addInvite(UUID toInvite, GroupRank rank, Group group) {
+		synchronized (group) {
+			super.addInvite(toInvite, rank, group);
+			database.addGroupInvitation(toInvite, group, rank);
+			sendGroupUpdate(group, () -> new AddInviteMessage(group.getPrimaryId(), toInvite, rank.getId()));
+		}
+	}
+
+	@Override
+	public void addPermissionToRank(Group group, GroupRank rank, PermissionType permission) {
+		synchronized (group) {
+			super.addPermissionToRank(group, rank, permission);
+			database.addPermission(group, rank, permission);
+			sendGroupUpdate(group,
+					() -> new AddPermissionMessage(group.getPrimaryId(), rank.getId(), permission.getId()));
+		}
+	}
+
+	@Override
+	public void removePermissionFromRank(Group group, GroupRank rank, PermissionType permission) {
+		synchronized (group) {
+			super.removePermissionFromRank(group, rank, permission);
+			database.removePermission(group, rank, permission);
+			sendGroupUpdate(group,
+					() -> new RemovePermissionMessage(group.getPrimaryId(), rank.getId(), permission.getId()));
+		}
 	}
 
 	public void acceptInvite(Group group, UUID player) {
@@ -54,11 +99,15 @@ public class ZeusGroupTracker extends GroupTracker {
 			sendGroupUpdate(group, () -> new RenameGroupMessage(group.getPrimaryId(), newName));
 		}
 	}
-	
+
+	@Override
 	public void setMetaDataValue(Group group, String key, String value) {
-		group.setMetaData(key, value);
+		synchronized (group) {
+			super.setMetaDataValue(group, key, value);
+		}
 	}
-	
+
+	@Override
 	public void renameRank(Group group, GroupRank rank, String newName) {
 		synchronized (group) {
 			super.renameRank(group, rank, newName);
@@ -66,8 +115,6 @@ public class ZeusGroupTracker extends GroupTracker {
 			sendGroupUpdate(group, () -> new RenameRankMessage(group.getPrimaryId(), rank.getId(), rank.getName()));
 		}
 	}
-	
-	
 
 	@Override
 	public void updatePlayerRankInGroup(Group group, UUID player, GroupRank rank) {
@@ -105,7 +152,7 @@ public class ZeusGroupTracker extends GroupTracker {
 		}
 	}
 
-	public Group loadGroup(int id) {
+	public Group loadOrGetGroup(int id) {
 		Group result;
 		synchronized (groupsBeingLoaded) {
 			result = getGroup(id);
@@ -185,7 +232,22 @@ public class ZeusGroupTracker extends GroupTracker {
 
 	public GroupRank createRank(Group group, String name, GroupRank parent) {
 		synchronized (group) {
-			//TODO
+			int id = -1;
+			for (int i = GroupRankHandler.OWNER_ID; i < GroupRankHandler.MAXIMUM_TYPE_COUNT; i++) {
+				if (group.getGroupRankHandler().getRank(i) == null) {
+					id = i;
+					break;
+				}
+			}
+			if (id < 0) {
+				return null;
+			}
+			GroupRank rank = new GroupRank(name, id, parent);
+			group.getGroupRankHandler().createNewRank(rank);
+			database.createRank(group, rank);
+			sendGroupUpdate(group,
+					() -> new CreateRankMessage(group.getPrimaryId(), rank.getId(), rank.getName(), parent.getId()));
+			return rank;
 		}
 	}
 
@@ -208,7 +270,8 @@ public class ZeusGroupTracker extends GroupTracker {
 				// ensure both groups exist on all clients that have one or the other
 				sendGroupUpdate(toRemove, () -> new RecacheGroupMessage(toKeep));
 				sendGroupUpdate(toKeep, () -> new RecacheGroupMessage(toRemove));
-				// Clients will issue delete based on the merge message and add the appropriate secondary id, we do not send it explicitly
+				// Clients will issue delete based on the merge message and add the appropriate
+				// secondary id, we do not send it explicitly
 				sendGroupUpdate(toRemove, () -> new MergeGroupMessage(toRemove.getPrimaryId(), toKeep.getPrimaryId()));
 			}
 		}
@@ -233,6 +296,39 @@ public class ZeusGroupTracker extends GroupTracker {
 			super.addPlayerToGroup(group, player, rank);
 			database.addMember(player, group, rank);
 			sendGroupUpdate(group, () -> new AddMemberMessage(group.getPrimaryId(), player, rank.getId()));
+		}
+	}
+
+	@Override
+	public GroupLink linkGroups(Group originating, GroupRank originatingType, Group target, GroupRank targetType) {
+		// Acquire locks in id order to avoid deadlocks
+		Group lowerID = originating.getPrimaryId() < target.getPrimaryId() ? originating : target;
+		Group upperID = originating.getPrimaryId() < target.getPrimaryId() ? target : originating;
+		synchronized (lowerID) {
+			synchronized (upperID) {
+				GroupLink link = super.linkGroups(originating, originatingType, target, targetType);
+				database.addLink(link);
+				sendGroupUpdate(originating, () -> new AddLinkMessage(originating.getPrimaryId(),
+						originatingType.getId(), target.getPrimaryId(), targetType.getId()));
+				return link;
+			}
+		}
+	}
+
+	@Override
+	public void deleteGroupLink(GroupLink link) {
+		// Acquire locks in id order to avoid deadlocks
+		Group originating = link.getOriginatingGroup();
+		Group target = link.getTargetGroup();
+		Group lowerID = originating.getPrimaryId() < target.getPrimaryId() ? originating : target;
+		Group upperID = originating.getPrimaryId() < target.getPrimaryId() ? target : originating;
+		synchronized (lowerID) {
+			synchronized (upperID) {
+				super.deleteGroupLink(link);
+				database.removeLink(link);
+				sendGroupUpdate(originating, () -> new AddLinkMessage(originating.getPrimaryId(),
+						link.getOriginatingRank().getId(), target.getPrimaryId(), link.getTargetRank().getId()));
+			}
 		}
 	}
 

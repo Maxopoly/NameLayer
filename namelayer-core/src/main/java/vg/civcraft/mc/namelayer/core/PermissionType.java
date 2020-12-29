@@ -1,20 +1,25 @@
 package vg.civcraft.mc.namelayer.core;
 
+import com.google.common.base.Preconditions;
+
 public class PermissionType {
 	
-	private String registeringPlugin;
 	private String name;
 	private int id;
 	private DefaultPermissionLevel defaultPermLevels;
 	private String description;
 
-	public PermissionType(String registeringPlugin, String name, int id, DefaultPermissionLevel defaultPermLevels,
+	public PermissionType(String name, int id, DefaultPermissionLevel defaultPermLevels,
 			String description) {
 		this.name = name;
-		this.registeringPlugin = registeringPlugin;
 		this.id = id;
 		this.defaultPermLevels = defaultPermLevels;
 		this.description = description;
+	}
+	
+	public PermissionType(String name, DefaultPermissionLevel defaultPermLevels,
+			String description) {
+		this(name, -1, defaultPermLevels, description);
 	}
 
 	/**
@@ -23,12 +28,10 @@ public class PermissionType {
 	public String getName() {
 		return name;
 	}
-
-	/**
-	 * @return Name of the plugin which registered this permission
-	 */
-	public String getRegisteringPlugin() {
-		return registeringPlugin;
+	
+	public void setID(int id) {
+		Preconditions.checkArgument(id == -1);
+		this.id = id;
 	}
 
 	/**

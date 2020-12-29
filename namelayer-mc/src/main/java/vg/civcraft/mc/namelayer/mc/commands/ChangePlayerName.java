@@ -5,9 +5,10 @@ import java.util.UUID;
 
 import org.bukkit.command.CommandSender;
 
+import com.github.civcraft.artemis.NameAPI;
+
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
-import vg.civcraft.mc.namelayer.mc.NameAPI;
 
 @CivCommand(id = "nlcpn")
 public class ChangePlayerName extends StandaloneCommand {

@@ -14,6 +14,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.github.civcraft.artemis.NameAPI;
+
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.core.GroupLink;
@@ -21,7 +23,6 @@ import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.GroupRankHandler;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
-import vg.civcraft.mc.namelayer.mc.NameAPI;
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 @CivCommand(id = "nlgs")
@@ -52,10 +53,10 @@ public class GroupStats extends StandaloneCommand {
 			}
 			sb.append("\nInherited players:\n");
 			for (GroupLink link : group.getIncomingLinks()) {
-				if (link.getTargetType() != type) {
+				if (link.getTargetRank() != type) {
 					continue;
 				}
-				printInheritedMembersRecursive(sb, link.getOriginatingGroup(), link.getOriginatingType());
+				printInheritedMembersRecursive(sb, link.getOriginatingGroup(), link.getOriginatingRank());
 			}
 			sb.append("\n\n");
 		}
@@ -63,12 +64,12 @@ public class GroupStats extends StandaloneCommand {
 			sb.append("Incoming group links are: \n");
 			for (GroupLink link : group.getIncomingLinks()) {
 				sb.append(" - Linking ");
-				sb.append(link.getOriginatingType().getName());
+				sb.append(link.getOriginatingRank().getName());
 				sb.append(" in ");
 				sb.append(link.getOriginatingGroup().getColoredName());
 				sb.append(ChatColor.YELLOW);
 				sb.append(" to ");
-				sb.append(link.getTargetType().getName());
+				sb.append(link.getTargetRank().getName());
 				sb.append('\n');
 			}
 		}
@@ -76,9 +77,9 @@ public class GroupStats extends StandaloneCommand {
 			sb.append("Outgoing group links are: \n");
 			for (GroupLink link : group.getIncomingLinks()) {
 				sb.append(" - Linking ");
-				sb.append(link.getOriginatingType().getName());
+				sb.append(link.getOriginatingRank().getName());
 				sb.append(" to ");
-				sb.append(link.getTargetType().getName());
+				sb.append(link.getTargetRank().getName());
 				sb.append(" in ");
 				sb.append(link.getTargetGroup().getColoredName());
 				sb.append(ChatColor.YELLOW);
@@ -104,10 +105,10 @@ public class GroupStats extends StandaloneCommand {
 
 	private static void printInheritedMembersRecursive(StringBuilder sb, Group group, GroupRank type) {
 		for (GroupLink link : group.getIncomingLinks()) {
-			if (!type.isEqualOrAbove(link.getTargetType())) {
+			if (!type.isEqualOrAbove(link.getTargetRank())) {
 				continue;
 			}
-			printInheritedMembersRecursive(sb, link.getOriginatingGroup(), link.getOriginatingType());
+			printInheritedMembersRecursive(sb, link.getOriginatingGroup(), link.getOriginatingRank());
 		}
 		for (UUID player : group.getAllTrackedByType(type)) {
 			sb.append(" - ");

@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.requests.BlacklistPlayer;
+import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
 public class RabbitBlacklistPlayer extends RabbitGroupAction {
 	
@@ -33,17 +34,16 @@ public class RabbitBlacklistPlayer extends RabbitGroupAction {
 		case GROUP_DOES_NOT_EXIST:
 			groupDoesNotExistMessage();
 			return;
-		case NO_PERMISSION:
-			sendMessage(String.format("%s%s%s is not a blacklist rank in %s", ChatColor.YELLOW, rank.getName(),
-					ChatColor.RED, getGroup().getColoredName()));
-			return;
 		case PLAYER_DOES_NOT_EXIST:
 			playerDoesNotExistMessage(this.targetPlayer);
 			return;
 		case RANK_DOES_NOT_EXIST:
-			sendMessage(ChatColor.RED + "The rank you entered did not exist or you do not have permission to blacklist on it");
+		case NO_PERMISSION:
+			MsgUtils.sendRankNotExistMsg(executor, group.getName(), rank.getName());
 			return;
 		case NOT_BLACKLISTED_RANK:
+			sendMessage(String.format("%s%s%s is not a blacklist rank in %s", ChatColor.YELLOW, rank.getName(),
+					ChatColor.RED, getGroup().getColoredName()));
 			return;	
 		default:
 			break;

@@ -19,6 +19,10 @@ public class PermissionTracker {
 		this.permissionById = new TreeMap<>();
 	}
 	
+	void putPermission(PermissionType perm) {
+		this.permissionByName.put(perm.getName(), perm);
+		this.permissionById.put(perm.getId(), perm);
+	}
 
 	/**
 	 * Retrieves a permission by it's name

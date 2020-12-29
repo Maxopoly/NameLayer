@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +21,6 @@ import java.util.UUID;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 
-import com.github.civcraft.zeus.database.DBConnection;
 import com.github.civcraft.zeus.plugin.ZeusPluginDatabase;
 
 import vg.civcraft.mc.namelayer.core.Group;
@@ -69,7 +69,7 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 				prep.execute();
 			}
 			try (PreparedStatement prep = conn.prepareStatement(
-					"CREATE TABLE IF NOT EXISTS nl_links (link_id INT(11) NOT NULL AUTO_INCREMENT, originating_group_id INT(11) NOT NULL, originating_rank_id INT(11) NOT NUL, target_group_id INT(11) NOT NUL, target_rank_id INT(11) NOT NUL, foreign key (originating_group_id, originating_type_id) REFERENCES nl_ranks(group_id, rank_id) on delete cascade, FOREIGN KEY (target_group_id, target_type_id) REFERENCES nl_ranks(group_id, rank_id) on delete cascade, unique (originating_group_id, originating_type_id, target_group_id, target_type_id), index(originating_group_id), index(target_group_id))")) {
+					"CREATE TABLE IF NOT EXISTS nl_links (originating_group_id INT(11) NOT NULL, originating_rank_id INT(11) NOT NUL, target_group_id INT(11) NOT NUL, target_rank_id INT(11) NOT NUL, foreign key (originating_group_id, originating_type_id) REFERENCES nl_ranks(group_id, rank_id) on delete cascade, FOREIGN KEY (target_group_id, target_type_id) REFERENCES nl_ranks(group_id, rank_id) on delete cascade, unique (originating_group_id, originating_type_id, target_group_id, target_type_id), index(originating_group_id), index(target_group_id))")) {
 				prep.execute();
 			}
 			try (PreparedStatement prep = conn.prepareStatement(
@@ -192,11 +192,10 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 			return -1;
 		}
 	}
-	
+
 	public void deleteGroup(Group group) {
 		try (Connection connection = db.getConnection();
-				PreparedStatement delGrp = connection.prepareStatement(
-						"delete from nl_groups where group_id = ?")) {
+				PreparedStatement delGrp = connection.prepareStatement("delete from nl_groups where group_id = ?")) {
 			delGrp.setInt(1, group.getPrimaryId());
 			delGrp.execute();
 		} catch (SQLException e) {
@@ -230,7 +229,7 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 			}
 		} catch (SQLException e) {
 			logger.error("Problem adding loading all groups for player " + player, e);
-			return null;
+			return Collections.emptyList();
 		}
 	}
 
@@ -341,12 +340,15 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 	public void registerPermission(PermissionType perm) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement registerPermission = connection
-						.prepareStatement("insert into nl_global_permissions(perm_id, perm_name) values(?, ?)")) {
-			registerPermission.setInt(1, perm.getId());
-			registerPermission.setString(2, perm.getName());
-			registerPermission.executeUpdate();
+						.prepareStatement("insert into nl_global_permissions(perm_name) values(?)", Statement.RETURN_GENERATED_KEYS)) {
+			registerPermission.setString(1, perm.getName());
+			try (ResultSet rs = registerPermission.executeQuery()) {
+				rs.next();
+				int id = rs.getInt(1);
+				perm.setID(id);
+			}
 		} catch (SQLException e) {
-			logger.error("Problem register permission " + perm.getName(), e);
+			logger.error("Problem registering permission " + perm.getName(), e);
 		}
 	}
 
@@ -437,31 +439,25 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		try (Connection insertConn = db.getConnection();
 				PreparedStatement insertLink = insertConn.prepareStatement(
 						"insert into nl_links (originating_group_id, originating_type_id, target_group_id, target_type_id) "
-								+ "values(?,?, ?,?);",
-						Statement.RETURN_GENERATED_KEYS)) {
+								+ "values(?,?, ?,?);")) {
 			insertLink.setInt(1, link.getOriginatingGroup().getPrimaryId());
-			insertLink.setInt(2, link.getOriginatingType().getId());
+			insertLink.setInt(2, link.getOriginatingRank().getId());
 			insertLink.setInt(3, link.getTargetGroup().getPrimaryId());
-			insertLink.setInt(4, link.getTargetType().getId());
+			insertLink.setInt(4, link.getTargetRank().getId());
 			insertLink.execute();
-			try (ResultSet rs = insertLink.getGeneratedKeys()) {
-				if (!rs.next()) {
-					throw new IllegalStateException("Inserting link did not generate an id");
-				}
-				link.setID(rs.getInt(1));
-			}
 		} catch (SQLException e) {
 			logger.error("Failed to insert new link: ", e);
 		}
 	}
 
 	public void removeLink(GroupLink link) {
-		if (link.getID() == -1) {
-			throw new IllegalStateException("Link id was not set");
-		}
 		try (Connection insertConn = db.getConnection();
-				PreparedStatement removeLink = insertConn.prepareStatement("delete from nl_links where link_id = ?")) {
-			removeLink.setInt(1, link.getID());
+				PreparedStatement removeLink = insertConn.prepareStatement(
+						"delete from nl_links where originating_group_id = ? and target_group_id = ? and originating_rank_id = ? and target_rank_id = ?")) {
+			removeLink.setInt(1, link.getOriginatingGroup().getPrimaryId());
+			removeLink.setInt(2, link.getTargetGroup().getPrimaryId());
+			removeLink.setInt(3, link.getOriginatingRank().getId());
+			removeLink.setInt(4, link.getTargetRank().getId());
 			removeLink.execute();
 		} catch (SQLException e) {
 			logger.error("Failed to remove link: ", e);

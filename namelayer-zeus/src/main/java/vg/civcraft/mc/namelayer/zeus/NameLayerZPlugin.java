@@ -3,6 +3,27 @@ package vg.civcraft.mc.namelayer.zeus;
 import com.github.civcraft.zeus.plugin.ZeusLoad;
 import com.github.civcraft.zeus.plugin.ZeusPlugin;
 
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.AcceptInviteHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.BlacklistPlayerHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.CreateGroupHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.CreateRankHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.DeleteGroupHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.DeleteRankHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.EditPermissionHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.InvitePlayerHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.JoinGroupHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.LeaveGroupHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.LinkGroupsHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.MergeGroupHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.PromotePlayerHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.RejectInviteHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.RemoveMemberHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.RenameGroupHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.RenameRankHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.RevokeInviteHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.SetPasswordHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.UnlinkGroupsHandler;
+
 @ZeusLoad(name = "NameLayer", version = "1.0", description = "Player driven group management")
 public class NameLayerZPlugin extends ZeusPlugin {
 
@@ -25,6 +46,7 @@ public class NameLayerZPlugin extends ZeusPlugin {
 		}
 		groupTracker = new ZeusGroupTracker(dao);
 		groupKnowledgeTracker = new ServerGroupKnowledgeTracker(groupTracker, dao);
+		registerRabbitListeners();
 		return true;
 	}
 
@@ -33,7 +55,16 @@ public class NameLayerZPlugin extends ZeusPlugin {
 		// TODO Auto-generated method stub
 
 	}
-	
+
+	private void registerRabbitListeners() {
+		registerRabbitListener(new AcceptInviteHandler(), new BlacklistPlayerHandler(), new CreateGroupHandler(),
+				new CreateRankHandler(), new DeleteGroupHandler(), new DeleteRankHandler(), new EditPermissionHandler(),
+				new InvitePlayerHandler(), new JoinGroupHandler(), new LeaveGroupHandler(), new LinkGroupsHandler(),
+				new MergeGroupHandler(), new PromotePlayerHandler(), new RejectInviteHandler(),
+				new RemoveMemberHandler(), new RenameGroupHandler(), new RenameRankHandler(), new RevokeInviteHandler(),
+				new SetPasswordHandler(), new UnlinkGroupsHandler());
+	}
+
 	public NameLayerDAO getDAO() {
 		return dao;
 	}

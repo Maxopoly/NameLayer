@@ -62,14 +62,14 @@ public class DeleteRankHandler extends GroupRequestHandler {
 						new HashMap<>());
 			}
 			for (GroupLink link : group.getOutgoingLinks()) {
-				if (link.getOriginatingType().equals(rankToDelete)) {
+				if (link.getOriginatingRank().equals(rankToDelete)) {
 					sendReject(ticket, DeleteRank.REPLY_ID, sendingServer, DeleteRank.FailureReason.HAS_OUTGOING_LINKS,
 							new HashMap<>());
 					return;
 				}
 			}
 			for (GroupLink link : group.getIncomingLinks()) {
-				if (link.getTargetType().equals(rankToDelete)) {
+				if (link.getTargetRank().equals(rankToDelete)) {
 					sendReject(ticket, DeleteRank.REPLY_ID, sendingServer, DeleteRank.FailureReason.HAS_INCOMING_LINKS,
 							new HashMap<>());
 					return;

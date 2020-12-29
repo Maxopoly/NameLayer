@@ -60,7 +60,7 @@ public class ServerGroupKnowledgeTracker {
 			}
 		}
 		for(int groupIdToSend : toSend) {
-			Group group = groupTracker.loadGroup(groupIdToSend);
+			Group group = groupTracker.loadOrGetGroup(groupIdToSend);
 			RecacheGroupMessage msgToSend = new RecacheGroupMessage(group);
 			ZeusMain.getInstance().getRabbitGateway().sendMessage(server, msgToSend);
 		}

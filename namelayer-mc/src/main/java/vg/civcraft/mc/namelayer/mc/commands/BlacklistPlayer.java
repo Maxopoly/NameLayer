@@ -17,18 +17,19 @@ import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.GroupRankHandler;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
-import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitAcceptInvite;
+import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitBlacklistPlayer;
+import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
 @CivCommand(id = "nlbl")
-public class BlacklistPlayer extends StandaloneCommand {
+public class BlacklistPlayer extends NameLayerCommand {
 
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		String rank = args.length == 3 ? args[2] : null;
-		Player player = (Player) sender;
+		UUID uuid = resolveUUID(sender);
 		Group group = GroupAPI.getGroup(args [0]);
 		if (group == null) {
-			player.sendMessage(
+			sender.sendMessage(
 					ChatColor.RED + "The group you entered did not exist or you do not permission to blacklist on it");
 			return false;
 		}
@@ -40,12 +41,11 @@ public class BlacklistPlayer extends StandaloneCommand {
 		GroupRank targetType = rank != null ? handler.getRank(rank) : handler.getDefaultInvitationRank();
 		// this is designed to not reveal any names of player types to the outside
 		if (targetType == null) {
-			callback.accept(
-					ChatColor.RED + "The rank you entered did not exist or you do not permission to blacklist on it");
+			MsgUtils.sendRankNotExistMsg(player.getUniqueId(), group.getName(), rank);
 			return false;
 		}
 		ArtemisPlugin.getInstance().getRabbitHandler()
-		.sendMessage(new RabbitAcceptInvite(player.getUniqueId(), args[0]));
+		.sendMessage(new RabbitBlacklistPlayer(player.getUniqueId(), args[0]));
 		NameLayerPlugin.getInstance().getGroupInteractionManager().blacklistPlayer(player.getUniqueId(), args[0],
 				args[1], rank, player::sendMessage);
 		return true;

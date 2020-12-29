@@ -12,7 +12,6 @@ import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
-import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitAcceptInvite;
 import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 

@@ -7,9 +7,7 @@ import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
-import vg.civcraft.mc.namelayer.core.GroupTracker;
 import vg.civcraft.mc.namelayer.core.requests.AcceptInvite;
-import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 public class RabbitAcceptInvite extends RabbitGroupAction {
 

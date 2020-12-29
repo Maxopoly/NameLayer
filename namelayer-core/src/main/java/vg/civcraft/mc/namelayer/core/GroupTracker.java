@@ -12,10 +12,10 @@ import com.google.common.base.Preconditions;
 
 public class GroupTracker {
 
-	private Map<String, Group> groupsByName;
-	private Map<Integer, Group> groupsById;
-	private Map<UUID, Set<Group>> groupsByMember;
-	private PermissionTracker permissionTracker;
+	private final Map<String, Group> groupsByName;
+	private final Map<Integer, Group> groupsById;
+	private final Map<UUID, Set<Group>> groupsByMember;
+	protected final PermissionTracker permissionTracker;
 
 	public GroupTracker() {
 		this.groupsById = new HashMap<>();
@@ -26,6 +26,10 @@ public class GroupTracker {
 	
 	public PermissionTracker getPermissionTracker() {
 		return permissionTracker;
+	}
+	
+	public void registerPermission(PermissionType perm) {
+		permissionTracker.putPermission(perm);
 	}
 
 	public Set<Group> getGroupsForPlayer(UUID player) {
@@ -48,10 +52,6 @@ public class GroupTracker {
 	
 	public void removePermissionFromRank(Group group, GroupRank rank, PermissionType permission) {
 		rank.removePermission(permission);
-	}
-	
-	public void addRank(Group group, GroupRank rank) {
-		group.getGroupRankHandler().putRank(rank);
 	}
 	
 	public void renameRank(Group group, GroupRank rank, String newName) {
@@ -157,13 +157,13 @@ public class GroupTracker {
 		}
 		// check group links
 		for (GroupLink link : group.getIncomingLinks()) {
-			if (!link.getTargetType().hasPermission(perm)) {
+			if (!link.getTargetRank().hasPermission(perm)) {
 				// link wouldn't grant enough permission
 				continue;
 			}
 			Group originatingGroup = link.getOriginatingGroup();
 			GroupRank rankInOgGroup = originatingGroup.getRank(uuid);
-			if (link.getOriginatingType().isEqualOrAbove(rankInOgGroup)) {
+			if (link.getOriginatingRank().isEqualOrAbove(rankInOgGroup)) {
 				return true;
 			} else {
 				if (checkUpwardsLinks(originatingGroup, uuid)) {
@@ -178,7 +178,7 @@ public class GroupTracker {
 		for (GroupLink link : group.getIncomingLinks()) {
 			Group originatingGroup = link.getOriginatingGroup();
 			GroupRank rankInOgGroup = originatingGroup.getRank(player);
-			if (link.getOriginatingType().isEqualOrAbove(rankInOgGroup)) {
+			if (link.getOriginatingRank().isEqualOrAbove(rankInOgGroup)) {
 				return true;
 			} else {
 				if (checkUpwardsLinks(originatingGroup, player)) {

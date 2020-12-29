@@ -2,12 +2,10 @@ package vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.UUID;
 
 import org.json.JSONObject;
 
-import com.github.civcraft.zeus.rabbit.DynamicRabbitMessage;
 import com.github.civcraft.zeus.servers.ConnectedServer;
 
 import vg.civcraft.mc.namelayer.core.Group;

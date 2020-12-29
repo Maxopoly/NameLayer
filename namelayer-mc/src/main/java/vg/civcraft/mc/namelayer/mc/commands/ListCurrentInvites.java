@@ -6,10 +6,11 @@ import java.util.List;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.github.civcraft.artemis.NameAPI;
+
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.listeners.PlayerListener;
-import vg.civcraft.mc.namelayer.mc.NameAPI;
 
 @CivCommand(id="nllci")
 public class ListCurrentInvites extends StandaloneCommand {
