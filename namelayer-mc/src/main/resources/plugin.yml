@@ -1,6 +1,6 @@
 name: NameLayer
-main: vg.civcraft.mc.namelayer.NameLayerPlugin
-version: ${releaseVersion}
+main: vg.civcraft.mc.namelayer.mc.NameLayerPlugin
+version: ${namelayer.version}
 author: Rourke750
 authors:
 - BlackXnt
@@ -12,6 +12,7 @@ authors:
 - Diet_Cola
 depend:
 - CivModCore
+- Artemis
 api-version: 1.14
 description: NameLayer is a general purpose group and permission api to enable players to govern themselves
 commands:

@@ -21,7 +21,7 @@ public class RevokeInviteHandler extends GroupRequestHandler {
 			return;
 		}
 		String playerName = data.getString("playerName");
-		UUID targetPlayer = ZeusMain.getInstance().getPlayerManager().getOfflinePlayerUUID(playerName);
+		UUID targetPlayer = ZeusMain.getInstance().getPlayerManager().getUUID(playerName);
 		if (targetPlayer == null) {
 			sendReject(ticket, RevokeInvite.REPLY_ID, sendingServer, RevokeInvite.FailureReason.PLAYER_DOES_NOT_EXIST);
 			return;

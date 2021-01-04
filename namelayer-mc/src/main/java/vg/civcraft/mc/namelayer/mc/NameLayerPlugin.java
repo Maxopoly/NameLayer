@@ -16,8 +16,9 @@ public class NameLayerPlugin extends ACivMod {
 	private NameLayerPermissionManager nameLayerPermManager;
 	
 	public void onEnable() {
-		nameLayerPermManager = new NameLayerPermissionManager();
+		instance = this;
 		groupTracker = new GroupTracker();
+		nameLayerPermManager = new NameLayerPermissionManager();
 	}
 	
 	public GroupTracker getGroupTracker() {
@@ -27,5 +28,4 @@ public class NameLayerPlugin extends ACivMod {
 	public NameLayerPermissionManager getNameLayerPermissionManager() {
 		return nameLayerPermManager;
 	}
-
 }

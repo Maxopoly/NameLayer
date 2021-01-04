@@ -22,7 +22,7 @@ public class PromotePlayerHandler extends GroupRequestHandler {
 			return;
 		}
 		String targetPlayerName = data.getString("playerName");
-		UUID targetPlayer = ZeusMain.getInstance().getPlayerManager().getOfflinePlayerUUID(targetPlayerName);
+		UUID targetPlayer = ZeusMain.getInstance().getPlayerManager().getUUID(targetPlayerName);
 		if (targetPlayer == null) {
 			sendReject(ticket, PromotePlayer.REPLY_ID, sendingServer, PromotePlayer.FailureReason.PLAYER_DOES_NOT_EXIST);
 			return;

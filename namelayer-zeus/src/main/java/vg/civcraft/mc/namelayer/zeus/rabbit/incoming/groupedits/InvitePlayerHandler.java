@@ -24,7 +24,7 @@ public class InvitePlayerHandler extends GroupRequestHandler {
 			return;
 		}
 		String playerName = data.getString("target_player");
-		UUID targetUUID = ZeusMain.getInstance().getPlayerManager().getOfflinePlayerUUID(playerName);
+		UUID targetUUID = ZeusMain.getInstance().getPlayerManager().getUUID(playerName);
 		if (targetUUID == null) {
 			sendReject(ticket, InvitePlayer.REPLY_ID, sendingServer, InvitePlayer.FailureReason.PLAYER_DOES_NOT_EXIST);
 			return;

@@ -23,7 +23,7 @@ public class BlacklistPlayerHandler extends GroupRequestHandler {
 			return;
 		}
 		String targetPlayerName = data.getString("target_player");
-		UUID targetPlayer = ZeusMain.getInstance().getPlayerManager().getOfflinePlayerUUID(targetPlayerName);
+		UUID targetPlayer = ZeusMain.getInstance().getPlayerManager().getUUID(targetPlayerName);
 		if (targetPlayer == null) {
 			sendReject(ticket, BlacklistPlayer.REPLY_ID, sendingServer, BlacklistPlayer.FailureReason.PLAYER_DOES_NOT_EXIST);
 			return;
