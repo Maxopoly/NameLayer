@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>vg.civcraft.mc.namelayer</groupId>
 		<artifactId>namelayer-parent</artifactId>
-		<version>${releaseVersion}</version>
+		<version>${namelayer.version}</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -19,6 +19,7 @@
 			<groupId>com.github.maxopoly</groupId>
 			<artifactId>zeus</artifactId>
 			<version>1.0</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>vg.civcraft.mc.namelayer</groupId>
@@ -29,6 +30,7 @@
 			<groupId>com.github.maxopoly</groupId>
 			<artifactId>artemis</artifactId>
 			<version>1.0.0</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.spigotmc</groupId>

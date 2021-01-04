@@ -11,52 +11,27 @@
   </parent>
 
   <properties>
-    <releaseVersion>3.0.0</releaseVersion>
+    <namelayer.version>3.0.0</namelayer.version>
   </properties>
 
   <groupId>vg.civcraft.mc.namelayer</groupId>
   <artifactId>namelayer-parent</artifactId>
-  <version>${releaseVersion}</version>
+  <version>${namelayer.version}</version>
+  <name>NameLayer</name>
   <packaging>pom</packaging>
 
   <url>https://github.com/Civclassic/NameLayer</url>
 
   <modules>
-  	<module>namelayer-all</module>
-    <module>namelayer-spigot</module>
-    <module>namelayer-bungee</module>
+    <module>namelayer-core</module>
     <module>namelayer-zeus</module>
-     <module>namelayer-mc</module>
-     <module>namelayer-core</module>
+    <module>namelayer-mc</module>
   </modules>
 
   <repositories>
     <repository>
-      <id>civclassic-repo</id>
-      <url>https://repo.civclassic.com/repository/internal/</url>
-    </repository>
-
-    <repository>
-      <id>codecrafter47-repo</id>
-      <url>http://nexus.codecrafter47.dyndns.eu/content/repositories/public/</url>
-    </repository>
-
-    <repository>
-      <id>spigot-repo</id>
-      <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
-    </repository>
-    <repository>
-      <id>spigot-repo2</id>
-      <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots</url>
-    </repository>
-
-    <repository>
-      <id>md_5-repo</id>
-      <url>http://repo.md-5.net/content/repositories/public/</url>
-    </repository>
-    <repository>
-      <id>bungeecord-repo</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <id>civ-github-repo</id>
+      <url>https://raw.githubusercontent.com/CivClassic/artifacts/master/</url>
     </repository>
   </repositories>
 </project>
