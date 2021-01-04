@@ -7,9 +7,18 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.github.maxopoly.artemis.ArtemisPlugin;
+
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
+import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.GroupRankHandler;
+import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.mc.GroupAPI;
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
+import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitEditPermission;
+import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
 @CivCommand(id = "nlmp")
 public class ModifyPermissions extends StandaloneCommand {
@@ -17,12 +26,26 @@ public class ModifyPermissions extends StandaloneCommand {
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		Player player = (Player) sender;
-		if ("add".equalsIgnoreCase(args[3])) {
-			NameLayerPlugin.getInstance().getGroupInteractionManager().editPermission(player.getUniqueId(), args[0],
-					true, args[1], args[2], player::sendMessage);
-		} else if ("remove".equalsIgnoreCase(args[3])) {
-			NameLayerPlugin.getInstance().getGroupInteractionManager().editPermission(player.getUniqueId(), args[0],
-					false, args[1], args[2], player::sendMessage);
+		Group group = GroupAPI.getGroup(args[0]);
+		if (group == null) {
+			MsgUtils.sendGroupNotExistMsg(player.getUniqueId(), args[0]);
+			return true;
+		}
+		GroupRankHandler handler = group.getGroupRankHandler();
+		GroupRank rank = handler.getRank(args[1]);
+		if (rank == null) {
+			MsgUtils.sendRankNotExistMsg(player.getUniqueId(), group.getColoredName(), args[1]);
+			return true;
+		}
+		PermissionType perm = NameLayerPlugin.getInstance().getGroupTracker().getPermissionTracker().getPermission(args[3]);
+		if (perm == null) {
+			MsgUtils.sendMsg(player.getUniqueId(), String.format("%sThe permission %s%s doesn't exist", ChatColor.RED, args[3], ChatColor.RED));
+			return true;
+		}
+		if ("add".equalsIgnoreCase(args[2])) {
+			ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitEditPermission(player.getUniqueId(), group, true, rank, perm));
+		} else if ("remove".equalsIgnoreCase(args[2])) {
+			ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitEditPermission(player.getUniqueId(), group, false, rank, perm));
 		} else {
 			player.sendMessage(ChatColor.RED + "Third argument needs to be 'add' or 'remove'");
 			return false;

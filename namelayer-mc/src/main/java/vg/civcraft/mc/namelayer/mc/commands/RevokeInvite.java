@@ -6,9 +6,14 @@ import java.util.List;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.github.maxopoly.artemis.ArtemisPlugin;
+
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
-import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
+import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.mc.GroupAPI;
+import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitRevokeInvite;
+import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
 @CivCommand(id = "nlri")
 public class RevokeInvite extends StandaloneCommand {
@@ -16,8 +21,13 @@ public class RevokeInvite extends StandaloneCommand {
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		Player player = (Player) sender;
-		NameLayerPlugin.getInstance().getGroupInteractionManager().revokeInvite(player.getUniqueId(), args[0], args[1],
-				player::sendMessage);
+		Group group = GroupAPI.getGroup(args[0]);
+		if (group == null) {
+			MsgUtils.sendGroupNotExistMsg(player.getUniqueId(), args[0]);
+			return true;
+		}
+		String targetPlayer = args[1];
+		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitRevokeInvite(player.getUniqueId(), group, targetPlayer));
 		return true;
 	}
 

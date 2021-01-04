@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import org.bukkit.entity.Player;
 
-import com.github.civcraft.artemis.ArtemisPlugin;
+import com.github.maxopoly.artemis.ArtemisPlugin;
 
 import vg.civcraft.mc.namelayer.core.DefaultPermissionLevel;
 import vg.civcraft.mc.namelayer.core.Group;

@@ -11,12 +11,14 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.github.civcraft.artemis.NameAPI;
+import com.github.maxopoly.artemis.NameAPI;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
+import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
-import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
+import vg.civcraft.mc.namelayer.mc.GroupAPI;
+import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
 @CivCommand(id = "nllm")
 public class ListMembers extends StandaloneCommand {
@@ -24,8 +26,12 @@ public class ListMembers extends StandaloneCommand {
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		Player player = (Player) sender;
-		Map<GroupRank, Set<UUID>> playersByRank = NameLayerPlugin.getInstance().getGroupInteractionManager()
-				.getMemberList(player.getUniqueId(), args[0], player::sendMessage);
+		Group group = GroupAPI.getGroup(args [0]);
+		if (group == null) {
+			MsgUtils.sendGroupNotExistMsg(player.getUniqueId(), args [0]);
+			return true;
+		}
+		Map<GroupRank, Set<UUID>> playersByRank = group.getAllTrackedByRank();
 		StringBuilder sb = new StringBuilder();
 		if (playersByRank == null) {
 			sender.sendMessage(String.format("%sThe group %s does not exist", ChatColor.RED, args [0]));
@@ -47,7 +53,7 @@ public class ListMembers extends StandaloneCommand {
 			sb.append(" players:\n");
 			for(UUID member : entry.getValue()) {
 				sb.append(" - ");
-				sb.append(NameAPI.getCurrentName(member));
+				sb.append(NameAPI.getName(member));
 				sb.append('\n');
 			}
 			sb.append('\n');

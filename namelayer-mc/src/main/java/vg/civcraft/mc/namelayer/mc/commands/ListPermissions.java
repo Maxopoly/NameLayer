@@ -9,9 +9,12 @@ import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
+import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.PermissionTracker;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
+import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 @CivCommand(id = "nllp")
 public class ListPermissions extends StandaloneCommand {
@@ -39,7 +42,12 @@ public class ListPermissions extends StandaloneCommand {
 		sb.append(group.getColoredName());
 		sb.append(ChatColor.GREEN);
 		sb.append(" with the following permissions:\n");
-		for (PermissionType perm : rank.getAllPermissions()) {
+		PermissionTracker permTracker = NameLayerPlugin.getInstance().getGroupTracker().getPermissionTracker();
+		for (Integer permID : rank.getAllPermissions()) {
+			PermissionType perm = permTracker.getPermission(permID);
+			if (perm == null) {
+				continue;
+			}
 			sb.append(ChatColor.GRAY);
 			sb.append(" - ");
 			sb.append(ChatColor.GOLD);

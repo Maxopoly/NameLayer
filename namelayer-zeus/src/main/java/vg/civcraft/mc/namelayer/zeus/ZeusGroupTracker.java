@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import com.github.civcraft.zeus.rabbit.RabbitMessage;
+import com.github.maxopoly.zeus.rabbit.RabbitMessage;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupLink;

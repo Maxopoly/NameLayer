@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
+import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 @CivCommand(id = "nllg")
@@ -18,7 +19,7 @@ public class ListGroups extends StandaloneCommand {
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		Player player = (Player) sender;
-		Set<Group> groups = NameLayerPlugin.getInstance().getGroupManager().getGroupsForPlayer(player.getUniqueId());
+		Set<Group> groups = NameLayerPlugin.getInstance().getGroupTracker().getGroupsForPlayer(player.getUniqueId());
 		if (groups.isEmpty()) {
 			sender.sendMessage(ChatColor.GREEN + "You are not a member of any groups");
 			return true;

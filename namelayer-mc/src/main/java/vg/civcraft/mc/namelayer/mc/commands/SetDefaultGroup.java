@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
+import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
@@ -23,7 +24,8 @@ public class SetDefaultGroup extends StandaloneCommand {
 			return true;
 		}
 		//no permission check needed, this doesn't actually enable anything special
-		NameLayerPlugin.getInstance().getSettingsManager().getDefaultGroup().setGroup((Player) sender, group);
+		//TODO: Use Settings manager to properly set the players default group
+/*		NameLayerPlugin.getInstance().getSettingsManager().getDefaultGroup().setGroup((Player) sender, group);*/
 		sender.sendMessage(ChatColor.GREEN + "Set your default group to " + group.getColoredName());
 		return true;
 	}

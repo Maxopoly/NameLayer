@@ -5,10 +5,10 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
-import com.github.civcraft.zeus.ZeusMain;
-import com.github.civcraft.zeus.rabbit.DynamicRabbitMessage;
-import com.github.civcraft.zeus.rabbit.incoming.GenericInteractiveRabbitCommand;
-import com.github.civcraft.zeus.servers.ConnectedServer;
+import com.github.maxopoly.zeus.ZeusMain;
+import com.github.maxopoly.zeus.rabbit.DynamicRabbitMessage;
+import com.github.maxopoly.zeus.rabbit.incoming.GenericInteractiveRabbitCommand;
+import com.github.maxopoly.zeus.servers.ConnectedServer;
 
 import vg.civcraft.mc.namelayer.core.DefaultPermissionLevel;
 import vg.civcraft.mc.namelayer.core.PermissionType;

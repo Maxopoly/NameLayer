@@ -1,7 +1,7 @@
 package vg.civcraft.mc.namelayer.zeus;
 
-import com.github.civcraft.zeus.plugin.ZeusLoad;
-import com.github.civcraft.zeus.plugin.ZeusPlugin;
+import com.github.maxopoly.zeus.plugin.ZeusLoad;
+import com.github.maxopoly.zeus.plugin.ZeusPlugin;
 
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.AcceptInviteHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.BlacklistPlayerHandler;

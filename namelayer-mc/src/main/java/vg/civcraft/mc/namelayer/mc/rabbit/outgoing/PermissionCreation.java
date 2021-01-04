@@ -2,7 +2,7 @@ package vg.civcraft.mc.namelayer.mc.rabbit.outgoing;
 
 import org.json.JSONObject;
 
-import com.github.civcraft.artemis.rabbit.MCStandardRequest;
+import com.github.maxopoly.artemis.rabbit.MCStandardRequest;
 
 import vg.civcraft.mc.namelayer.core.DefaultPermissionLevel;
 import vg.civcraft.mc.namelayer.core.PermissionType;

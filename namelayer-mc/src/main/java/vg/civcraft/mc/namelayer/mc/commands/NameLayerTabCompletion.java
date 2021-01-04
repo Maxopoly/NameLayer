@@ -13,10 +13,10 @@ import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.GroupRankHandler;
 import vg.civcraft.mc.namelayer.core.PermissionType;
-import vg.civcraft.mc.namelayer.listeners.PlayerListener;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
@@ -34,7 +34,7 @@ public final class NameLayerTabCompletion {
 	}
 	
 	public static List<String> completeGroupName(String prefix, Player p) {
-		Set<Group> playersGroups = NameLayerPlugin.getInstance().getGroupManager().getGroupsForPlayer(p.getUniqueId());
+		Set<Group> playersGroups = NameLayerPlugin.getInstance().getGroupTracker().getGroupsForPlayer(p.getUniqueId());
 		if (playersGroups == null) {
 			return Collections.emptyList();
 		}
@@ -56,19 +56,20 @@ public final class NameLayerTabCompletion {
 			if (rank == rankHandler.getDefaultNonMemberRank()) {
 				continue;
 			}
-			if(GroupAPI.hasPermission(player, group, rank.getInvitePermissionType())) {
+			if(GroupAPI.hasPermission(player, group, NameLayerPlugin.getInstance().getGroupTracker().getPermissionTracker().getInvitePermission(rank.getId()))) {
 				ranks.add(rank);
 			}
 		}
 		return complete(prefix, ranks, GroupRank::getName);
 	}
 	
+	//TODO: Actually return a players invites instead of an empty list
 	public static List<String> completeGroupInvitedTo(String prefix, Player sender) {
-		return complete(prefix, PlayerListener.getNotifications(sender.getUniqueId()), Group::getName);
+		return complete(prefix, Collections.EMPTY_LIST, Group::getName);
 	}
 	
 	public static List<String> completePermission(String prefix) {
-		return complete(prefix, PermissionType.getAllPermissions(), PermissionType::getName);
+		return complete(prefix, NameLayerPlugin.getInstance().getGroupTracker().getPermissionTracker().getAllPermissions() , PermissionType::getName);
 	}
 	
 	private static <T> List<String> complete(String prefix, Collection<T> data, Function<T,String> reMapper) {

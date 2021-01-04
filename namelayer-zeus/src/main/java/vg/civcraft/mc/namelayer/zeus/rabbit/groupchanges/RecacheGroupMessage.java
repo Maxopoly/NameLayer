@@ -2,8 +2,8 @@ package vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges;
 
 import org.json.JSONObject;
 
-import com.github.civcraft.zeus.ZeusMain;
-import com.github.civcraft.zeus.rabbit.RabbitMessage;
+import com.github.maxopoly.zeus.ZeusMain;
+import com.github.maxopoly.zeus.rabbit.RabbitMessage;
 
 import vg.civcraft.mc.namelayer.core.Group;
 

@@ -2,8 +2,8 @@ package vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications;
 
 import org.json.JSONObject;
 
-import com.github.civcraft.zeus.rabbit.incoming.StaticRabbitCommand;
-import com.github.civcraft.zeus.servers.ConnectedServer;
+import com.github.maxopoly.zeus.rabbit.incoming.StaticRabbitCommand;
+import com.github.maxopoly.zeus.servers.ConnectedServer;
 
 public class RecacheGroup extends StaticRabbitCommand {
 

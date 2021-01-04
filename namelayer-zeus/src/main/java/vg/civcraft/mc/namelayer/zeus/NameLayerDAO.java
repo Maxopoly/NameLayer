@@ -21,7 +21,7 @@ import java.util.UUID;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 
-import com.github.civcraft.zeus.plugin.ZeusPluginDatabase;
+import com.github.maxopoly.zeus.plugin.ZeusPluginDatabase;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupLink;

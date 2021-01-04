@@ -182,6 +182,13 @@ public class Group implements Comparable<Group>, JSONSerializable {
 	public Set<UUID> getAllTracked() {
 		return Collections.unmodifiableSet(players.keySet());
 	}
+	
+	/**
+	 * @return Read only mapping of all players with an assigned rank in this group
+	 */
+	public Map<GroupRank, Set<UUID>> getAllTrackedByRank() {
+		return Collections.unmodifiableMap(playersByRank);
+	}
 
 	public List<UUID> getAllMembers() {
 		List<UUID> members = new ArrayList<>();

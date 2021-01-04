@@ -6,7 +6,7 @@ import java.util.List;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.github.civcraft.artemis.ArtemisPlugin;
+import com.github.maxopoly.artemis.ArtemisPlugin;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;

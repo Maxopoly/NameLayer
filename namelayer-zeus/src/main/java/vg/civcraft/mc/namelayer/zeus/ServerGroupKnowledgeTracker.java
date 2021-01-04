@@ -9,9 +9,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-import com.github.civcraft.zeus.ZeusMain;
-import com.github.civcraft.zeus.rabbit.RabbitMessage;
-import com.github.civcraft.zeus.servers.ArtemisServer;
+import com.github.maxopoly.zeus.ZeusMain;
+import com.github.maxopoly.zeus.rabbit.RabbitMessage;
+import com.github.maxopoly.zeus.servers.ArtemisServer;
 import com.google.common.collect.Sets;
 
 import vg.civcraft.mc.namelayer.core.Group;

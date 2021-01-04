@@ -14,10 +14,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.github.civcraft.artemis.NameAPI;
+import com.github.maxopoly.artemis.NameAPI;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
+import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupLink;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.GroupRankHandler;
@@ -94,7 +95,7 @@ public class GroupStats extends StandaloneCommand {
 			sb.append("Pending invites:\n");
 			for (Entry<UUID, GroupRank> entry : invites.entrySet()) {
 				sb.append(" - ");
-				sb.append(NameAPI.getCurrentName(entry.getKey()));
+				sb.append(NameAPI.getName(entry.getKey()));
 				sb.append(" (");
 				sb.append(entry.getValue().getName());
 				sb.append(")\n");
@@ -112,7 +113,7 @@ public class GroupStats extends StandaloneCommand {
 		}
 		for (UUID player : group.getAllTrackedByType(type)) {
 			sb.append(" - ");
-			sb.append(NameAPI.getCurrentName(player));
+			sb.append(NameAPI.getName(player));
 			sb.append(" as ");
 			sb.append(type.getName());
 			sb.append(" from ");
@@ -122,7 +123,7 @@ public class GroupStats extends StandaloneCommand {
 		for (GroupRank parent : type.getAllParents()) {
 			for (UUID player : group.getAllTrackedByType(parent)) {
 				sb.append(" - ");
-				sb.append(NameAPI.getCurrentName(player));
+				sb.append(NameAPI.getName(player));
 				sb.append(" as ");
 				sb.append(parent.getName());
 				sb.append(" from ");
@@ -133,10 +134,10 @@ public class GroupStats extends StandaloneCommand {
 	}
 
 	private static Collection<String> fromUUIDCollectionToNames(Collection<UUID> uuids) {
-		return uuids.stream().map(NameAPI::getCurrentName).collect(Collectors.toList());
+		return uuids.stream().map(NameAPI::getName).collect(Collectors.toList());
 	}
 
-	@Override
+/*	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		Group group = GroupAPI.getGroup(args[0]);
 		if (group == null) {
@@ -144,7 +145,8 @@ public class GroupStats extends StandaloneCommand {
 			return true;
 		}
 		Player player = (Player) sender;
-		PermissionType perm = NameLayerPlugin.getInstance().getNLPermissionManager().getGroupStats();
+		//TODO: Add GroupStats
+		PermissionType perm;
 		if (!GroupAPI.hasPermission(player, group, perm)) {
 			sender.sendMessage(String.format(
 					"%sTo do this you need the permission %s%s %sfor the group %s%s which you do not have",
@@ -158,7 +160,7 @@ public class GroupStats extends StandaloneCommand {
 			Bukkit.getScheduler().runTask(NameLayerPlugin.getInstance(), () -> player.sendMessage(s));
 		});
 		return true;
-	}
+	}*/
 
 	@Override
 	public List<String> tabComplete(CommandSender sender, String[] args) {
@@ -166,5 +168,11 @@ public class GroupStats extends StandaloneCommand {
 			return NameLayerTabCompletion.completeGroupName(args[0], (Player) sender);
 		}
 		return Collections.emptyList();
+	}
+
+	@Override
+	public boolean execute(CommandSender arg0, String[] arg1) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

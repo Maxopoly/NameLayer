@@ -6,14 +6,15 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
+import com.github.maxopoly.artemis.NameAPI;
+
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
-import vg.civcraft.mc.namelayer.core.Group;
 
 public abstract class NameLayerCommand extends StandaloneCommand {
 	
 	protected UUID resolveUUID(CommandSender sender) {
 		if (sender instanceof ConsoleCommandSender) {
-			return Group.consoleUUID;
+			return NameAPI.CONSOLE_UUID;
 		}
 		if (sender instanceof Player) {
 			return ((Player) sender).getUniqueId();

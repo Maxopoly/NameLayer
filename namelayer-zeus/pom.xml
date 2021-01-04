@@ -16,7 +16,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.github.civcraft</groupId>
+			<groupId>com.github.maxopoly</groupId>
 			<artifactId>zeus</artifactId>
 			<version>1.0</version>
 		</dependency>

@@ -9,8 +9,7 @@ import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
-import vg.civcraft.mc.namelayer.gui.GUIGroupOverview;
-import vg.civcraft.mc.namelayer.gui.MainGroupGUI;
+import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
 
 @CivCommand(id="nl")
@@ -19,8 +18,8 @@ public class NameLayerGroupGui extends StandaloneCommand {
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		if (args.length == 0) {
-			GUIGroupOverview gui = new GUIGroupOverview((Player) sender, null);
-			gui.showScreen();
+			//GUIGroupOverview gui = new GUIGroupOverview((Player) sender, null);
+			//gui.showScreen();
 			return true;
 		}
 		Group group = GroupAPI.getGroup(args[0]);
@@ -28,8 +27,8 @@ public class NameLayerGroupGui extends StandaloneCommand {
 			sender.sendMessage(String.format("%sThe group %s does not exist", ChatColor.RED, args[0]));
 			return true;
 		}
-		MainGroupGUI gui = new MainGroupGUI(null, (Player) sender, group);
-		gui.showScreen();
+		//MainGroupGUI gui = new MainGroupGUI(null, (Player) sender, group);
+		//gui.showScreen();
 		return true;
 	}
 	
