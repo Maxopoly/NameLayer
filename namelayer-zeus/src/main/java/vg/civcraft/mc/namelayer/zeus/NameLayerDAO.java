@@ -36,56 +36,60 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 
 	public NameLayerDAO(String name, Logger logger) {
 		super(name, logger);
+		registerMigrations();
 	}
 
-	public boolean createTables() {
-		try (Connection conn = db.getConnection()) {
-			try (PreparedStatement prep = conn.prepareStatement(
-					"CREATE TABLE IF NOT EXISTS nl_groups (group_id INT(11) NOT NULL AUTO_INCREMENT, group_name VARCHAR(32) NOT NULL UNIQUE, PRIMARY KEY(group_id))")) {
-				prep.execute();
-			}
-			try (PreparedStatement prep = conn.prepareStatement(
-					"CREATE TABLE IF NOT EXISTS nl_ranks(group_id INT(11) NOT NULL, rank_id INT(11) NOT NULL, rank_name VARCHAR(32) NOT NULL, parent_rank_id INT(11), CONSTRAINT UNIQUE (group_id, rank_id), CONSTRAINT UNIQUE (group_id, rank_name), PRIMARY KEY(group_id,rank_id), FOREIGN KEY(group_id) REFERENCES nl_groups (group_id) ON DELETE CASCADE)")) {
-				prep.execute();
-			}
-			try (PreparedStatement prep = conn.prepareStatement(
-					"CREATE TABLE IF NOT EXISTS nl_members(group_id INT(11) NOT NULL, player UUID NOT NULL, rank_id INT(11) NOT NULL, UNIQUE KEY group_player_key (group_id,player), FOREIGN KEY(group_id) REFERENCES nl_groups (group_id) ON DELETE CASCADE, FOREIGN KEY(rank_id) REFERENCES nl_ranks (rank_id) ON DELETE CASCADE, index(player))")) {
-				prep.execute();
-			}
-			try (PreparedStatement prep = conn.prepareStatement(
-					"CREATE TABLE IF NOT EXISTS nl_merged_groups (old_group_id INT(11) NOT NULL, new_group_id INT(11) NOT NULL, FOREIGN KEY(new_group_id) REFERENCES nl_groups (group_id) ON DELETE CASCADE, PRIMARY KEY(old_group_id))")) {
-				prep.execute();
-			}
-			try (PreparedStatement prep = conn.prepareStatement(
-					"CREATE TABLE IF NOT EXISTS nl_global_permissions(perm_id INT(11) NOT NULL AUTO_INCREMENT, perm_name TEXT not null, PRIMARY KEY(perm_id), UNIQUE KEY perm_name_key (perm_name))")) {
-				prep.execute();
-			}
-			try (PreparedStatement prep = conn.prepareStatement(
-					"CREATE TABLE IF NOT EXISTS nl_group_permissions(group_id INT(11) NOT NULL, rank_ID INT(11) NOT NULL, perm_id INT(11) NOT NULL, PRIMARY KEY(group_id,role,perm_id), FOREIGN KEY(group_id) REFERENCES nl_groups (group_id) ON DELETE CASCADE, FOREIGN KEY(rank_id) REFERENCES nl_ranks (rank_id) ON DELETE CASCADE, FOREIGN KEY(perm_id) REFERENCES nl_global_permissions (perm_id) ON DELETE CASCADE)")) {
-				prep.execute();
-			}
-			try (PreparedStatement prep = conn.prepareStatement(
-					"CREATE TABLE IF NOT EXISTS nl_invitations(player uuid NOT NULL, group_id INT(11) NOT NULL, rank_id INT(11) NOT NULL, PRIMARY KEY(group_id, player))")) {
-				prep.execute();
-			}
-			try (PreparedStatement prep = conn.prepareStatement(
-					"CREATE TABLE IF NOT EXISTS nl_links (originating_group_id INT(11) NOT NULL, originating_rank_id INT(11) NOT NUL, target_group_id INT(11) NOT NUL, target_rank_id INT(11) NOT NUL, foreign key (originating_group_id, originating_type_id) REFERENCES nl_ranks(group_id, rank_id) on delete cascade, FOREIGN KEY (target_group_id, target_type_id) REFERENCES nl_ranks(group_id, rank_id) on delete cascade, unique (originating_group_id, originating_type_id, target_group_id, target_type_id), index(originating_group_id), index(target_group_id))")) {
-				prep.execute();
-			}
-			try (PreparedStatement prep = conn.prepareStatement(
-					"CREATE TABLE IF NOT EXISTS nl_global_actions(type_id INT(11) NOT NULL AUTO_INCREMENT, type_name text not null, PRIMARY KEY(id), CONSTRAINT UNIQUE unique(name))")) {
-				prep.execute();
-			}
-			try (PreparedStatement prep = conn.prepareStatement(
-					"CREATE TABLE IF NOT EXISTS nl_action_log (action_id INT(11) NOT NULL AUTO_INCREMENT, type_id INT(11) NOT NULL, player UUID NOT NULL, group_id INT(11) NOT NULL, time DATETIME NOT NULL, rank varchar(255) default null, name varchar(255) default null, extra text default null, PRIMARY KEY(action_id), FOREIGN KEY (type_id) REFERENCES nl_global_actions(type_id) on delete cascade,FOREIGN KEY (group_id) REFERENCES nl_groups(group_id) on delete cascade)")) {
-				prep.execute();
-			}
-
-		} catch (SQLException e) {
-			logger.error("Failed to setup tables and procedures", e);
-			return false;
-		}
-		return true;
+	private void registerMigrations() {
+		registerMigration(1,
+				"CREATE TABLE IF NOT EXISTS nl_groups (group_id SERIAL NOT NULL, "
+						+ "group_name VARCHAR(32) NOT NULL UNIQUE, PRIMARY KEY(group_id))",
+						
+				"CREATE TABLE IF NOT EXISTS nl_ranks(group_id INT NOT NULL, rank_id INT NOT NULL, "
+				+ "rank_name VARCHAR(32) NOT NULL, parent_rank_id INT, UNIQUE (group_id, rank_id), "
+				+ " UNIQUE (group_id, rank_name), PRIMARY KEY(group_id,rank_id), "
+				+ "CONSTRAINT fk_gid FOREIGN KEY(group_id) REFERENCES nl_groups (group_id) ON DELETE CASCADE)",
+				
+				"CREATE TABLE IF NOT EXISTS nl_members(group_id INT NOT NULL, player UUID NOT NULL, "
+				+ "rank_id INT NOT NULL, UNIQUE (group_id,player), "
+				+ "CONSTRAINT fk_rid FOREIGN KEY(group_id, rank_id) REFERENCES nl_ranks (group_id, rank_id) ON DELETE CASCADE)",
+				
+				"CREATE INDEX nl_members_player on nl_members (player)",
+				
+				"CREATE TABLE IF NOT EXISTS nl_merged_groups (old_group_id INT NOT NULL, new_group_id INT NOT NULL, "
+				+ "CONSTRAINT fk_ngid FOREIGN KEY(new_group_id) REFERENCES nl_groups (group_id) ON DELETE CASCADE, PRIMARY KEY(old_group_id))",
+				
+				"CREATE TABLE IF NOT EXISTS nl_global_permissions(perm_id SERIAL NOT NULL, perm_name TEXT not null, "
+				+ "PRIMARY KEY(perm_id), UNIQUE (perm_name))",
+				
+				"CREATE TABLE IF NOT EXISTS nl_group_permissions(group_id INT NOT NULL, rank_id INT NOT NULL, "
+				+ "perm_id INT NOT NULL, PRIMARY KEY(group_id,rank_id,perm_id), "
+				+ "CONSTRAINT fk_rid FOREIGN KEY(group_id, rank_id) REFERENCES nl_ranks (group_id, rank_id) ON DELETE CASCADE, "
+				+ "CONSTRAINT fk_pid FOREIGN KEY(perm_id) REFERENCES nl_global_permissions (perm_id) ON DELETE CASCADE)",
+				
+				"CREATE TABLE IF NOT EXISTS nl_invitations(player uuid NOT NULL, group_id INT NOT NULL, "
+				+ "rank_id INT NOT NULL, PRIMARY KEY(group_id, player))",
+				
+				"CREATE TABLE IF NOT EXISTS nl_links (originating_group_id INT NOT NULL, "
+				+ "originating_rank_id INT NOT NULL, target_group_id INT NOT NULL, "
+				+ "target_rank_id INT NOT NULL, "
+				+ "CONSTRAINT fk_og FOREIGN KEY (originating_group_id, originating_rank_id) REFERENCES nl_ranks(group_id, rank_id) on delete cascade, "
+				+ "CONSTRAINT fk_tar FOREIGN KEY (target_group_id, target_rank_id) REFERENCES nl_ranks(group_id, rank_id) on delete cascade, "
+				+ "UNIQUE (originating_group_id, originating_rank_id, target_group_id, target_rank_id))",
+				
+				"CREATE INDEX nl_links_orig on nl_links (originating_group_id)",
+				"CREATE INDEX nl_links_target on nl_links (target_group_id)",
+					
+				"CREATE TABLE IF NOT EXISTS nl_global_actions(type_id SERIAL NOT NULL, "
+				+ "type_name text not null, PRIMARY KEY(type_id), UNIQUE (type_name))",
+				
+				"CREATE TABLE IF NOT EXISTS nl_action_log (action_id SERIAL NOT NULL, "
+				+ "type_id INT NOT NULL, player UUID NOT NULL, group_id INT NOT NULL, "
+				+ "time TIMESTAMP NOT NULL, rank varchar(255) default null, name varchar(255) default null, "
+				+ "extra TEXT DEFAULT NULL, PRIMARY KEY(action_id), "
+				+ "CONSTRAINT fk_glo FOREIGN KEY (type_id) REFERENCES nl_global_actions(type_id) on delete cascade,"
+				+ "CONSTRAINT fk_gid FOREIGN KEY (group_id) REFERENCES nl_groups(group_id) on delete cascade)"
+				
+				);
 	}
 
 	public Map<String, Map<Integer, List<LoggedGroupActionPersistence>>> loadAllGroupsLogs() {
@@ -339,10 +343,11 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 
 	public void registerPermission(PermissionType perm) {
 		try (Connection connection = db.getConnection();
-				PreparedStatement registerPermission = connection
-						.prepareStatement("insert into nl_global_permissions(perm_name) values(?)", Statement.RETURN_GENERATED_KEYS)) {
+				PreparedStatement registerPermission = connection.prepareStatement(
+						"insert into nl_global_permissions(perm_name) values(?)", Statement.RETURN_GENERATED_KEYS)) {
 			registerPermission.setString(1, perm.getName());
-			try (ResultSet rs = registerPermission.executeQuery()) {
+			registerPermission.executeUpdate();
+			try (ResultSet rs = registerPermission.getGeneratedKeys()) {
 				rs.next();
 				int id = rs.getInt(1);
 				perm.setID(id);
