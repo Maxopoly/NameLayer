@@ -342,6 +342,22 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 	}
 
 	public void registerPermission(PermissionType perm) {
+		try (Connection insertConn = db.getConnection();
+				PreparedStatement selectId = insertConn
+						.prepareStatement("select perm_id from nl_global_permissions where perm_name = ?;")) {
+			selectId.setString(1, perm.getName());
+			try (ResultSet rs = selectId.executeQuery()) {
+				if (rs.next()) {
+					int id = rs.getInt(1);
+					perm.setID(id);
+					return;
+				}
+			}
+		} catch (SQLException e) {
+			logger.error("Failed to check for existence of action type in db", e);
+			perm.setID(-1);
+			return;
+		}
 		try (Connection connection = db.getConnection();
 				PreparedStatement registerPermission = connection.prepareStatement(
 						"insert into nl_global_permissions(perm_name) values(?)", Statement.RETURN_GENERATED_KEYS)) {
@@ -354,6 +370,7 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 			}
 		} catch (SQLException e) {
 			logger.error("Problem registering permission " + perm.getName(), e);
+			perm.setID(-1);
 		}
 	}
 

@@ -36,7 +36,7 @@ public class CreateGroupHandler extends GroupRequestHandler {
 
 	@Override
 	public String getIdentifier() {
-		return CreateGroup.REPLY_ID;
+		return CreateGroup.REQUEST_ID;
 	}
 	
 	public static boolean isConformName(String name) {

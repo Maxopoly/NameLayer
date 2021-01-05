@@ -30,7 +30,6 @@ public class PermissionType {
 	}
 	
 	public void setID(int id) {
-		Preconditions.checkArgument(id == -1);
 		this.id = id;
 	}
 
