@@ -16,6 +16,7 @@ import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.LeaveGroupHandle
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.LinkGroupsHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.MergeGroupHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.PromotePlayerHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.RegisterPermissionHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.RejectInviteHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.RemoveMemberHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.RenameGroupHandler;
@@ -60,7 +61,7 @@ public class NameLayerZPlugin extends ZeusPlugin {
 		registerRabbitListener(new AcceptInviteHandler(), new BlacklistPlayerHandler(), new CreateGroupHandler(),
 				new CreateRankHandler(), new DeleteGroupHandler(), new DeleteRankHandler(), new EditPermissionHandler(),
 				new InvitePlayerHandler(), new JoinGroupHandler(), new LeaveGroupHandler(), new LinkGroupsHandler(),
-				new MergeGroupHandler(), new PromotePlayerHandler(), new RejectInviteHandler(),
+				new MergeGroupHandler(), new PromotePlayerHandler(), new RegisterPermissionHandler(), new RejectInviteHandler(),
 				new RemoveMemberHandler(), new RenameGroupHandler(), new RenameRankHandler(), new RevokeInviteHandler(),
 				new SetPasswordHandler(), new UnlinkGroupsHandler());
 	}

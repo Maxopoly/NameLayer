@@ -6,6 +6,7 @@ import com.github.maxopoly.artemis.rabbit.MCStandardRequest;
 
 import vg.civcraft.mc.namelayer.core.DefaultPermissionLevel;
 import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.core.requests.RegisterPermission;
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 public class PermissionCreation extends MCStandardRequest {
@@ -33,7 +34,7 @@ public class PermissionCreation extends MCStandardRequest {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_register_permission";
+		return RegisterPermission.REQUEST_ID;
 	}
 
 }
