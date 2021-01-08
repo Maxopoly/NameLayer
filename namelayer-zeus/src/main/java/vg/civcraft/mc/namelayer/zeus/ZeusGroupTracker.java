@@ -1,10 +1,7 @@
 package vg.civcraft.mc.namelayer.zeus;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -43,7 +40,7 @@ public class ZeusGroupTracker extends GroupTracker {
 		this.database = database;
 		this.groupsBeingLoaded = new HashMap<>();
 	}
-	
+
 	@Override
 	public void registerPermission(PermissionType perm) {
 		synchronized (permissionTracker) {
@@ -177,53 +174,32 @@ public class ZeusGroupTracker extends GroupTracker {
 			groupsBeingLoaded.put(id, new Object());
 		}
 		Group group = database.getGroup(id, getPermissionTracker());
-		addGroup(group);
+		if (group != null) {
+			addGroup(group);
+		}
 		Object lock = groupsBeingLoaded.remove(id);
 		synchronized (lock) {
 			lock.notifyAll();
 		}
 		return group;
 	}
-
-	public synchronized Group createGroup(String name, UUID creator) {
-		int groupID = database.createGroup(name, creator);
-		if (groupID == -1) {
+	
+	public Group loadOrGetGroup(String name) {
+		int id = database.getGroupIdForName(name);
+		if (id == -1) {
 			return null;
 		}
-		Group group = new Group(name, groupID);
-		synchronized (group) {
-			Map<GroupRank, List<PermissionType>> permsToSave = new HashMap<>();
-			GroupRank owner = new GroupRank("Owner", GroupRankHandler.OWNER_ID, null);
-			GroupRankHandler handler = new GroupRankHandler(owner);
-			GroupRank admin = new GroupRank("Admin", GroupRankHandler.DEFAULT_ADMIN_ID, owner);
-			handler.putRank(admin);
-			GroupRank mod = new GroupRank("Mod", GroupRankHandler.DEFAULT_MOD_ID, admin);
-			handler.putRank(mod);
-			GroupRank member = new GroupRank("Member", GroupRankHandler.DEFAULT_MEMBER_ID, mod);
-			handler.putRank(member);
-			GroupRank defaultNonMember = new GroupRank("Default", GroupRankHandler.DEFAULT_NON_MEMBER_ID, owner);
-			handler.putRank(defaultNonMember);
-			GroupRank blacklisted = new GroupRank("Blacklisted", GroupRankHandler.DEFAULT_BLACKLIST_ID,
-					defaultNonMember);
-			handler.putRank(blacklisted);
-			for (GroupRank rank : handler.getAllRanks()) {
-				if (rank == owner) {
-					continue;
-				}
-				List<PermissionType> permList = new ArrayList<>();
-				for (PermissionType perm : getPermissionTracker().getAllPermissions()) {
-					if (perm.getDefaultPermLevels().getAllowedRankIds().contains(rank.getId())) {
-						rank.addPermission(perm);
-						permList.add(perm);
-					}
-				}
-				permsToSave.put(rank, permList);
-			}
-			handler.setDefaultPasswordJoinRank(member);
-			handler.setDefaultInvitationRank(member);
-			database.addAllPermissions(groupID, permsToSave);
-			addGroup(group);
+		return loadOrGetGroup(id);
+	}
+
+	public synchronized Group createGroup(String name, UUID creator) {
+		Group group = database.createGroup(name, creator, getPermissionTracker().getAllPermissions());
+		if (group == null) {
+			return null;
 		}
+		addGroup(group);
+		GroupRank owner = group.getGroupRankHandler().getOwnerRank();
+		addPlayerToGroup(group, creator, owner);
 		return group;
 	}
 

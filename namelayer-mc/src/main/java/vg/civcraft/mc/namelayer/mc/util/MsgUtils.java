@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
@@ -41,6 +42,12 @@ public final class MsgUtils {
 			if (p != null) {
 				p.sendMessage(msg);
 			}
+		});
+	}
+
+	public static void sendMsg(CommandSender receiver, String msg) {
+		Bukkit.getScheduler().runTask(NameLayerPlugin.getInstance(), () -> {
+			receiver.sendMessage(msg);
 		});
 	}
 

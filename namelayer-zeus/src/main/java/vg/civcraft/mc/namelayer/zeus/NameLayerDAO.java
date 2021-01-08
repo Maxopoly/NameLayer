@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -43,53 +44,55 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		registerMigration(1,
 				"CREATE TABLE IF NOT EXISTS nl_groups (group_id SERIAL NOT NULL, "
 						+ "group_name VARCHAR(32) NOT NULL UNIQUE, PRIMARY KEY(group_id))",
-						
+
+				"CREATE UNIQUE INDEX lower_group_name ON nl_groups ((lower(group_name)))",
+
 				"CREATE TABLE IF NOT EXISTS nl_ranks(group_id INT NOT NULL, rank_id INT NOT NULL, "
-				+ "rank_name VARCHAR(32) NOT NULL, parent_rank_id INT, UNIQUE (group_id, rank_id), "
-				+ " UNIQUE (group_id, rank_name), PRIMARY KEY(group_id,rank_id), "
-				+ "CONSTRAINT fk_gid FOREIGN KEY(group_id) REFERENCES nl_groups (group_id) ON DELETE CASCADE)",
-				
+						+ "rank_name VARCHAR(32) NOT NULL, parent_rank_id INT, UNIQUE (group_id, rank_id), "
+						+ " UNIQUE (group_id, rank_name), PRIMARY KEY(group_id,rank_id), "
+						+ "CONSTRAINT fk_gid FOREIGN KEY(group_id) REFERENCES nl_groups (group_id) ON DELETE CASCADE)",
+
 				"CREATE TABLE IF NOT EXISTS nl_members(group_id INT NOT NULL, player UUID NOT NULL, "
-				+ "rank_id INT NOT NULL, UNIQUE (group_id,player), "
-				+ "CONSTRAINT fk_rid FOREIGN KEY(group_id, rank_id) REFERENCES nl_ranks (group_id, rank_id) ON DELETE CASCADE)",
-				
+						+ "rank_id INT NOT NULL, UNIQUE (group_id,player), "
+						+ "CONSTRAINT fk_rid FOREIGN KEY(group_id, rank_id) REFERENCES nl_ranks (group_id, rank_id) ON DELETE CASCADE)",
+
 				"CREATE INDEX nl_members_player on nl_members (player)",
-				
+
 				"CREATE TABLE IF NOT EXISTS nl_merged_groups (old_group_id INT NOT NULL, new_group_id INT NOT NULL, "
-				+ "CONSTRAINT fk_ngid FOREIGN KEY(new_group_id) REFERENCES nl_groups (group_id) ON DELETE CASCADE, PRIMARY KEY(old_group_id))",
-				
+						+ "CONSTRAINT fk_ngid FOREIGN KEY(new_group_id) REFERENCES nl_groups (group_id) ON DELETE CASCADE, PRIMARY KEY(old_group_id))",
+
 				"CREATE TABLE IF NOT EXISTS nl_global_permissions(perm_id SERIAL NOT NULL, perm_name TEXT not null, "
-				+ "PRIMARY KEY(perm_id), UNIQUE (perm_name))",
-				
+						+ "PRIMARY KEY(perm_id), UNIQUE (perm_name))",
+
 				"CREATE TABLE IF NOT EXISTS nl_group_permissions(group_id INT NOT NULL, rank_id INT NOT NULL, "
-				+ "perm_id INT NOT NULL, PRIMARY KEY(group_id,rank_id,perm_id), "
-				+ "CONSTRAINT fk_rid FOREIGN KEY(group_id, rank_id) REFERENCES nl_ranks (group_id, rank_id) ON DELETE CASCADE, "
-				+ "CONSTRAINT fk_pid FOREIGN KEY(perm_id) REFERENCES nl_global_permissions (perm_id) ON DELETE CASCADE)",
-				
+						+ "perm_id INT NOT NULL, PRIMARY KEY(group_id,rank_id,perm_id), "
+						+ "CONSTRAINT fk_rid FOREIGN KEY(group_id, rank_id) REFERENCES nl_ranks (group_id, rank_id) ON DELETE CASCADE, "
+						+ "CONSTRAINT fk_pid FOREIGN KEY(perm_id) REFERENCES nl_global_permissions (perm_id) ON DELETE CASCADE)",
+
 				"CREATE TABLE IF NOT EXISTS nl_invitations(player uuid NOT NULL, group_id INT NOT NULL, "
-				+ "rank_id INT NOT NULL, PRIMARY KEY(group_id, player))",
-				
+						+ "rank_id INT NOT NULL, PRIMARY KEY(group_id, player))",
+
 				"CREATE TABLE IF NOT EXISTS nl_links (originating_group_id INT NOT NULL, "
-				+ "originating_rank_id INT NOT NULL, target_group_id INT NOT NULL, "
-				+ "target_rank_id INT NOT NULL, "
-				+ "CONSTRAINT fk_og FOREIGN KEY (originating_group_id, originating_rank_id) REFERENCES nl_ranks(group_id, rank_id) on delete cascade, "
-				+ "CONSTRAINT fk_tar FOREIGN KEY (target_group_id, target_rank_id) REFERENCES nl_ranks(group_id, rank_id) on delete cascade, "
-				+ "UNIQUE (originating_group_id, originating_rank_id, target_group_id, target_rank_id))",
-				
+						+ "originating_rank_id INT NOT NULL, target_group_id INT NOT NULL, "
+						+ "target_rank_id INT NOT NULL, "
+						+ "CONSTRAINT fk_og FOREIGN KEY (originating_group_id, originating_rank_id) REFERENCES nl_ranks(group_id, rank_id) on delete cascade, "
+						+ "CONSTRAINT fk_tar FOREIGN KEY (target_group_id, target_rank_id) REFERENCES nl_ranks(group_id, rank_id) on delete cascade, "
+						+ "UNIQUE (originating_group_id, originating_rank_id, target_group_id, target_rank_id))",
+
 				"CREATE INDEX nl_links_orig on nl_links (originating_group_id)",
 				"CREATE INDEX nl_links_target on nl_links (target_group_id)",
-					
+
 				"CREATE TABLE IF NOT EXISTS nl_global_actions(type_id SERIAL NOT NULL, "
-				+ "type_name text not null, PRIMARY KEY(type_id), UNIQUE (type_name))",
-				
+						+ "type_name text not null, PRIMARY KEY(type_id), UNIQUE (type_name))",
+
 				"CREATE TABLE IF NOT EXISTS nl_action_log (action_id SERIAL NOT NULL, "
-				+ "type_id INT NOT NULL, player UUID NOT NULL, group_id INT NOT NULL, "
-				+ "time TIMESTAMP NOT NULL, rank varchar(255) default null, name varchar(255) default null, "
-				+ "extra TEXT DEFAULT NULL, PRIMARY KEY(action_id), "
-				+ "CONSTRAINT fk_glo FOREIGN KEY (type_id) REFERENCES nl_global_actions(type_id) on delete cascade,"
-				+ "CONSTRAINT fk_gid FOREIGN KEY (group_id) REFERENCES nl_groups(group_id) on delete cascade)"
-				
-				);
+						+ "type_id INT NOT NULL, player UUID NOT NULL, group_id INT NOT NULL, "
+						+ "time TIMESTAMP NOT NULL, rank varchar(255) default null, name varchar(255) default null, "
+						+ "extra TEXT DEFAULT NULL, PRIMARY KEY(action_id), "
+						+ "CONSTRAINT fk_glo FOREIGN KEY (type_id) REFERENCES nl_global_actions(type_id) on delete cascade,"
+						+ "CONSTRAINT fk_gid FOREIGN KEY (group_id) REFERENCES nl_groups(group_id) on delete cascade)"
+
+		);
 	}
 
 	public Map<String, Map<Integer, List<LoggedGroupActionPersistence>>> loadAllGroupsLogs() {
@@ -171,30 +174,64 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		}
 	}
 
-	public int createGroup(String group, UUID creator) {
+	public Group createGroup(String groupName, UUID creator, Collection<PermissionType> allPerms) {
+		int groupID = -1;
 		try (Connection connection = db.getConnection();
-				PreparedStatement createGroup = connection.prepareStatement("call createGroup(?,?)")) {
-			createGroup.setString(1, group);
-			createGroup.setString(2, creator.toString());
-			createGroup.execute();
-		} catch (SQLException e) {
-			logger.log(Level.WARN, "Problem setting up query to create group " + group, e);
-			return -1;
-		}
-		try (Connection connection = db.getConnection();
-				PreparedStatement getGroup = connection
-						.prepareStatement("select group_id from faction_id where group_name=?")) {
-			getGroup.setString(1, group);
-			try (ResultSet rs = getGroup.executeQuery()) {
-				if (rs.next()) {
-					return rs.getInt(1);
-				}
-				return -1;
+				PreparedStatement registerPermission = connection.prepareStatement(
+						"insert into nl_groups(group_name) values(?)", Statement.RETURN_GENERATED_KEYS)) {
+			registerPermission.setString(1, groupName);
+			registerPermission.executeUpdate();
+			try (ResultSet rs = registerPermission.getGeneratedKeys()) {
+				rs.next();
+				groupID = rs.getInt(1);
 			}
 		} catch (SQLException e) {
-			logger.log(Level.WARN, "Problem creating group " + group, e);
-			return -1;
+			logger.error("Problem creating group " + groupName, e);
+			return null;
 		}
+		Group group = new Group(groupName, groupID);
+		Map<GroupRank, List<PermissionType>> permsToSave = new HashMap<>();
+		GroupRank owner = new GroupRank("Owner", GroupRankHandler.OWNER_ID, null);
+		GroupRankHandler handler = new GroupRankHandler(owner);
+		group.setGroupRankHandler(handler);
+		GroupRank admin = new GroupRank("Admin", GroupRankHandler.DEFAULT_ADMIN_ID, owner);
+		handler.putRank(admin);
+		owner.addChild(admin);
+		GroupRank mod = new GroupRank("Mod", GroupRankHandler.DEFAULT_MOD_ID, admin);
+		handler.putRank(mod);
+		admin.addChild(mod);
+		GroupRank member = new GroupRank("Member", GroupRankHandler.DEFAULT_MEMBER_ID, mod);
+		handler.putRank(member);
+		mod.addChild(member);
+		GroupRank defaultNonMember = new GroupRank("Default", GroupRankHandler.DEFAULT_NON_MEMBER_ID, owner);
+		handler.putRank(defaultNonMember);
+		owner.addChild(defaultNonMember);
+		GroupRank blacklisted = new GroupRank("Blacklisted", GroupRankHandler.DEFAULT_BLACKLIST_ID, defaultNonMember);
+		handler.putRank(blacklisted);
+		defaultNonMember.addChild(blacklisted);
+		for (GroupRank rank : handler.getAllRanks()) {
+			if (rank.equals(defaultNonMember)) {
+				continue;
+			}
+			createRank(group, rank);
+		}
+		for (GroupRank rank : handler.getAllRanks()) {
+			if (rank == owner) {
+				continue;
+			}
+			List<PermissionType> permList = new ArrayList<>();
+			for (PermissionType perm : allPerms) {
+				if (perm.getDefaultPermLevels().getAllowedRankIds().contains(rank.getId())) {
+					rank.addPermission(perm);
+					permList.add(perm);
+				}
+			}
+			permsToSave.put(rank, permList);
+		}
+		handler.setDefaultPasswordJoinRank(member);
+		handler.setDefaultInvitationRank(member);
+		addAllPermissions(groupID, permsToSave);
+		return group;
 	}
 
 	public void deleteGroup(Group group) {
@@ -374,6 +411,25 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		}
 	}
 
+	public int getGroupIdForName(String name) {
+		name = name.toLowerCase();
+		try (Connection connection = db.getConnection();
+				PreparedStatement getGroupId = connection
+						.prepareStatement("select group_id from nl_groups where lower(group_name) = ?");) {
+			getGroupId.setString(1, name);
+			try (ResultSet rs = getGroupId.executeQuery()) {
+				if (rs.next()) {
+					return rs.getInt(1);
+				} else {
+					return -1;
+				}
+			}
+		} catch (SQLException e) {
+			logger.error("Problem getting group id", e);
+			return -1;
+		}
+	}
+
 	public Map<Integer, String> getPermissionMapping() {
 		Map<Integer, String> perms = new TreeMap<>();
 		try (Connection connection = db.getConnection();
@@ -508,16 +564,18 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		// load all player types without linking them in any way initially
 		try (Connection connection = db.getConnection();
 				PreparedStatement getTypes = connection.prepareStatement(
-						"select rank_name, rank_id, parent_rank_id from nl_group_ranks where group_id = ?");
-				ResultSet types = getTypes.executeQuery()) {
-			while (types.next()) {
-				String rankName = types.getString(1);
-				int rankId = types.getInt(2);
-				int parentId = types.getInt(3);
-				GroupRank rank = new GroupRank(rankName, rankId, null);
-				retrievedRanks.put(rankId, rank);
-				List<GroupRank> brothers = parentMapping.computeIfAbsent(parentId, i -> new ArrayList<>());
-				brothers.add(rank);
+						"select rank_name, rank_id, parent_rank_id from nl_ranks where group_id = ?")) {
+			getTypes.setInt(1, group.getPrimaryId());
+			try (ResultSet types = getTypes.executeQuery()) {
+				while (types.next()) {
+					String rankName = types.getString(1);
+					int rankId = types.getInt(2);
+					int parentId = types.getInt(3);
+					GroupRank rank = new GroupRank(rankName, rankId, null);
+					retrievedRanks.put(rankId, rank);
+					List<GroupRank> brothers = parentMapping.computeIfAbsent(parentId, i -> new ArrayList<>());
+					brothers.add(rank);
+				}
 			}
 		} catch (SQLException e) {
 			logger.error("Failed to load group rank", e);

@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
 
 public class RemoveInvite extends AbstractGroupModificationHandler {
 
@@ -16,7 +17,7 @@ public class RemoveInvite extends AbstractGroupModificationHandler {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_remove_invite";
+		return GroupModifications.REMOVE_INVITE_ID;
 	}
 
 }

@@ -2,6 +2,8 @@ package vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges;
 
 import org.json.JSONObject;
 
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
+
 public class RenameGroupMessage extends GroupChangeMessage {
 
 	private String newName;
@@ -18,7 +20,7 @@ public class RenameGroupMessage extends GroupChangeMessage {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_rename_group";
+		return GroupModifications.RENAME_GROUP_ID;
 	}
 
 }

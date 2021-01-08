@@ -2,6 +2,8 @@ package vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges;
 
 import org.json.JSONObject;
 
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
+
 public class RemoveLinkMessage extends GroupChangeMessage {
 	
 	private int targetGroupID;
@@ -24,7 +26,7 @@ public class RemoveLinkMessage extends GroupChangeMessage {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_remove_link";
+		return GroupModifications.REMOVE_LINK_ID;
 	}
 
 }

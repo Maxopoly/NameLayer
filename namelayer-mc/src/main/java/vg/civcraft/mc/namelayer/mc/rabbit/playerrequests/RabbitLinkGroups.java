@@ -28,6 +28,7 @@ public class RabbitLinkGroups extends RabbitGroupAction {
 			sendMessage(String.format("%sSuccessfully linked %s%s%s in %s%s to %s%s%s in %s", ChatColor.GREEN, ChatColor.GOLD,
 				originatingRank.getName(), ChatColor.GREEN, getGroup().getColoredName(), ChatColor.GREEN,
 				ChatColor.YELLOW, targetRank.getName(), ChatColor.GREEN, targetGroup.getColoredName()));
+			return;
 		}
 		LinkGroups.FailureReason reason = LinkGroups.FailureReason.valueOf(reply.getString("reason"));
 		String missingPerm = reply.optString("missing_perm", null);	

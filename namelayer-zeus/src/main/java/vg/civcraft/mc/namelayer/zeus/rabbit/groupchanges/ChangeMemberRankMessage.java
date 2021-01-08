@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import org.json.JSONObject;
 
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
+
 public class ChangeMemberRankMessage extends GroupMemberRankModifyMessage {
 
 	public ChangeMemberRankMessage(int groupID, UUID player, int rankID) {
@@ -17,7 +19,7 @@ public class ChangeMemberRankMessage extends GroupMemberRankModifyMessage {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_change_rank";
+		return GroupModifications.CHANGE_RANK_ID;
 	}
 
 }

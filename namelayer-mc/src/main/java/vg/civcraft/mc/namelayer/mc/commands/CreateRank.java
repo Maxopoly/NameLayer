@@ -28,7 +28,7 @@ public class CreateRank extends StandaloneCommand {
 		if (group == null) {
 			MsgUtils.sendGroupNotExistMsg(player.getUniqueId(), args[0]);
 			return true;
-		};
+		}
 		GroupRankHandler handler = group.getGroupRankHandler();
 		GroupRank parentRank = handler.getRank(args[1]);
 		if (parentRank == null) {
@@ -36,12 +36,6 @@ public class CreateRank extends StandaloneCommand {
 			return true;
 		}
 		String newRank = args[2];
-		GroupRank checkNewRank = handler.getRank(newRank);
-		if (checkNewRank != null) {
-			player.sendMessage(String.format("%sA rank named %s%s%s already exists", ChatColor.RED, ChatColor.YELLOW, newRank,
-					ChatColor.RED));
-			return true;
-		}
 		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitCreateRank(player.getUniqueId(), group, parentRank, newRank));
 		return true;
 	}

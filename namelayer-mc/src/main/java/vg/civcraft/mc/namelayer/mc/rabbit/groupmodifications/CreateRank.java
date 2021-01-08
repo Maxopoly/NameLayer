@@ -4,6 +4,7 @@ import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
 
 public class CreateRank extends AbstractGroupModificationHandler {
 
@@ -18,7 +19,7 @@ public class CreateRank extends AbstractGroupModificationHandler {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_create_rank";
+		return GroupModifications.CREATE_RANK_ID;
 	}
 
 }

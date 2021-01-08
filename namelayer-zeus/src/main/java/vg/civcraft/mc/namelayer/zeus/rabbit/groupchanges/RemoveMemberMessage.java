@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import org.json.JSONObject;
 
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
+
 public class RemoveMemberMessage extends GroupMemberModifyMessage {
 
 	public RemoveMemberMessage(int groupID, UUID player) {
@@ -12,7 +14,7 @@ public class RemoveMemberMessage extends GroupMemberModifyMessage {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_remove_member";
+		return GroupModifications.REMOVE_MEMBER_ID;
 	}
 
 	@Override

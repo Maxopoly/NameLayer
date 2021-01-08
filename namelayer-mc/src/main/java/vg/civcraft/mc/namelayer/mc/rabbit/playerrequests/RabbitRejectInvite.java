@@ -22,6 +22,7 @@ public class RabbitRejectInvite extends RabbitGroupAction {
 			GroupRank rankInvitedTo = group.getInvite(executor);
 			sendMessage(String.format("%sYou rejected the invite to %s%s as %s%s", ChatColor.GREEN, group.getColoredName(),
 				ChatColor.GREEN, ChatColor.GOLD, rankInvitedTo.getName()));
+			return;
 		}
 		RejectInvite.FailureReason reason = RejectInvite.FailureReason.valueOf(reply.getString("reason"));
 		switch (reason) {

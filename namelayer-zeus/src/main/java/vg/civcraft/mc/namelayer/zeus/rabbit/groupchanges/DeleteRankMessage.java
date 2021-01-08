@@ -2,6 +2,8 @@ package vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges;
 
 import org.json.JSONObject;
 
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
+
 public class DeleteRankMessage extends GroupChangeMessage {
 
 	private int rankID;
@@ -18,7 +20,7 @@ public class DeleteRankMessage extends GroupChangeMessage {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_delete_rank";
+		return GroupModifications.DELETE_RANK_ID;
 	}
 
 }

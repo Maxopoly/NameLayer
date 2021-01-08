@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import org.json.JSONObject;
 
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
+
 public class AddInviteMessage extends GroupMemberRankModifyMessage {
 
 	public AddInviteMessage(int groupID, UUID player, int rankID) {
@@ -17,6 +19,6 @@ public class AddInviteMessage extends GroupMemberRankModifyMessage {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_add_invite";
+		return GroupModifications.ADD_INVITE_ID;
 	}
 }

@@ -2,6 +2,8 @@ package vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges;
 
 import org.json.JSONObject;
 
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
+
 public class MergeGroupMessage extends GroupChangeMessage {
 
 	private int groupMergedInto;
@@ -17,7 +19,7 @@ public class MergeGroupMessage extends GroupChangeMessage {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_merge_group";
+		return GroupModifications.MERGE_GROUP_ID;
 	}
 
 }

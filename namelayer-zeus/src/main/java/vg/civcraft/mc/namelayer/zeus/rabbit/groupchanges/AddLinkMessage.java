@@ -2,6 +2,8 @@ package vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges;
 
 import org.json.JSONObject;
 
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
+
 public class AddLinkMessage extends GroupChangeMessage {
 
 	private int targetGroupID;
@@ -24,6 +26,6 @@ public class AddLinkMessage extends GroupChangeMessage {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_add_link";
+		return GroupModifications.ADD_LINK_ID;
 	}
 }

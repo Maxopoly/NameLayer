@@ -1,24 +1,51 @@
 package vg.civcraft.mc.namelayer.core;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class PermissionTracker {
-	
-	private static final String LIST_RANK_PREFIX = "listPlayer#";
-	private static final String INVITE_RANK_PREFIX = "invitePlayer#";
-	private static final String REMOVE_RANK_PREFIX = "removePlayer#";
-	
+
+	public static final String LIST_RANK_PREFIX = "listPlayer#";
+	public static final String INVITE_RANK_PREFIX = "invitePlayer#";
+	public static final String REMOVE_RANK_PREFIX = "removePlayer#";
+
 	private Map<String, PermissionType> permissionByName;
 	private Map<Integer, PermissionType> permissionById;
-	
+
 	public PermissionTracker() {
 		this.permissionByName = new HashMap<>();
 		this.permissionById = new TreeMap<>();
 	}
-	
+
+	public List<PermissionType> getDefaultRankEditingPerms(GroupRank rank) {
+		switch (rank.getId()) {
+		case GroupRankHandler.DEFAULT_ADMIN_ID:
+			List<PermissionType> result = new ArrayList<>();
+			result.add(getListPermission(GroupRankHandler.DEFAULT_ADMIN_ID));
+			result.add(getListPermission(GroupRankHandler.DEFAULT_MOD_ID));
+			result.add(getInvitePermission(GroupRankHandler.DEFAULT_MOD_ID));
+			result.add(getRemovePermission(GroupRankHandler.DEFAULT_MOD_ID));
+			result.add(getListPermission(GroupRankHandler.DEFAULT_MEMBER_ID));
+			result.add(getInvitePermission(GroupRankHandler.DEFAULT_MEMBER_ID));
+			result.add(getRemovePermission(GroupRankHandler.DEFAULT_MEMBER_ID));
+			return result;
+		case GroupRankHandler.DEFAULT_MOD_ID:
+			List<PermissionType> modResult = new ArrayList<>();
+			modResult.add(getListPermission(GroupRankHandler.DEFAULT_MOD_ID));
+			modResult.add(getListPermission(GroupRankHandler.DEFAULT_MEMBER_ID));
+			modResult.add(getInvitePermission(GroupRankHandler.DEFAULT_MEMBER_ID));
+			modResult.add(getRemovePermission(GroupRankHandler.DEFAULT_MEMBER_ID));
+			return modResult;
+		default:
+			return Collections.emptyList();
+		}
+	}
+
 	void putPermission(PermissionType perm) {
 		this.permissionByName.put(perm.getName(), perm);
 		this.permissionById.put(perm.getId(), perm);
@@ -43,7 +70,7 @@ public class PermissionTracker {
 	public PermissionType getPermission(int id) {
 		return permissionById.get(id);
 	}
-	
+
 	/**
 	 * Gets the permission type required to invite or add players to the player type
 	 * with the given id. This permission is independent from the group it is
@@ -88,7 +115,5 @@ public class PermissionTracker {
 	public Collection<PermissionType> getAllPermissions() {
 		return permissionByName.values();
 	}
-	
-	
 
 }

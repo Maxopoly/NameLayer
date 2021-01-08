@@ -3,6 +3,7 @@ package vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications;
 import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
 
 public class DeleteGroup extends AbstractGroupModificationHandler {
 
@@ -13,7 +14,7 @@ public class DeleteGroup extends AbstractGroupModificationHandler {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_delete_group";
+		return GroupModifications.DELETE_GROUP_ID;
 	}
 
 }

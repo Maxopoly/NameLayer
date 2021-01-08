@@ -2,6 +2,8 @@ package vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges;
 
 import org.json.JSONObject;
 
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
+
 public class AddPermissionMessage extends GroupChangeMessage {
 
 	private int rankID;
@@ -21,7 +23,7 @@ public class AddPermissionMessage extends GroupChangeMessage {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_add_perm";
+		return GroupModifications.ADD_PERMISSION_ID;
 	}
 
 }

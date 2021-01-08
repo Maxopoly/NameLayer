@@ -65,7 +65,7 @@ public final class NameLayerTabCompletion {
 	
 	//TODO: Actually return a players invites instead of an empty list
 	public static List<String> completeGroupInvitedTo(String prefix, Player sender) {
-		return complete(prefix, Collections.EMPTY_LIST, Group::getName);
+		return complete(prefix, Collections.emptyList(), Group::getName);
 	}
 	
 	public static List<String> completePermission(String prefix) {

@@ -6,11 +6,13 @@ import java.util.UUID;
 
 import org.json.JSONObject;
 
+import com.github.maxopoly.zeus.servers.ArtemisServer;
 import com.github.maxopoly.zeus.servers.ConnectedServer;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.requests.JoinGroup;
+import vg.civcraft.mc.namelayer.zeus.NameLayerZPlugin;
 
 public class JoinGroupHandler extends GroupRequestHandler {
 
@@ -37,6 +39,7 @@ public class JoinGroupHandler extends GroupRequestHandler {
 			GroupRank targetType = group.getGroupRankHandler().getDefaultPasswordJoinRank();
 			Map<String, Object> repValues = new HashMap<>();
 			repValues.put("targetRank", targetType.getId());
+			NameLayerZPlugin.getInstance().getGroupKnowledgeTracker().ensureIsCached(group, (ArtemisServer) sendingServer);
 			getGroupTracker().addPlayerToGroup(group, executor, targetType);
 			sendAccept(ticket, JoinGroup.REPLY_ID, sendingServer, repValues);
 		}

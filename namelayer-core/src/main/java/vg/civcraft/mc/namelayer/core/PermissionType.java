@@ -1,5 +1,9 @@
 package vg.civcraft.mc.namelayer.core;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.google.common.base.Preconditions;
 
 public class PermissionType {
@@ -22,7 +26,7 @@ public class PermissionType {
 		this(name, -1, defaultPermLevels, description);
 	}
 
-	/**
+ 	/**
 	 * @return Name of this permission
 	 */
 	public String getName() {

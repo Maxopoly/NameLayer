@@ -1,8 +1,11 @@
 package vg.civcraft.mc.namelayer.mc.model;
 
 import vg.civcraft.mc.namelayer.core.DefaultPermissionLevel;
+import vg.civcraft.mc.namelayer.core.GroupRankHandler;
+import vg.civcraft.mc.namelayer.core.PermissionTracker;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
+import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 public class NameLayerPermissionManager {
 
@@ -38,8 +41,7 @@ public class NameLayerPermissionManager {
 		GroupAPI.registerPermission("PERMS", DefaultPermissionLevel.OWNER,
 				"Allows modifying permissions for this group");
 		// allows deleting the group
-		GroupAPI.registerPermission("DELETE", DefaultPermissionLevel.OWNER,
-				"Allows deleting this group");
+		GroupAPI.registerPermission("DELETE", DefaultPermissionLevel.OWNER, "Allows deleting this group");
 		// allows merging the group with another one
 		GroupAPI.registerPermission("MERGE", DefaultPermissionLevel.OWNER,
 				"Allows merging this group into another or merging another group into this one");
@@ -52,12 +54,16 @@ public class NameLayerPermissionManager {
 		// allows deleting player types
 		GroupAPI.registerPermission("RENAME_PLAYERTYPE", DefaultPermissionLevel.OWNER,
 				"Allows renaming player types for this group");
-		GroupAPI.registerPermission("RENAME_GROUP", DefaultPermissionLevel.OWNER,
-				"Allows renaming the group");
+		GroupAPI.registerPermission("RENAME_GROUP", DefaultPermissionLevel.OWNER, "Allows renaming the group");
 		GroupAPI.registerPermission("LINK_GROUP", DefaultPermissionLevel.OWNER,
 				"Allows linking and unlinking the group");
 		GroupAPI.registerPermission("GROUP_COLOR", DefaultPermissionLevel.ADMIN,
 				"Allows changing the groups color prefix");
+		for (int i = 0; i < GroupRankHandler.getMaximumTypeCount(); i++) {
+			GroupAPI.registerPermission(PermissionTracker.LIST_RANK_PREFIX + i, DefaultPermissionLevel.SPECIAL, "");
+			GroupAPI.registerPermission(PermissionTracker.INVITE_RANK_PREFIX + i, DefaultPermissionLevel.SPECIAL, "");
+			GroupAPI.registerPermission(PermissionTracker.REMOVE_RANK_PREFIX + i, DefaultPermissionLevel.SPECIAL, "");		
+		}
 	}
 
 	public PermissionType getLinkGroup() {

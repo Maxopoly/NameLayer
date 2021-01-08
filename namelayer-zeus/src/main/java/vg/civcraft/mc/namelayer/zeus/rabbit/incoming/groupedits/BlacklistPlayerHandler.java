@@ -13,6 +13,7 @@ import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.core.requests.BlacklistPlayer;
+import vg.civcraft.mc.namelayer.zeus.NameLayerZPlugin;
 
 public class BlacklistPlayerHandler extends GroupRequestHandler {
 
@@ -46,6 +47,7 @@ public class BlacklistPlayerHandler extends GroupRequestHandler {
 				sendReject(ticket, BlacklistPlayer.REPLY_ID, sendingServer, BlacklistPlayer.FailureReason.NOT_BLACKLISTED_RANK);
 				return;
 			}
+			NameLayerZPlugin.getInstance().getGroupKnowledgeTracker().ensureServerOfCaches(group, targetPlayer);
 			getGroupTracker().addPlayerToGroup(group, targetPlayer, rank);
 			sendAccept(ticket, BlacklistPlayer.REPLY_ID, sendingServer);
 		}

@@ -2,6 +2,8 @@ package vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges;
 
 import org.json.JSONObject;
 
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
+
 public class DeleteGroupMessage extends GroupChangeMessage {
 
 	public DeleteGroupMessage(int groupID) {
@@ -15,7 +17,7 @@ public class DeleteGroupMessage extends GroupChangeMessage {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_delete_group";
+		return GroupModifications.DELETE_GROUP_ID;
 	}
 
 }

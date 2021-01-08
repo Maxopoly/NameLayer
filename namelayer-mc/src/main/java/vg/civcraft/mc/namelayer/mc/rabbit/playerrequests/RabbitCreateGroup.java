@@ -19,6 +19,7 @@ public class RabbitCreateGroup extends RabbitGroupAction {
 		Group group = getGroup();
 		if (success) {
 			sendMessage(String.format("%sThe group %s was successfully created", ChatColor.GREEN, group.getName()));
+			return;
 		}
 		CreateGroup.FailureReason reason = CreateGroup.FailureReason.valueOf(reply.getString("reason"));
 		switch (reason) {

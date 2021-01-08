@@ -6,6 +6,7 @@ import com.github.maxopoly.zeus.ZeusMain;
 import com.github.maxopoly.zeus.rabbit.RabbitMessage;
 
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
 
 public class RecacheGroupMessage extends RabbitMessage {
 	
@@ -18,7 +19,7 @@ public class RecacheGroupMessage extends RabbitMessage {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_recache_group";
+		return GroupModifications.RECACHE_GROUP_ID;
 	}
 
 	@Override

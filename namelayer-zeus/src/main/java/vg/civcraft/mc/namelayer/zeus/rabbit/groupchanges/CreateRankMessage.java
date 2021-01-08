@@ -2,6 +2,8 @@ package vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges;
 
 import org.json.JSONObject;
 
+import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
+
 public class CreateRankMessage extends GroupChangeMessage {
 
 	private int rankID;
@@ -24,7 +26,7 @@ public class CreateRankMessage extends GroupChangeMessage {
 
 	@Override
 	public String getIdentifier() {
-		return "nl_create_rank";
+		return GroupModifications.CREATE_RANK_ID;
 	}
 
 }

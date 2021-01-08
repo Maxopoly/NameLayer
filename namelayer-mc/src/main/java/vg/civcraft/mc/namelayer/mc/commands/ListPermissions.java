@@ -17,7 +17,7 @@ import vg.civcraft.mc.namelayer.mc.GroupAPI;
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 @CivCommand(id = "nllp")
-public class ListPermissions extends StandaloneCommand {
+public class ListPermissions extends NameLayerCommand {
 
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {

@@ -6,10 +6,12 @@ import java.util.UUID;
 
 import org.json.JSONObject;
 
+import com.github.maxopoly.zeus.servers.ArtemisServer;
 import com.github.maxopoly.zeus.servers.ConnectedServer;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.requests.CreateGroup;
+import vg.civcraft.mc.namelayer.zeus.NameLayerZPlugin;
 
 public class CreateGroupHandler extends GroupRequestHandler {
 
@@ -24,14 +26,20 @@ public class CreateGroupHandler extends GroupRequestHandler {
 			sendReject(ticket, CreateGroup.REPLY_ID, sendingServer, CreateGroup.FailureReason.NAME_INVALID);
 			return;
 		}
+		group = NameLayerZPlugin.getInstance().getGroupTracker().loadOrGetGroup(groupName);
+		if (group != null) {
+			sendReject(ticket, CreateGroup.REPLY_ID, sendingServer, CreateGroup.FailureReason.GROUP_ALREADY_EXISTS);
+			return;
+		}
 		synchronized (getGroupTracker()) {
 			if (getGroupTracker().createGroup(groupName, executor) == null) {
 				sendReject(ticket, CreateGroup.REPLY_ID, sendingServer, CreateGroup.FailureReason.UNKNOWN_ERROR);
 				return;
 			}
+			group = getGroupTracker().getGroup(groupName);
+			NameLayerZPlugin.getInstance().getGroupKnowledgeTracker().ensureIsCached(group, (ArtemisServer) sendingServer);
 			sendAccept(ticket, CreateGroup.REPLY_ID, sendingServer);
 		}
-
 	}
 
 	@Override

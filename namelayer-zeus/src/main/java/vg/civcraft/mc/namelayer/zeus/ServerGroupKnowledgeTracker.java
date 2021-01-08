@@ -1,8 +1,5 @@
 package vg.civcraft.mc.namelayer.zeus;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -10,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import com.github.maxopoly.zeus.ZeusMain;
+import com.github.maxopoly.zeus.model.GlobalPlayerData;
 import com.github.maxopoly.zeus.rabbit.RabbitMessage;
 import com.github.maxopoly.zeus.servers.ArtemisServer;
 import com.google.common.collect.Sets;
@@ -25,8 +23,8 @@ public class ServerGroupKnowledgeTracker {
 	private ZeusGroupTracker groupTracker;
 	
 	public ServerGroupKnowledgeTracker(ZeusGroupTracker groupTracker, NameLayerDAO dao) {
-		this.knownGroups = new HashMap<>();
-		this.groupToServers = new HashMap<>();
+		this.knownGroups = new ConcurrentHashMap<>();
+		this.groupToServers = new ConcurrentHashMap<>();
 		this.groupTracker = groupTracker;
 		this.dao = dao;
 	}
@@ -37,6 +35,28 @@ public class ServerGroupKnowledgeTracker {
 	
 	public void globalRecache(Group group) {
 		sendToInterestedServers(group, () -> new RecacheGroupMessage(group));
+	}
+	
+	public void ensureIsCached(Group group, ArtemisServer server) {
+		Set<Integer> matchingGroups = knownGroups.computeIfAbsent(server, g -> Sets.newSetFromMap(new ConcurrentHashMap<>()));
+		if (matchingGroups.contains(group.getPrimaryId())) {
+			return;
+		}
+		matchingGroups.add(group.getPrimaryId());
+		RecacheGroupMessage msgToSend = new RecacheGroupMessage(group);
+		ZeusMain.getInstance().getRabbitGateway().sendMessage(server, msgToSend);
+	}
+	
+	public void ensureServerOfCaches(Group group, UUID uuid) {
+		GlobalPlayerData playerData = ZeusMain.getInstance().getPlayerManager().getOnlinePlayerData(uuid);
+		if (playerData == null) {
+			return; //offline
+		}
+		ArtemisServer server = playerData.getMCServer();
+		if (server == null) {
+			return;
+		}
+		ensureIsCached(group, server);
 	}
 	
 	public void sendToInterestedServers(Group group, Supplier<RabbitMessage> messages) {
@@ -51,18 +71,10 @@ public class ServerGroupKnowledgeTracker {
 	}
 	
 	
-	public void handlePlayerJoin(UUID player, ArtemisServer server) {
-		Set<Integer> matchingGroups = knownGroups.get(server);
-		List<Integer> toSend = new ArrayList<>();
+	public void ensureAllGroupsAvailable(UUID player, ArtemisServer server) {
 		for(int groupID : dao.getGroupsByPlayer(player)) {
-			if (!matchingGroups.contains(groupID)) {
-				toSend.add(groupID);
-			}
-		}
-		for(int groupIdToSend : toSend) {
-			Group group = groupTracker.loadOrGetGroup(groupIdToSend);
-			RecacheGroupMessage msgToSend = new RecacheGroupMessage(group);
-			ZeusMain.getInstance().getRabbitGateway().sendMessage(server, msgToSend);
+			Group group = groupTracker.loadOrGetGroup(groupID);
+			ensureIsCached(group, server);
 		}
 	}
 

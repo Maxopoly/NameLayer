@@ -28,6 +28,7 @@ public class RabbitBlacklistPlayer extends RabbitGroupAction {
 			sendMessage(String.format("%s%s %shas been blacklisted as %s%s%s in %s", ChatColor.YELLOW,
 				this.targetPlayer, ChatColor.GREEN, ChatColor.YELLOW, rank.getName(),
 				ChatColor.YELLOW, group.getColoredName()));
+			return;
 		}
 		BlacklistPlayer.FailureReason reason = BlacklistPlayer.FailureReason.valueOf(reply.getString("reason"));
 		switch (reason) {

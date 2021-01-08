@@ -6,7 +6,7 @@ import java.util.List;
 
 public enum DefaultPermissionLevel {
 	
-	OWNER, ADMIN, MOD, MEMBER;
+	OWNER, ADMIN, MOD, MEMBER, SPECIAL;
 	
 	public List<Integer> getAllowedRankIds() {
 		switch(this) {
@@ -17,6 +17,7 @@ public enum DefaultPermissionLevel {
 		case MOD:
 			return Arrays.asList(GroupRankHandler.DEFAULT_ADMIN_ID, GroupRankHandler.DEFAULT_MOD_ID);
 		case OWNER:
+		case SPECIAL:
 			return Collections.emptyList();
 		default:
 			throw new IllegalStateException();

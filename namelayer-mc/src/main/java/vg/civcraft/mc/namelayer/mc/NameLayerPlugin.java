@@ -26,6 +26,13 @@ import vg.civcraft.mc.namelayer.core.requests.RevokeInvite;
 import vg.civcraft.mc.namelayer.core.requests.SetPassword;
 import vg.civcraft.mc.namelayer.core.requests.UnlinkGroups;
 import vg.civcraft.mc.namelayer.mc.model.NameLayerPermissionManager;
+import vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.AddInvite;
+import vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.AddMember;
+import vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.AddPermission;
+import vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.RecacheGroup;
+import vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.RemoveInvite;
+import vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.RemovePermission;
+import vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.UpdateMemberRank;
 
 public class NameLayerPlugin extends ACivMod {
 
@@ -49,6 +56,15 @@ public class NameLayerPlugin extends ACivMod {
 				LeaveGroup.REPLY_ID, LinkGroups.REPLY_ID, MergeGroups.REPLY_ID, PromotePlayer.REPLY_ID,
 				RejectInvite.REPLY_ID, RemoveMember.REPLY_ID, RenameGroup.REPLY_ID, RenameRank.REPLY_ID,
 				RevokeInvite.REPLY_ID, SetPassword.REPLY_ID, UnlinkGroups.REPLY_ID, RegisterPermission.REPLY_ID);
+		ArtemisPlugin.getInstance().getRabbitInputHandler().registerCommand(new AddInvite(), new AddMember(),
+				new AddPermission(), new vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.CreateRank(),
+				new vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.DeleteGroup(),
+				new vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.DeleteRank(),
+				new vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.LinkGroups(), new RecacheGroup(),
+				new RemoveInvite(), new RemovePermission(),
+				new vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.RenameGroup(),
+				new vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.RenameRank(),
+				new vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications.UnlinkGroups(), new UpdateMemberRank());
 	}
 
 	public GroupTracker getGroupTracker() {

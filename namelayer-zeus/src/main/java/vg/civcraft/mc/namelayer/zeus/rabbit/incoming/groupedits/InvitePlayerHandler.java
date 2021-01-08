@@ -14,6 +14,7 @@ import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.GroupRankHandler;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.core.requests.InvitePlayer;
+import vg.civcraft.mc.namelayer.zeus.NameLayerZPlugin;
 
 public class InvitePlayerHandler extends GroupRequestHandler {
 
@@ -52,6 +53,7 @@ public class InvitePlayerHandler extends GroupRequestHandler {
 				sendReject(ticket, InvitePlayer.REPLY_ID, sendingServer, InvitePlayer.FailureReason.ALREADY_INVITED);
 				return;
 			}
+			NameLayerZPlugin.getInstance().getGroupKnowledgeTracker().ensureServerOfCaches(group, targetUUID);
 			getGroupTracker().addInvite(targetUUID, targetType, group);
 			sendAccept(ticket, InvitePlayer.REPLY_ID, sendingServer);
 		}

@@ -31,7 +31,7 @@ public class InvitePlayer extends StandaloneCommand {
 		}
 		String targetPlayerName = args[1];
 		GroupRankHandler handler = group.getGroupRankHandler();
-		GroupRank targetType = handler.getRank(args[2]);
+		GroupRank targetType = handler.getRank(rank);
 		if (targetType == null) {
 			MsgUtils.sendRankNotExistMsg(player.getUniqueId(), group.getColoredName(), args[2]);
 			return true;

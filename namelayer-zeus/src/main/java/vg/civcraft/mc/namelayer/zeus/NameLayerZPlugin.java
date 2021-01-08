@@ -48,6 +48,7 @@ public class NameLayerZPlugin extends ZeusPlugin {
 		groupTracker = new ZeusGroupTracker(dao);
 		groupKnowledgeTracker = new ServerGroupKnowledgeTracker(groupTracker, dao);
 		registerRabbitListeners();
+		registerPluginlistener(new NameLayerListener());
 		return true;
 	}
 
