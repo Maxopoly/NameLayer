@@ -2,6 +2,7 @@ package vg.civcraft.mc.namelayer.mc.commands;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -18,25 +19,28 @@ import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitInvitePlayer;
 import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
 @CivCommand(id = "nlip")
-public class InvitePlayer extends StandaloneCommand {
+public class InvitePlayer extends NameLayerCommand {
 
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
-		String rank = args.length == 3 ? args[2] : "Member";
-		Player player = (Player) sender;
+		UUID uuid = resolveUUID(sender);
 		Group group = GroupAPI.getGroup(args[0]);
 		if (group == null) {
-			MsgUtils.sendGroupNotExistMsg(player.getUniqueId(), args[0]);
+			MsgUtils.sendGroupNotExistMsg(uuid, args[0]);
 			return true;
 		}
-		String targetPlayerName = args[1];
-		GroupRankHandler handler = group.getGroupRankHandler();
-		GroupRank targetType = handler.getRank(rank);
-		if (targetType == null) {
-			MsgUtils.sendRankNotExistMsg(player.getUniqueId(), group.getColoredName(), args[2]);
+		GroupRank inviteRank = null;
+		if (args.length == 2) {
+			inviteRank = group.getGroupRankHandler().getDefaultInvitationRank();
+		}
+		else {
+			inviteRank = group.getGroupRankHandler().getRank(args [2]);
+		}
+		if (inviteRank == null) {
+			MsgUtils.sendRankNotExistMsg(uuid, group.getColoredName(), args[2]);
 			return true;
 		}
-		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitInvitePlayer(player.getUniqueId(), group, targetPlayerName, targetType));
+		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitInvitePlayer(uuid, group, args [1], inviteRank));
 		return true;
 	}
 

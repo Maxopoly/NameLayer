@@ -492,7 +492,7 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		try (Connection connection = db.getConnection();
 				PreparedStatement addGroupInvitation = connection
 						.prepareStatement("insert into nl_invitations(player, group_id, rank_id) values(?, ?, ?)")) {
-			addGroupInvitation.setString(1, uuid.toString());
+			addGroupInvitation.setObject(1, uuid);
 			addGroupInvitation.setInt(2, group.getPrimaryId());
 			addGroupInvitation.setInt(3, role.getId());
 			addGroupInvitation.executeUpdate();
@@ -505,7 +505,7 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		try (Connection connection = db.getConnection();
 				PreparedStatement removeGroupInvitation = connection
 						.prepareStatement("delete from nl_invitations where player = ? and group_id = ?");) {
-			removeGroupInvitation.setString(1, uuid.toString());
+			removeGroupInvitation.setObject(1, uuid);
 			removeGroupInvitation.setInt(2, group.getPrimaryId());
 			removeGroupInvitation.executeUpdate();
 		} catch (SQLException e) {
@@ -621,6 +621,21 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 			}
 		} catch (SQLException e) {
 			logger.error("Failed to load group members: ", e);
+		}
+		//load invites
+		try (Connection connection = db.getConnection();
+				PreparedStatement getTypes = connection
+						.prepareStatement("select player, rank_id from nl_invitations where group_id = ?")) {
+			getTypes.setInt(1, id);
+			try (ResultSet rs = getTypes.executeQuery()) {
+				while (rs.next()) {
+					UUID invited = (UUID) rs.getObject(1);
+					int rankId = rs.getInt(2);
+					group.addInvite(invited, handler.getRank(rankId));
+				}
+			}
+		} catch (SQLException e) {
+			logger.error("Failed to load group invitations: ", e);
 		}
 		// load permissions
 		try (Connection connection = db.getConnection();

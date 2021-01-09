@@ -27,16 +27,16 @@ public class DeleteGroup extends StandaloneCommand {
 			MsgUtils.sendGroupNotExistMsg(player.getUniqueId(), args[0]);
 			return true;
 		}
-		if (args.length < 2 || !args[2].equalsIgnoreCase("confirm")) {
-			player.sendMessage(ChatColor.YELLOW + "Are you sure you want to delete " + args[0] + ChatColor.YELLOW
-					+ " ?. If yes run '/nldg " + args[0] + ChatColor.YELLOW + " confirm");
+		if (args.length < 2 || !args[1].equalsIgnoreCase("confirm")) {
+			sender.sendMessage(String.format("%sAre you sure you want to delete %s? If yes, run '%s/nldg %s confirm%s'",
+					ChatColor.YELLOW, group.getColoredName(), ChatColor.YELLOW, ChatColor.AQUA, group.getName(),
+					ChatColor.YELLOW));
 			return true;
 		}
-		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitDeleteGroup(player.getUniqueId(), group.getName()));
+		ArtemisPlugin.getInstance().getRabbitHandler()
+				.sendMessage(new RabbitDeleteGroup(player.getUniqueId(), group.getName()));
 		return true;
 	}
-	
-
 
 	@Override
 	public List<String> tabComplete(CommandSender sender, String[] args) {

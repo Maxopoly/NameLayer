@@ -6,7 +6,6 @@ import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.PermissionTracker;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
-import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 public class NameLayerPermissionManager {
 

@@ -7,6 +7,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.github.maxopoly.artemis.NameAPI;
+
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 public final class MsgUtils {
@@ -38,6 +40,10 @@ public final class MsgUtils {
 
 	public static void sendMsg(UUID player, String msg) {
 		Bukkit.getScheduler().runTask(NameLayerPlugin.getInstance(), () -> {
+			if (player.equals(NameAPI.CONSOLE_UUID)) {
+				NameLayerPlugin.getInstance().getLogger().info(msg);
+				return;
+			}
 			Player p = Bukkit.getPlayer(player);
 			if (p != null) {
 				p.sendMessage(msg);

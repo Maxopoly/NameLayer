@@ -92,8 +92,9 @@ public class ZeusGroupTracker extends GroupTracker {
 	@Override
 	public void renameGroup(Group group, String newName) {
 		synchronized (group) {
-			super.renameGroup(group, newName);
+			//first db access, because super call will already overwrite old name
 			database.renameGroup(group, newName);
+			super.renameGroup(group, newName);
 			sendGroupUpdate(group, () -> new RenameGroupMessage(group.getPrimaryId(), newName));
 		}
 	}

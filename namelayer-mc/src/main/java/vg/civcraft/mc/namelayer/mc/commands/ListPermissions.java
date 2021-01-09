@@ -8,7 +8,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
-import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.PermissionTracker;
@@ -41,6 +40,11 @@ public class ListPermissions extends NameLayerCommand {
 		sb.append(" on ");
 		sb.append(group.getColoredName());
 		sb.append(ChatColor.GREEN);
+		if (rank == group.getGroupRankHandler().getOwnerRank()) {
+			sb.append(" with all permissions");
+			sender.sendMessage(sb.toString());
+			return true;
+		}
 		sb.append(" with the following permissions:\n");
 		PermissionTracker permTracker = NameLayerPlugin.getInstance().getGroupTracker().getPermissionTracker();
 		for (Integer permID : rank.getAllPermissions()) {

@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 
 import com.github.maxopoly.artemis.ArtemisPlugin;
 
-import net.md_5.bungee.api.ChatColor;
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.core.Group;

@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -22,9 +21,6 @@ import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupLink;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.GroupRankHandler;
-import vg.civcraft.mc.namelayer.core.PermissionType;
-import vg.civcraft.mc.namelayer.mc.GroupAPI;
-import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
 @CivCommand(id = "nlgs")
 public class GroupStats extends StandaloneCommand {

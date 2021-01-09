@@ -53,6 +53,9 @@ public class ListMembers extends NameLayerCommand {
 
 	private void sendMsg(CommandSender sender, Group group, List<GroupRank> listableRanks) {
 		StringBuilder sb = new StringBuilder();
+		sb.append("Listing viewable players for ");
+		sb.append(group.getColoredName());
+		sb.append(":\n");
 		for (GroupRank rank : listableRanks) {
 			Set<UUID> members = group.getAllTrackedByType(rank);
 			if (members.isEmpty()) {
