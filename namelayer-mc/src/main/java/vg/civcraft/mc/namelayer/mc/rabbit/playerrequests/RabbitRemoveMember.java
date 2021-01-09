@@ -21,7 +21,7 @@ public class RabbitRemoveMember extends RabbitGroupAction {
 	@Override
 	public void handleReply(JSONObject reply, boolean success) {
 		Group group = getGroup();
-		String currentRank = reply.getString("current_rank");
+		String currentRank = reply.getString("currentRank");
 		if (success) {
 			sendMessage(String.format("%s%s%s with the rank %s%s%s was kicked from %s", ChatColor.YELLOW,
 				playerName, ChatColor.GREEN, ChatColor.YELLOW, currentRank,

@@ -27,7 +27,7 @@ public class RabbitJoinGroup extends RabbitGroupAction {
 			int rankID = reply.getInt("targetRank");
 			GroupRankHandler handler = group.getGroupRankHandler();
 			GroupRank targetRank = handler.getRank(rankID);
-			sendMessage(String.format("%You have been added to %s%s as a %s%s", ChatColor.GREEN, group.getColoredName(),
+			sendMessage(String.format("%sYou have been added to %s%s as a %s%s", ChatColor.GREEN, group.getColoredName(),
 				ChatColor.GREEN, ChatColor.YELLOW, targetRank.getName()));
 				return;
 		}

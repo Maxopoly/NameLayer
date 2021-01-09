@@ -17,7 +17,7 @@ import vg.civcraft.mc.namelayer.mc.GroupAPI;
 import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitDeleteRank;
 import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
-@CivCommand(id = "nlcr")
+@CivCommand(id = "nldr")
 public class DeleteRank extends StandaloneCommand {
 
 	@Override

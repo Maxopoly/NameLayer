@@ -26,7 +26,7 @@ public class RabbitSetGroupPassword extends RabbitGroupAction {
 				ChatColor.GREEN));
 			return;	
 		}
-		SetPassword.FailureReason reason = SetPassword.FailureReason.valueOf(reply.getString("reply"));
+		SetPassword.FailureReason reason = SetPassword.FailureReason.valueOf(reply.getString("reason"));
 		switch (reason) {
 		case GROUP_DOES_NOT_EXIST:
 			groupDoesNotExistMessage();

@@ -21,8 +21,8 @@ public class ChangeGroupName extends StandaloneCommand {
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		Player player = (Player) sender;
-		Group group = GroupAPI.getGroup(args[1]);
-		String newName = args[2];
+		Group group = GroupAPI.getGroup(args[0]);
+		String newName = args[1];
 		if (group == null) {
 			MsgUtils.sendGroupNotExistMsg(player.getUniqueId(), args[0]);
 		}

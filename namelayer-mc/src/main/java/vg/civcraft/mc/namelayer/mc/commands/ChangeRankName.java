@@ -34,7 +34,7 @@ public class ChangeRankName extends StandaloneCommand {
 			MsgUtils.sendRankNotExistMsg(player.getUniqueId(), group.getName(), args[1]);
 			return true;
 		}
-		String newRankName = args[3];
+		String newRankName = args[2];
 		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitRenameRank(player.getUniqueId(), group, rankToRename, newRankName));
 		return true;
 	}

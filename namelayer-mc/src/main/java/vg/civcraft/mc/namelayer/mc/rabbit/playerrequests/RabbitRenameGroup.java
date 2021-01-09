@@ -27,7 +27,7 @@ public class RabbitRenameGroup extends RabbitGroupAction {
 		NameLayerMetaData meta = new NameLayerMetaData(group);
 		if (success) {
 			sendMessage(String.format("%sThe group %s%s%s was renamed to %s", ChatColor.GREEN, meta.getChatColor(), oldName,
-				ChatColor.GREEN, group.getColoredName()));
+				ChatColor.GREEN, newName));
 			return;	
 		}
 		RenameGroup.FailureReason reason = RenameGroup.FailureReason.valueOf(reply.getString("reason"));

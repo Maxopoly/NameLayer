@@ -269,8 +269,8 @@ commands:
       - uninvite
     usage: /nlri [group] [player]
     description: Revokes a pending invite to a group
-    min-args: 1
-    max-args: 1
+    min-args: 2
+    max-args: 2
     player-only: true
   nlrm:
     aliases:

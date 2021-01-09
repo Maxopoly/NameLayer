@@ -22,7 +22,7 @@ public class InvitePlayer extends StandaloneCommand {
 
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
-		String rank = args.length == 3 ? args[2] : null;
+		String rank = args.length == 3 ? args[2] : "Member";
 		Player player = (Player) sender;
 		Group group = GroupAPI.getGroup(args[0]);
 		if (group == null) {
