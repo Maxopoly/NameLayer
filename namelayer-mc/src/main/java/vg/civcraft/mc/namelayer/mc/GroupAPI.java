@@ -120,5 +120,9 @@ public final class GroupAPI {
 		}
 		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new PermissionCreation(name, defaultPermLevel));
 	}
+	
+	public static Group getDefaultGroup(Player player) {
+		return NameLayerPlugin.getInstance().getSettingsManager().getDefaultGroup().getGroup(player);
+	}
 
 }

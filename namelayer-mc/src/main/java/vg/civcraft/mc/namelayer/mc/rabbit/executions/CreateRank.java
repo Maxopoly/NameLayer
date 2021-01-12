@@ -1,4 +1,4 @@
-package vg.civcraft.mc.namelayer.mc.rabbit.groupmodifications;
+package vg.civcraft.mc.namelayer.mc.rabbit.executions;
 
 import org.json.JSONObject;
 

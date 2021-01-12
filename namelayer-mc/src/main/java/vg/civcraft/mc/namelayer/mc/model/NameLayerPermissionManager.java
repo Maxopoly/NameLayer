@@ -8,21 +8,11 @@ import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
 
 public class NameLayerPermissionManager {
+	
+	private PermissionTracker permTracker;
 
-	private PermissionType password;
-	private PermissionType listPerms;
-	private PermissionType modifyPerms;
-	private PermissionType deleteGroup;
-	private PermissionType mergeGroup;
-	private PermissionType createPlayerType;
-	private PermissionType deletePlayerType;
-	private PermissionType renamePlayerType;
-	private PermissionType groupStats;
-	private PermissionType renameGroup;
-	private PermissionType linkGroup;
-	private PermissionType changeGroupColor;
-
-	public NameLayerPermissionManager() {
+	public NameLayerPermissionManager(PermissionTracker permTracker) {
+		this.permTracker = permTracker;
 		registerInternalPermissions();
 	}
 
@@ -64,54 +54,14 @@ public class NameLayerPermissionManager {
 			GroupAPI.registerPermission(PermissionTracker.INVITE_RANK_PREFIX + i, DefaultPermissionLevel.SPECIAL, "");
 			GroupAPI.registerPermission(PermissionTracker.REMOVE_RANK_PREFIX + i, DefaultPermissionLevel.SPECIAL, "");		
 		}
+		GroupAPI.registerPermission(NameLayerPermissions.READ_CHAT, DefaultPermissionLevel.MEMBER,
+				"Allows receiving messages sent in the group chat");
+		GroupAPI.registerPermission(NameLayerPermissions.WRITE_CHAT, DefaultPermissionLevel.MEMBER,
+				"Allows sending messages to the group chat");		
 	}
-
-	public PermissionType getLinkGroup() {
-		return linkGroup;
-	}
-
-	public PermissionType getChangeGroupColor() {
-		return changeGroupColor;
-	}
-
-	public PermissionType getRenameGroup() {
-		return renameGroup;
-	}
-
-	public PermissionType getPassword() {
-		return password;
-	}
-
-	public PermissionType getListPerms() {
-		return listPerms;
-	}
-
-	public PermissionType getModifyPerms() {
-		return modifyPerms;
-	}
-
-	public PermissionType getDeleteGroup() {
-		return deleteGroup;
-	}
-
-	public PermissionType getMergeGroup() {
-		return mergeGroup;
-	}
-
-	public PermissionType getCreatePlayerType() {
-		return createPlayerType;
-	}
-
-	public PermissionType getDeletePlayerType() {
-		return deletePlayerType;
-	}
-
-	public PermissionType getRenamePlayerType() {
-		return renamePlayerType;
-	}
-
-	public PermissionType getGroupStats() {
-		return groupStats;
+	
+	public PermissionType getReadChat() {
+		return permTracker.getPermission(NameLayerPermissions.READ_CHAT);
 	}
 
 }

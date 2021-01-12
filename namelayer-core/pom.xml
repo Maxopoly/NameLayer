@@ -7,12 +7,13 @@
 	<parent>
 		<groupId>vg.civcraft.mc.namelayer</groupId>
 		<artifactId>namelayer-parent</artifactId>
-		<version>${namelayer.version}</version>
+		<version>3.0.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>namelayer-core</artifactId>
 	<packaging>jar</packaging>
+	<version>3.0.0</version>
 
 	<dependencies>
 		<dependency>

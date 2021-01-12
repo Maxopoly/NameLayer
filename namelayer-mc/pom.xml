@@ -7,12 +7,14 @@
 	<parent>
 		<groupId>vg.civcraft.mc.namelayer</groupId>
 		<artifactId>namelayer-parent</artifactId>
-		<version>${namelayer.version}</version>
+		<version>3.0.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>namelayer-mc</artifactId>
 	<packaging>jar</packaging>
+	<name>Namelayer</name>
+	<version>3.0.0</version>
 
 	<dependencies>
 		<dependency>
@@ -25,6 +27,7 @@
 			<groupId>vg.civcraft.mc.namelayer</groupId>
 			<artifactId>namelayer-core</artifactId>
 			<version>3.0.0</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.github.maxopoly</groupId>

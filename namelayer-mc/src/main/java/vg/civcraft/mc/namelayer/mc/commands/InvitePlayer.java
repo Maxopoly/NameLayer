@@ -10,10 +10,8 @@ import org.bukkit.entity.Player;
 import com.github.maxopoly.artemis.ArtemisPlugin;
 
 import vg.civcraft.mc.civmodcore.command.CivCommand;
-import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
-import vg.civcraft.mc.namelayer.core.GroupRankHandler;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
 import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitInvitePlayer;
 import vg.civcraft.mc.namelayer.mc.util.MsgUtils;

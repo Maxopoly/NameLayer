@@ -16,5 +16,7 @@ public final class NameLayerPermissions {
 	public static final String RENAME_GROUP = "RENAME_GROUP";
 	public static final String LINK_GROUP = "LINK_GROUP";
 	public static final String EDIT_GROUP_COLOR = "EDIT_GROUP_COLOR";
+	public static final String READ_CHAT = "READ_CHAT";
+	public static final String WRITE_CHAT = "WRITE_CHAT";
 
 }
