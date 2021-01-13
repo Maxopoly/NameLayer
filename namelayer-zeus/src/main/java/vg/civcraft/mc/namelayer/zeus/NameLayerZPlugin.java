@@ -22,6 +22,9 @@ import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.RemoveMemberHand
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.RenameGroupHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.RenameRankHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.RevokeInviteHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.SendGroupChatMessageHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.SendLocalChatMessageHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.SendPrivateChatMessageHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.SetPasswordHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.UnlinkGroupsHandler;
 
@@ -62,9 +65,11 @@ public class NameLayerZPlugin extends ZeusPlugin {
 		registerRabbitListener(new AcceptInviteHandler(), new BlacklistPlayerHandler(), new CreateGroupHandler(),
 				new CreateRankHandler(), new DeleteGroupHandler(), new DeleteRankHandler(), new EditPermissionHandler(),
 				new InvitePlayerHandler(), new JoinGroupHandler(), new LeaveGroupHandler(), new LinkGroupsHandler(),
-				new MergeGroupHandler(), new PromotePlayerHandler(), new RegisterPermissionHandler(), new RejectInviteHandler(),
-				new RemoveMemberHandler(), new RenameGroupHandler(), new RenameRankHandler(), new RevokeInviteHandler(),
-				new SetPasswordHandler(), new UnlinkGroupsHandler());
+				new MergeGroupHandler(), new PromotePlayerHandler(), new RegisterPermissionHandler(),
+				new RejectInviteHandler(), new RemoveMemberHandler(), new RenameGroupHandler(), new RenameRankHandler(),
+				new RevokeInviteHandler(), new SetPasswordHandler(), new UnlinkGroupsHandler(),
+				new SendGroupChatMessageHandler(), new SendLocalChatMessageHandler(),
+				new SendPrivateChatMessageHandler());
 	}
 
 	public NameLayerDAO getDAO() {

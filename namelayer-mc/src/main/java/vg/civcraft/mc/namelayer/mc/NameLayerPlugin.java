@@ -27,6 +27,7 @@ import vg.civcraft.mc.namelayer.core.requests.SendGroupChatMessage;
 import vg.civcraft.mc.namelayer.core.requests.SendPrivateMessage;
 import vg.civcraft.mc.namelayer.core.requests.SetPassword;
 import vg.civcraft.mc.namelayer.core.requests.UnlinkGroups;
+import vg.civcraft.mc.namelayer.mc.model.AikarCommandRegistrar;
 import vg.civcraft.mc.namelayer.mc.model.ChatTracker;
 import vg.civcraft.mc.namelayer.mc.model.NameLayerPermissionManager;
 import vg.civcraft.mc.namelayer.mc.rabbit.executions.AddInvite;
@@ -35,6 +36,7 @@ import vg.civcraft.mc.namelayer.mc.rabbit.executions.AddPermission;
 import vg.civcraft.mc.namelayer.mc.rabbit.executions.RecacheGroup;
 import vg.civcraft.mc.namelayer.mc.rabbit.executions.RemoveInvite;
 import vg.civcraft.mc.namelayer.mc.rabbit.executions.RemovePermission;
+import vg.civcraft.mc.namelayer.mc.rabbit.executions.SendLocalMessage;
 import vg.civcraft.mc.namelayer.mc.rabbit.executions.UpdateMemberRank;
 import vg.civcraft.mc.namelayer.mc.util.NameLayerSettingManager;
 
@@ -65,7 +67,7 @@ public class NameLayerPlugin extends ACivMod {
 				RevokeInvite.REPLY_ID, SetPassword.REPLY_ID, UnlinkGroups.REPLY_ID, RegisterPermission.REPLY_ID,
 				SendGroupChatMessage.REPLY_ID, SendPrivateMessage.REPLY_ID);
 		settingsManager = new NameLayerSettingManager();
-		chatTracker = new ChatTracker(this);
+		chatTracker = new ChatTracker();
 		ArtemisPlugin.getInstance().getRabbitInputHandler().registerCommand(new AddInvite(), new AddMember(),
 				new AddPermission(), new vg.civcraft.mc.namelayer.mc.rabbit.executions.CreateRank(),
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.DeleteGroup(),
@@ -73,7 +75,10 @@ public class NameLayerPlugin extends ACivMod {
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.LinkGroups(), new RecacheGroup(), new RemoveInvite(),
 				new RemovePermission(), new vg.civcraft.mc.namelayer.mc.rabbit.executions.RenameGroup(),
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.RenameRank(),
-				new vg.civcraft.mc.namelayer.mc.rabbit.executions.UnlinkGroups(), new UpdateMemberRank());
+				new vg.civcraft.mc.namelayer.mc.rabbit.executions.UnlinkGroups(), new UpdateMemberRank(),
+				new vg.civcraft.mc.namelayer.mc.rabbit.executions.SendGroupChatMessage(),
+				new vg.civcraft.mc.namelayer.mc.rabbit.executions.SendPrivateMessage(), new SendLocalMessage());
+		new AikarCommandRegistrar(this).registerCommands();
 	}
 
 	public NameLayerSettingManager getSettingsManager() {

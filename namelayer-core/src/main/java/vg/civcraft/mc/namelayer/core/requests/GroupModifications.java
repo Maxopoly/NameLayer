@@ -20,5 +20,8 @@ public final class GroupModifications {
 	public static final String REMOVE_PERMISSION_ID = "nl_remove_perm";
 	public static final String RENAME_GROUP_ID = "nl_rename_group";
 	public static final String RENAME_RANK_ID = "nl_rename_rank";
+	public static final String SEND_GROUP_MESSAGE = "nl_send_gc";
+	public static final String SEND_LOCAL_MESSAGE = "nl_send_local";
+	public static final String SEND_PRIVATE_MESSAGE = "nl_send_pm";
 
 }

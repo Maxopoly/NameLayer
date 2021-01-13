@@ -2,6 +2,7 @@ package vg.civcraft.mc.namelayer.mc.model.chat;
 
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import com.github.maxopoly.artemis.ArtemisPlugin;
@@ -12,11 +13,11 @@ import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.ChatColor;
 import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitSendPrivateChatMessage;
 
-public class PMMode implements ChatMode {
+public class PrivateChatMode implements ChatMode {
 
 	private UUID partner;
 
-	public PMMode(UUID partner) {
+	public PrivateChatMode(UUID partner) {
 		Preconditions.checkNotNull(partner);
 		this.partner = partner;
 	}
@@ -48,6 +49,24 @@ public class PMMode implements ChatMode {
 	}
 
 	public static void showPMSentToSender(UUID sender, UUID receiver, String msg) {
-
+		Player senderPlayer = Bukkit.getPlayer(sender);
+		if (senderPlayer == null) {
+			return;
+		}
+		String receiverName = NameAPI.getName(receiver);
+		String message = String.format("%s[PM --> ] %s%s%s: %s%s", ChatColor.LIGHT_PURPLE, ChatColor.WHITE, receiverName,
+				ChatColor.LIGHT_PURPLE, ChatColor.WHITE, msg);
+		senderPlayer.sendMessage(message);
+	}
+	
+	public static void showPMToReceiver(UUID sender, UUID receiver, String msg) {
+		Player receiverPlayer = Bukkit.getPlayer(receiver);
+		if (receiverPlayer == null) {
+			return;
+		}
+		String senderName = NameAPI.getName(sender);
+		String message = String.format("%s[PM <--] %s%s%s: %s%s", ChatColor.LIGHT_PURPLE, ChatColor.WHITE, senderName,
+				ChatColor.LIGHT_PURPLE, ChatColor.WHITE, msg);
+		receiverPlayer.sendMessage(message);
 	}
 }

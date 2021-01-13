@@ -9,7 +9,7 @@ import com.google.common.base.Preconditions;
 
 import net.md_5.bungee.api.ChatColor;
 import vg.civcraft.mc.namelayer.core.requests.SendPrivateMessage;
-import vg.civcraft.mc.namelayer.mc.model.chat.PMMode;
+import vg.civcraft.mc.namelayer.mc.model.chat.PrivateChatMode;
 import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
 public class RabbitSendPrivateChatMessage extends MCStandardRequest {
@@ -31,7 +31,7 @@ public class RabbitSendPrivateChatMessage extends MCStandardRequest {
 	public void handleReply(JSONObject reply) {
 		boolean success = reply.getBoolean("success");
 		if (success) {
-			PMMode.showPMSentToSender(sender, receiver, message);
+			PrivateChatMode.showPMSentToSender(sender, receiver, message);
 			return;
 		}
 		SendPrivateMessage.FailureReason reason = SendPrivateMessage.FailureReason.valueOf(reply.getString("reason"));

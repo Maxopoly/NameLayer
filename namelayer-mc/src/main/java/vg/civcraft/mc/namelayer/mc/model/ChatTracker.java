@@ -7,30 +7,49 @@ import org.bukkit.entity.Player;
 
 import com.google.common.base.Preconditions;
 
-import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
+import net.md_5.bungee.api.ChatColor;
 import vg.civcraft.mc.namelayer.mc.model.chat.ChatMode;
+import vg.civcraft.mc.namelayer.mc.model.chat.LocalChatMode;
 import vg.civcraft.mc.namelayer.mc.util.NLScoreBoard;
 
 public class ChatTracker {
-	
+
 	private final HashMap<UUID, ChatMode> chatChannels;
 	private final HashMap<UUID, UUID> replyChannels;
 	private final NLScoreBoard scoreboardHUD;
 
-	public ChatTracker(NameLayerPlugin plugin) {
+	public ChatTracker() {
 		this.replyChannels = new HashMap<>();
 		this.chatChannels = new HashMap<>();
 		this.scoreboardHUD = new NLScoreBoard();
 	}
-	
-	public void setChatMode(Player player, ChatMode mode) {
-		if (mode == null) {
-			chatChannels.remove(player.getUniqueId());
-		}
+
+	public ChatMode getChatMode(Player player) {
+		return chatChannels.getOrDefault(player.getUniqueId(), new LocalChatMode());
 	}
-	
+
+	public void setChatMode(Player player, ChatMode mode, boolean announce) {
+		ChatMode oldMode = chatChannels.remove(player.getUniqueId());
+		if (mode == null) {
+			if (announce && oldMode != null && !(oldMode instanceof LocalChatMode)) {
+				player.sendMessage(ChatColor.YELLOW + "Left the chat mode " + oldMode.getInfoText());
+			}
+			return;
+		}
+		if (announce) {
+			if (oldMode != null) {
+				player.sendMessage(String.format("%sSwitched chat mode from %s%s to %s", ChatColor.YELLOW,
+						oldMode.getInfoText(), ChatColor.YELLOW, mode.getInfoText()));
+			} else {
+				player.sendMessage(String.format("%sSwitched chat mode to %s", ChatColor.YELLOW,
+						mode.getInfoText()));
+			}
+		}
+		chatChannels.put(player.getUniqueId(), mode);
+	}
+
 	public void resetChatMode(Player player) {
-		setChatMode(player, null);
+		setChatMode(player, null, true);
 	}
 
 	public void updateHUD(final Player player) {
@@ -52,7 +71,7 @@ public class ChatTracker {
 	/**
 	 * Add a player to the replyList
 	 *
-	 * @param sender The player using the reply command.
+	 * @param sender   The player using the reply command.
 	 * @param receiver The the player that will receive the reply
 	 */
 	public void setReplyChannel(final Player sender, final Player receiver) {

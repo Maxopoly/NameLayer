@@ -13,6 +13,7 @@ import vg.civcraft.mc.civmodcore.playersettings.gui.MenuSection;
 import vg.civcraft.mc.civmodcore.playersettings.impl.BooleanSetting;
 import vg.civcraft.mc.civmodcore.playersettings.impl.DisplayLocationSetting;
 import vg.civcraft.mc.civmodcore.playersettings.impl.JsonSetting;
+import vg.civcraft.mc.civmodcore.playersettings.impl.StringSetting;
 import vg.civcraft.mc.civmodcore.playersettings.impl.collection.ListSetting;
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 
@@ -32,6 +33,9 @@ public class NameLayerSettingManager {
 	private BooleanSetting receiveKillsFromIgnoredPlayers;
 	private BooleanSetting showChatGroup;
 	private DisplayLocationSetting chatGroupLocation;
+	
+	private StringSetting chatModeSetting;
+	private StringSetting chatModeValueSetting;
 
 	public NameLayerSettingManager() {
 		initSettings();
@@ -87,6 +91,19 @@ public class NameLayerSettingManager {
 		PlayerSettingAPI.registerSetting(this.receiveKillsFromIgnoredPlayers, chatMenu);
 		PlayerSettingAPI.registerSetting(this.showChatGroup, chatMenu);
 		PlayerSettingAPI.registerSetting(this.chatGroupLocation, chatMenu);
+		
+		this.chatModeSetting = new StringSetting(plugin, "LOCAL", "civChatChatMode");
+		this.chatModeValueSetting = new StringSetting(plugin, "", "civChatChatModeValue");
+		PlayerSettingAPI.registerSetting(this.chatModeSetting, null);
+		PlayerSettingAPI.registerSetting(this.chatModeValueSetting, null);
+	}
+	
+	public StringSetting getChatModeSetting() {
+		return chatModeSetting;
+	}
+	
+	public StringSetting getChatModeValueSetting() {
+		return chatModeValueSetting;
 	}
 	
 	public JsonSetting getFolderStorage() {
