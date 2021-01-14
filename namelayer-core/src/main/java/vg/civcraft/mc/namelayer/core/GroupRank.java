@@ -231,5 +231,9 @@ public class GroupRank {
 		GroupRank comp = (GroupRank) o;
 		return comp.getId() == this.getId() && comp.getName().equals(this.getName());
 	}
+	
+	public String toString() {
+		return "GroupRank " + name + "|" + id;
+	}
 
 }

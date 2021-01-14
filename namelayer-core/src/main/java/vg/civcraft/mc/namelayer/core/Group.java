@@ -514,7 +514,10 @@ public class Group implements Comparable<Group>, JSONSerializable {
 			if (current.getParent() != null) {
 				currentJson.put("parent_id", current.getParent().getId());
 			}
-			JSONArray permArray = new JSONArray(current.getAllPermissions());
+			JSONArray permArray = new JSONArray();
+			for(int id : current.getAllPermissions()) {
+				permArray.put(id);
+			}
 			currentJson.put("perms", permArray);
 			rankArray.put(currentJson);
 		}

@@ -210,9 +210,6 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		handler.putRank(blacklisted);
 		defaultNonMember.addChild(blacklisted);
 		for (GroupRank rank : handler.getAllRanks()) {
-			if (rank.equals(defaultNonMember)) {
-				continue;
-			}
 			createRank(group, rank);
 		}
 		for (GroupRank rank : handler.getAllRanks()) {
@@ -571,10 +568,13 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 					String rankName = types.getString(1);
 					int rankId = types.getInt(2);
 					int parentId = types.getInt(3);
+					boolean noParent = types.wasNull();
 					GroupRank rank = new GroupRank(rankName, rankId, null);
 					retrievedRanks.put(rankId, rank);
-					List<GroupRank> brothers = parentMapping.computeIfAbsent(parentId, i -> new ArrayList<>());
-					brothers.add(rank);
+					if (!noParent) {
+						List<GroupRank> brothers = parentMapping.computeIfAbsent(parentId, i -> new ArrayList<>());
+						brothers.add(rank);
+					}
 				}
 			}
 		} catch (SQLException e) {
@@ -583,7 +583,7 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		}
 
 		// properly map player type children/parents
-		GroupRank root = retrievedRanks.get(GroupRankHandler.OWNER_ID);
+		GroupRank root = retrievedRanks.remove(GroupRankHandler.OWNER_ID);
 		GroupRankHandler handler = new GroupRankHandler(root);
 		Queue<GroupRank> toHandle = new LinkedList<>();
 		toHandle.add(root);
