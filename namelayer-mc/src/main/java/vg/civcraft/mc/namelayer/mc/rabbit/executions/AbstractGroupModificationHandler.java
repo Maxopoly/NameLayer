@@ -14,10 +14,10 @@ public abstract class AbstractGroupModificationHandler extends StaticRabbitComma
 
 	@Override
 	public void handleRequest(ConnectedServer sendingServer, JSONObject data) {
-		String groupName = data.getString("group");
-		Group group = GroupAPI.getGroup(groupName);
+		int groupID = data.getInt("group_id");
+		Group group = GroupAPI.getGroup(groupID);
 		if (group == null) {
-			NameLayerPlugin.getInstance().getLogger().warning("Received update for group " + groupName + ", but held no data for it");
+			NameLayerPlugin.getInstance().getLogger().warning("Received update for group " + groupID + ", but held no data for it");
 			return;
 		}
 		handle(group, data);

@@ -10,6 +10,7 @@ import vg.civcraft.mc.namelayer.core.DefaultPermissionLevel;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.mc.rabbit.outgoing.PermissionCreation;
+import vg.civcraft.mc.namelayer.mc.rabbit.outgoing.RequestGroupCache;
 
 /**
  * Access point for anything relating to groups and their permissions
@@ -123,6 +124,13 @@ public final class GroupAPI {
 	
 	public static Group getDefaultGroup(Player player) {
 		return NameLayerPlugin.getInstance().getSettingsManager().getDefaultGroup().getGroup(player);
+	}
+	
+	public static void requestToBeCached(int groupID) {
+		if (getGroup(groupID) != null) {
+			return;
+		}
+		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RequestGroupCache(groupID));
 	}
 
 }
