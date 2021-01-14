@@ -81,7 +81,7 @@ public class NameLayerPlugin extends ACivMod {
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.UnlinkGroups(), new UpdateMemberRank(),
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.SendGroupChatMessage(),
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.SendPrivateMessage(), new SendLocalMessage());
-		new AikarCommandRegistrar(this).registerCommands();
+		new AikarCommandRegistrar(this);
 		registerListener(new ChatListener(this));
 		registerListener(new LoginAnnouncementListener(this));
 		registerListener(new MurderBroadcastListener(this));

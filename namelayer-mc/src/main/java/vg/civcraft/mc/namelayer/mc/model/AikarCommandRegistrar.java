@@ -19,6 +19,7 @@ public class AikarCommandRegistrar extends AikarCommandManager {
 	public AikarCommandRegistrar(NameLayerPlugin plugin) {
 		super(plugin, false);
 		this.plugin = plugin;
+		init();
 	}
 
 	@Override

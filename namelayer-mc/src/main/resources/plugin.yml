@@ -1,6 +1,6 @@
 name: NameLayer
 main: vg.civcraft.mc.namelayer.mc.NameLayerPlugin
-version: ${namelayer.version}
+version: ${project.version}
 author: Rourke750
 authors:
 - BlackXnt
