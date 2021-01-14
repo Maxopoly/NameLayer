@@ -27,7 +27,6 @@
 			<groupId>vg.civcraft.mc.namelayer</groupId>
 			<artifactId>namelayer-core</artifactId>
 			<version>3.0.0</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.github.maxopoly</groupId>
