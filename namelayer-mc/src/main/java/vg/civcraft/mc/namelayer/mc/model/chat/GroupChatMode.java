@@ -11,6 +11,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 import net.md_5.bungee.api.ChatColor;
+import vg.civcraft.mc.civmodcore.playersettings.impl.StringSetting;
 import vg.civcraft.mc.civmodcore.playersettings.impl.collection.ListSetting;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.PermissionType;
@@ -83,6 +84,16 @@ public class GroupChatMode implements ChatMode {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(message), "Message must not be null or empty!");
 		ArtemisPlugin.getInstance().getRabbitHandler()
 				.sendMessage(new RabbitSendGroupChatMessage(sender.getUniqueId(), group.getName(), message));
+	}
+	
+	public boolean equals(Object o) {
+		return o instanceof GroupChatMode && ((GroupChatMode) o).groupID == this.groupID;
+	}
+
+	@Override
+	public void setInternalStorage(Player player, StringSetting modeSetting, StringSetting valueSetting) {
+		modeSetting.setValue(player, ChatMode.Modes.GROUP.toString());
+		valueSetting.setValue(player, String.valueOf(groupID));
 	}
 
 }

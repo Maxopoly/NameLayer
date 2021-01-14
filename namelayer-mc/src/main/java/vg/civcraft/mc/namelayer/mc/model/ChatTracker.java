@@ -11,17 +11,20 @@ import net.md_5.bungee.api.ChatColor;
 import vg.civcraft.mc.namelayer.mc.model.chat.ChatMode;
 import vg.civcraft.mc.namelayer.mc.model.chat.LocalChatMode;
 import vg.civcraft.mc.namelayer.mc.util.NLScoreBoard;
+import vg.civcraft.mc.namelayer.mc.util.NameLayerSettingManager;
 
 public class ChatTracker {
 
 	private final HashMap<UUID, ChatMode> chatChannels;
 	private final HashMap<UUID, UUID> replyChannels;
 	private final NLScoreBoard scoreboardHUD;
+	private NameLayerSettingManager settings;
 
-	public ChatTracker() {
+	public ChatTracker(NameLayerSettingManager settings) {
 		this.replyChannels = new HashMap<>();
 		this.chatChannels = new HashMap<>();
 		this.scoreboardHUD = new NLScoreBoard();
+		this.settings = settings;
 	}
 
 	public ChatMode getChatMode(Player player) {
@@ -29,22 +32,15 @@ public class ChatTracker {
 	}
 
 	public void setChatMode(Player player, ChatMode mode, boolean announce) {
-		ChatMode oldMode = chatChannels.remove(player.getUniqueId());
+		ChatMode oldMode = getChatMode(player);
 		if (mode == null) {
-			if (announce && oldMode != null && !(oldMode instanceof LocalChatMode)) {
-				player.sendMessage(ChatColor.YELLOW + "Left the chat mode " + oldMode.getInfoText());
-			}
-			return;
+			mode = new LocalChatMode();
 		}
-		if (announce) {
-			if (oldMode != null) {
-				player.sendMessage(String.format("%sSwitched chat mode from %s%s to %s", ChatColor.YELLOW,
-						oldMode.getInfoText(), ChatColor.YELLOW, mode.getInfoText()));
-			} else {
-				player.sendMessage(String.format("%sSwitched chat mode to %s", ChatColor.YELLOW,
-						mode.getInfoText()));
-			}
+		if (announce && !oldMode.equals(mode)) {
+			player.sendMessage(String.format("%sSwitched chat mode from %s%s to %s", ChatColor.YELLOW,
+					oldMode.getInfoText(), ChatColor.YELLOW, mode.getInfoText()));
 		}
+		mode.setInternalStorage(player, settings.getChatModeSetting(), settings.getChatModeValueSetting());
 		chatChannels.put(player.getUniqueId(), mode);
 	}
 

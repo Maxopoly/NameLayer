@@ -11,6 +11,7 @@ import com.github.maxopoly.zeus.model.PlayerData;
 import com.google.common.base.Preconditions;
 
 import net.md_5.bungee.api.ChatColor;
+import vg.civcraft.mc.civmodcore.playersettings.impl.StringSetting;
 import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitSendPrivateChatMessage;
 
 public class PrivateChatMode implements ChatMode {
@@ -68,5 +69,15 @@ public class PrivateChatMode implements ChatMode {
 		String message = String.format("%s[PM <--] %s%s%s: %s%s", ChatColor.LIGHT_PURPLE, ChatColor.WHITE, senderName,
 				ChatColor.LIGHT_PURPLE, ChatColor.WHITE, msg);
 		receiverPlayer.sendMessage(message);
+	}
+	
+	public boolean equals(Object o) {
+		return o instanceof PrivateChatMode && ((PrivateChatMode) o).partner.equals(this.partner);
+	}
+	
+	@Override
+	public void setInternalStorage(Player player, StringSetting modeSetting, StringSetting valueSetting) {
+		modeSetting.setValue(player, ChatMode.Modes.PM.toString());
+		valueSetting.setValue(player, partner.toString());
 	}
 }

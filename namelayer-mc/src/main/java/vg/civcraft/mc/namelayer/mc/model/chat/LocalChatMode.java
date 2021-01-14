@@ -12,6 +12,7 @@ import com.github.maxopoly.artemis.util.BukkitConversion;
 import com.github.maxopoly.zeus.model.ZeusLocation;
 
 import net.md_5.bungee.api.ChatColor;
+import vg.civcraft.mc.civmodcore.playersettings.impl.StringSetting;
 import vg.civcraft.mc.civmodcore.playersettings.impl.collection.ListSetting;
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
 import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitSendLocalChatMessage;
@@ -70,5 +71,13 @@ public class LocalChatMode implements ChatMode {
 			player.sendMessage(message);
 		}
 	}
+	
+	public boolean equals(Object o) {
+		return o instanceof LocalChatMode;
+	}
 
+	@Override
+	public void setInternalStorage(Player player, StringSetting modeSetting, StringSetting valueSetting) {
+		modeSetting.setValue(player, ChatMode.Modes.LOCAL.toString());
+	}
 }

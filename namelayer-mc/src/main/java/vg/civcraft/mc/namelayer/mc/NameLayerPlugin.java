@@ -27,6 +27,9 @@ import vg.civcraft.mc.namelayer.core.requests.SendGroupChatMessage;
 import vg.civcraft.mc.namelayer.core.requests.SendPrivateMessage;
 import vg.civcraft.mc.namelayer.core.requests.SetPassword;
 import vg.civcraft.mc.namelayer.core.requests.UnlinkGroups;
+import vg.civcraft.mc.namelayer.mc.listeners.ChatListener;
+import vg.civcraft.mc.namelayer.mc.listeners.LoginAnnouncementListener;
+import vg.civcraft.mc.namelayer.mc.listeners.MurderBroadcastListener;
 import vg.civcraft.mc.namelayer.mc.model.AikarCommandRegistrar;
 import vg.civcraft.mc.namelayer.mc.model.ChatTracker;
 import vg.civcraft.mc.namelayer.mc.model.NameLayerPermissionManager;
@@ -67,7 +70,7 @@ public class NameLayerPlugin extends ACivMod {
 				RevokeInvite.REPLY_ID, SetPassword.REPLY_ID, UnlinkGroups.REPLY_ID, RegisterPermission.REPLY_ID,
 				SendGroupChatMessage.REPLY_ID, SendPrivateMessage.REPLY_ID);
 		settingsManager = new NameLayerSettingManager();
-		chatTracker = new ChatTracker();
+		chatTracker = new ChatTracker(settingsManager);
 		ArtemisPlugin.getInstance().getRabbitInputHandler().registerCommand(new AddInvite(), new AddMember(),
 				new AddPermission(), new vg.civcraft.mc.namelayer.mc.rabbit.executions.CreateRank(),
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.DeleteGroup(),
@@ -79,6 +82,9 @@ public class NameLayerPlugin extends ACivMod {
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.SendGroupChatMessage(),
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.SendPrivateMessage(), new SendLocalMessage());
 		new AikarCommandRegistrar(this).registerCommands();
+		registerListener(new ChatListener(this));
+		registerListener(new LoginAnnouncementListener(this));
+		registerListener(new MurderBroadcastListener(this));
 	}
 
 	public NameLayerSettingManager getSettingsManager() {
