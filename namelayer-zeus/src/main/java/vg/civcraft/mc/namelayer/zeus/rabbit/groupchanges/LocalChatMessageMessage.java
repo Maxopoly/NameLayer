@@ -26,7 +26,7 @@ public class LocalChatMessageMessage extends RabbitMessage {
 
 	@Override
 	protected void enrichJson(JSONObject json) {
-		json.put("sender", sender);
+		json.put("player", sender);
 		JSONObject loc = new JSONObject();
 		location.writeToJson(loc);
 		json.put("loc", loc);

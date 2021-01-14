@@ -1,5 +1,8 @@
 package vg.civcraft.mc.namelayer.mc;
 
+import org.bukkit.Bukkit;
+import org.bukkit.scheduler.BukkitRunnable;
+
 import com.github.maxopoly.artemis.ArtemisPlugin;
 
 import vg.civcraft.mc.civmodcore.ACivMod;
@@ -60,6 +63,11 @@ public class NameLayerPlugin extends ACivMod {
 	public void onEnable() {
 		instance = this;
 		super.onEnable();
+		this.nlConfig = new NameLayerConfig(this);
+		if (!this.nlConfig.parse()) {
+			Bukkit.getPluginManager().disablePlugin(this);
+			return;
+		}
 		groupTracker = new GroupTracker();
 		nameLayerPermManager = new NameLayerPermissionManager(groupTracker.getPermissionTracker());
 		ArtemisPlugin.getInstance().getRabbitInputHandler().deferCommandToStandardRequest(AcceptInvite.REPLY_ID,

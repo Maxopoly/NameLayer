@@ -1,5 +1,8 @@
 package vg.civcraft.mc.namelayer.zeus;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -43,6 +46,7 @@ public class ServerGroupKnowledgeTracker {
 			return;
 		}
 		matchingGroups.add(group.getPrimaryId());
+		groupToServers.computeIfAbsent(group.getPrimaryId(), i -> Collections.newSetFromMap(new HashMap<>())).add(server);
 		RecacheGroupMessage msgToSend = new RecacheGroupMessage(group);
 		ZeusMain.getInstance().getRabbitGateway().sendMessage(server, msgToSend);
 	}

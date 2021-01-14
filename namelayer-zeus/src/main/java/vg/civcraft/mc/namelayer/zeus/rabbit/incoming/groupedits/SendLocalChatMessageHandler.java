@@ -31,6 +31,7 @@ public class SendLocalChatMessageHandler extends GenericInteractiveRabbitCommand
 			if (!(server instanceof ArtemisServer)) {
 				continue;
 			}
+			ZeusMain.getInstance().getPlayerNameKnowledgeTracker().ensureIsCached(sender, (ArtemisServer) server);
 			sendReply(server, new LocalChatMessageMessage(ticket,sender, loc, range, message));
 		}
 	}
