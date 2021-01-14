@@ -28,9 +28,9 @@ public class DeleteGroup extends StandaloneCommand {
 			return true;
 		}
 		if (args.length < 2 || !args[1].equalsIgnoreCase("confirm")) {
-			sender.sendMessage(String.format("%sAre you sure you want to delete %s? If yes, run '%s/nldg %s confirm%s'",
+			sender.sendMessage(String.format("%sAre you sure you want to delete %s%s? If yes, run '%s/nldg %s%s confirm'",
 					ChatColor.YELLOW, group.getColoredName(), ChatColor.YELLOW, ChatColor.AQUA, group.getName(),
-					ChatColor.YELLOW));
+					ChatColor.AQUA));
 			return true;
 		}
 		ArtemisPlugin.getInstance().getRabbitHandler()
