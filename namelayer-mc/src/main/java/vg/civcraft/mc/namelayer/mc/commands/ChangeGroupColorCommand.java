@@ -14,7 +14,7 @@ import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitChangeGroupColour
 import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
 @CivCommand(id = "nlcgc")
-public class ChangeGroupColourCommand extends StandaloneCommand {
+public class ChangeGroupColorCommand extends StandaloneCommand {
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		Player player = (Player) sender;
@@ -23,12 +23,12 @@ public class ChangeGroupColourCommand extends StandaloneCommand {
 			MsgUtils.sendGroupNotExistMsg(player.getUniqueId(), args[0]);
 			return true;
 		}
-		ChatColor colour = ChatColor.valueOf(args[1]);
-		if (colour == null) {
-			MsgUtils.sendMsg(player.getUniqueId(), ChatColor.RED + "The colour: " + colour.toString() + " is not valid.");
+		ChatColor color = ChatColor.valueOf(args[1]);
+		if (color == null) {
+			MsgUtils.sendMsg(player.getUniqueId(), ChatColor.RED + "The color: " + color.toString() + " is not valid.");
 			return true;
 		}
-		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitChangeGroupColour(player.getUniqueId(), group.getName(), colour));
+		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitChangeGroupColour(player.getUniqueId(), group.getName(), color));
 		return true;
 	}
 
