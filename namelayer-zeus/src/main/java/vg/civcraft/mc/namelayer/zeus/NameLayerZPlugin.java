@@ -5,7 +5,7 @@ import com.github.maxopoly.zeus.plugin.ZeusPlugin;
 
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.AcceptInviteHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.BlacklistPlayerHandler;
-import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.ChangeGroupColourHandler;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.ChangeGroupColorHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.CreateGroupHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.CreateRankHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.DeleteGroupHandler;
@@ -69,7 +69,7 @@ public class NameLayerZPlugin extends ZeusPlugin {
 				new InvitePlayerHandler(), new JoinGroupHandler(), new LeaveGroupHandler(), new LinkGroupsHandler(),
 				new MergeGroupHandler(), new PromotePlayerHandler(), new RegisterPermissionHandler(),
 				new RejectInviteHandler(), new RemoveMemberHandler(), new RenameGroupHandler(), new RenameRankHandler(),
-				new RevokeInviteHandler(), new SetPasswordHandler(), new UnlinkGroupsHandler(), new ChangeGroupColourHandler(),
+				new RevokeInviteHandler(), new SetPasswordHandler(), new UnlinkGroupsHandler(), new ChangeGroupColorHandler(),
 				new SendGroupChatMessageHandler(), new SendLocalChatMessageHandler(),
 				new SendPrivateChatMessageHandler(), new RequestGroupCacheHandler());
 	}

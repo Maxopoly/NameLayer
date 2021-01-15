@@ -8,14 +8,14 @@ import org.json.JSONObject;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.PermissionType;
-import vg.civcraft.mc.namelayer.core.requests.ChangeGroupColour;
+import vg.civcraft.mc.namelayer.core.requests.ChangeGroupColor;
 
-public class ChangeGroupColourHandler extends GroupRequestHandler{
+public class ChangeGroupColorHandler extends GroupRequestHandler{
 	@Override
 	public void handle(String ticket, ConnectedServer sendingServer,
 					   JSONObject data, UUID executor, Group group) {
 		if (group == null) {
-			sendReject(ticket, ChangeGroupColour.REPLY_ID, sendingServer, ChangeGroupColour.FailureReason.GROUP_DOES_NOT_EXIST);
+			sendReject(ticket, ChangeGroupColor.REPLY_ID, sendingServer, ChangeGroupColor.FailureReason.GROUP_DOES_NOT_EXIST);
 			return;
 		}
 		synchronized (group) {
@@ -24,20 +24,20 @@ public class ChangeGroupColourHandler extends GroupRequestHandler{
 			if (!getGroupTracker().hasAccess(group, executor, requiredPermission)) {
 				Map<String, Object> repValues = new HashMap<>();
 				repValues.put("missing_perm", requiredPermission);
-				sendReject(ticket, ChangeGroupColour.REPLY_ID, sendingServer, ChangeGroupColour.FailureReason.NO_PERMISSION, repValues);
+				sendReject(ticket, ChangeGroupColor.REPLY_ID, sendingServer, ChangeGroupColor.FailureReason.NO_PERMISSION, repValues);
 				return;
 			}
 			String colour = data.getString("colour");
 			if (colour == null) {
-				sendReject(ticket, ChangeGroupColour.REPLY_ID, sendingServer, ChangeGroupColour.FailureReason.COLOUR_NOT_VALID);
+				sendReject(ticket, ChangeGroupColor.REPLY_ID, sendingServer, ChangeGroupColor.FailureReason.COLOR_NOT_VALID);
 			}
 			getGroupTracker().setMetaDataValue(group, "color", colour);
-			sendAccept(ticket, ChangeGroupColour.REPLY_ID, sendingServer);
+			sendAccept(ticket, ChangeGroupColor.REPLY_ID, sendingServer);
 		}
 	}
 
 	@Override
 	public String getIdentifier() {
-		return ChangeGroupColour.REQUEST_ID;
+		return ChangeGroupColor.REQUEST_ID;
 	}
 }

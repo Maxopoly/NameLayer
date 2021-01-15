@@ -8,7 +8,7 @@ import vg.civcraft.mc.civmodcore.ACivMod;
 import vg.civcraft.mc.namelayer.core.GroupTracker;
 import vg.civcraft.mc.namelayer.core.requests.AcceptInvite;
 import vg.civcraft.mc.namelayer.core.requests.BlacklistPlayer;
-import vg.civcraft.mc.namelayer.core.requests.ChangeGroupColour;
+import vg.civcraft.mc.namelayer.core.requests.ChangeGroupColor;
 import vg.civcraft.mc.namelayer.core.requests.CreateGroup;
 import vg.civcraft.mc.namelayer.core.requests.CreateRank;
 import vg.civcraft.mc.namelayer.core.requests.DeleteGroup;
@@ -76,7 +76,7 @@ public class NameLayerPlugin extends ACivMod {
 				LeaveGroup.REPLY_ID, LinkGroups.REPLY_ID, MergeGroups.REPLY_ID, PromotePlayer.REPLY_ID,
 				RejectInvite.REPLY_ID, RemoveMember.REPLY_ID, RenameGroup.REPLY_ID, RenameRank.REPLY_ID,
 				RevokeInvite.REPLY_ID, SetPassword.REPLY_ID, UnlinkGroups.REPLY_ID, RegisterPermission.REPLY_ID,
-				SendGroupChatMessage.REPLY_ID, SendPrivateMessage.REPLY_ID, ChangeGroupColour.REPLY_ID);
+				SendGroupChatMessage.REPLY_ID, SendPrivateMessage.REPLY_ID, ChangeGroupColor.REPLY_ID);
 		settingsManager = new NameLayerSettingManager();
 		chatTracker = new ChatTracker(settingsManager);
 		ArtemisPlugin.getInstance().getRabbitInputHandler().registerCommand(new AddInvite(), new AddMember(),
