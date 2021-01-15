@@ -41,7 +41,7 @@ public class RabbitCreateRank extends RabbitGroupAction {
 					ChatColor.RED));
 			return;
 		case RANK_ALREADY_EXISTS:
-			sendMessage(String.format("%sA rank named %s%s%s already exists", ChatColor.RED, ChatColor.YELLOW, parentRank.getName(),
+			sendMessage(String.format("%sA rank named %s%s%s already exists", ChatColor.RED, ChatColor.YELLOW, newRankName,
 					ChatColor.RED));
 			return;
 		case INVALID_RANK_NAME:

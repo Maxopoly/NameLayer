@@ -38,7 +38,7 @@ public class DeleteGroupHandler extends GroupRequestHandler {
 
 	@Override
 	public String getIdentifier() {
-		return DeleteGroup.REPLY_ID;
+		return DeleteGroup.REQUEST_ID;
 	}
 
 }
