@@ -6,11 +6,11 @@ import org.json.JSONObject;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.requests.ChangeGroupColor;
 
-public class RabbitChangeGroupColour extends RabbitGroupAction {
+public class RabbitChangeGroupColor extends RabbitGroupAction {
 
 	private ChatColor color;
 
-	public RabbitChangeGroupColour(UUID executor, String groupName, ChatColor color) {
+	public RabbitChangeGroupColor(UUID executor, String groupName, ChatColor color) {
 		super(executor, groupName);
 		this.color = color;
 	}
@@ -41,7 +41,7 @@ public class RabbitChangeGroupColour extends RabbitGroupAction {
 
 	@Override
 	protected void fillJson(JSONObject json) {
-		json.put("colour", color.toString());
+		json.put("color", color.toString());
 	}
 
 	@Override

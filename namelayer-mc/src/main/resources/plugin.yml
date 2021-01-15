@@ -337,7 +337,7 @@ commands:
       - setgroupcolor
       - nlsgc
     usage: /nlcgc [group] [colour]
-    description: Changes a group colour
+    description: Changes a group color
     min-args: 2
     max-args: 2
     player-only: true

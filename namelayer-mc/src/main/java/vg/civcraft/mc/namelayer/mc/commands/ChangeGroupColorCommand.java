@@ -10,7 +10,7 @@ import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
-import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitChangeGroupColour;
+import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitChangeGroupColor;
 import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
 @CivCommand(id = "nlcgc")
@@ -28,7 +28,7 @@ public class ChangeGroupColorCommand extends StandaloneCommand {
 			MsgUtils.sendMsg(player.getUniqueId(), ChatColor.RED + "The color: " + color.toString() + " is not valid.");
 			return true;
 		}
-		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitChangeGroupColour(player.getUniqueId(), group.getName(), color));
+		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitChangeGroupColor(player.getUniqueId(), group.getName(), color));
 		return true;
 	}
 
