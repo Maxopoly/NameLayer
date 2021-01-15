@@ -12,7 +12,7 @@ public class AddMember extends AbstractGroupModificationHandler {
 
 	@Override
 	protected void handle(Group group, JSONObject data) {
-		UUID player = UUID.fromString(data.getString("member"));
+		UUID player = UUID.fromString(data.getString("player"));
 		int rankID = data.getInt("rank_id");
 		GroupRank rank = group.getGroupRankHandler().getRank(rankID);
 		getGroupTracker().addPlayerToGroup(group, player, rank);
