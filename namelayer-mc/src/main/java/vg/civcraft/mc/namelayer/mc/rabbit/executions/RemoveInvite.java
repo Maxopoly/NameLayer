@@ -11,7 +11,7 @@ public class RemoveInvite extends AbstractGroupModificationHandler {
 
 	@Override
 	protected void handle(Group group, JSONObject data) {
-		UUID player = UUID.fromString(data.getString("member"));
+		UUID player = UUID.fromString(data.getString("player"));
 		getGroupTracker().deleteInvite(group, player);
 	}
 

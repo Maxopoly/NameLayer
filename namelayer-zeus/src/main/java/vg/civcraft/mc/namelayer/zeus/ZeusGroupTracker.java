@@ -103,6 +103,7 @@ public class ZeusGroupTracker extends GroupTracker {
 	public void setMetaDataValue(Group group, String key, String value) {
 		synchronized (group) {
 			super.setMetaDataValue(group, key, value);
+			
 		}
 	}
 

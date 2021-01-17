@@ -15,7 +15,7 @@ public class RequestGroupCacheHandler extends StaticRabbitCommand {
 	@Override
 	public void handleRequest(ConnectedServer sendingServer, JSONObject data) {
 		int id = data.getInt("group_id");
-		Group group = NameLayerZPlugin.getInstance().getGroupTracker().getGroup(id);
+		Group group = NameLayerZPlugin.getInstance().getGroupTracker().loadOrGetGroup(id);
 		if (group != null) {
 			NameLayerZPlugin.getInstance().getGroupKnowledgeTracker().ensureIsCached(group, (ArtemisServer) sendingServer);
 		}

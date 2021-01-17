@@ -49,7 +49,7 @@ public class GroupChatMode implements ChatMode {
 	}
 
 	public static void doLocalGroupChatMessageDistribute(Group group, UUID sender, String msg) {
-		String senderName = NameAPI.getName(sender);
+		String senderName = NameAPI.getNameLocal(sender);
 		String message = String.format("%s[%s%s] %s%s: %s%s", ChatColor.GRAY, group.getColoredName(), ChatColor.GRAY, senderName, ChatColor.GRAY, ChatColor.WHITE, msg);
 		PermissionType readPerm = NameLayerPlugin.getInstance().getNameLayerPermissionManager().getReadChat();
 		ListSetting<String> ignoredGroups = NameLayerPlugin.getInstance().getSettingsManager().getIgnoredGroups();
