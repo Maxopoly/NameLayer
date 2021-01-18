@@ -337,7 +337,7 @@ public class Group implements Comparable<Group>, JSONSerializable {
 			return;
 		}
 		players.put(uuid, rank);
-		playersByRank.get(rank).add(uuid);
+		playersByRank.computeIfAbsent(rank, r -> new HashSet<>()).add(uuid);
 	}
 
 	/**
@@ -438,7 +438,7 @@ public class Group implements Comparable<Group>, JSONSerializable {
 			GroupRank parent = rankHandler.getRank(parentID);
 			GroupRank rank = rankFromJson(rankObject, parent);
 			parent.addChild(rank);
-			group.getGroupRankHandler().putRank(rank);
+			rankHandler.putRank(rank);
 		}
 		JSONObject memberObj = json.getJSONObject("members");
 		for (String key : memberObj.keySet()) {

@@ -54,7 +54,7 @@ public class PrivateChatMode implements ChatMode {
 		if (senderPlayer == null) {
 			return;
 		}
-		String receiverName = NameAPI.getName(receiver);
+		String receiverName = NameAPI.getNameLocal(receiver);
 		String message = String.format("%s[PM --> ] %s%s%s: %s%s", ChatColor.LIGHT_PURPLE, ChatColor.WHITE, receiverName,
 				ChatColor.LIGHT_PURPLE, ChatColor.WHITE, msg);
 		senderPlayer.sendMessage(message);
@@ -65,7 +65,7 @@ public class PrivateChatMode implements ChatMode {
 		if (receiverPlayer == null) {
 			return;
 		}
-		String senderName = NameAPI.getName(sender);
+		String senderName = NameAPI.getNameLocal(sender);
 		String message = String.format("%s[PM <--] %s%s%s: %s%s", ChatColor.LIGHT_PURPLE, ChatColor.WHITE, senderName,
 				ChatColor.LIGHT_PURPLE, ChatColor.WHITE, msg);
 		receiverPlayer.sendMessage(message);

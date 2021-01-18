@@ -32,6 +32,15 @@ public class ServerGroupKnowledgeTracker {
 		this.dao = dao;
 	}
 	
+	public void reset(ArtemisServer server) {
+		if (knownGroups.containsKey(server)) {
+			for(Integer groupID : knownGroups.get(server)) {
+				groupToServers.computeIfAbsent(groupID, s -> Sets.newSetFromMap(new ConcurrentHashMap<>())).remove(server);
+			}
+		}
+		knownGroups.remove(server);
+	}
+	
 	public void initializeServer(ArtemisServer server) {
 		knownGroups.put(server, Sets.newSetFromMap(new ConcurrentHashMap<>()));
 	}

@@ -52,7 +52,7 @@ public class LocalChatMode implements ChatMode {
 	 * @param message Message to send
 	 */
 	public static void broadcastLocalMessage(UUID sender, ZeusLocation location, String msg) {
-		String senderName = NameAPI.getName(sender);
+		String senderName = NameAPI.getNameLocal(sender);
 		String message = String.format("%s[Local] %s%s%s: %s%s", ChatColor.GRAY, ChatColor.WHITE, senderName,
 				ChatColor.GRAY, ChatColor.WHITE, msg);
 		Location loc = BukkitConversion.convertLocation(location);
