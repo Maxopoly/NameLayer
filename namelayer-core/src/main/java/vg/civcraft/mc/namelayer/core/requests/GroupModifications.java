@@ -24,5 +24,6 @@ public final class GroupModifications {
 	public static final String SEND_LOCAL_MESSAGE = "nl_send_local";
 	public static final String SEND_PRIVATE_MESSAGE = "nl_send_pm";
 	public static final String GET_GROUP = "nl_req_group_cache";
+	public static final String UPDATE_META_DATA = "nl_update_meta_data";
 
 }

@@ -25,7 +25,7 @@ public class ChangeGroupColorCommand extends StandaloneCommand {
 		}
 		ChatColor color = ChatColor.valueOf(args[1]);
 		if (color == null) {
-			MsgUtils.sendMsg(player.getUniqueId(), ChatColor.RED + "The color: " + color.toString() + " is not valid.");
+			MsgUtils.sendMsg(player.getUniqueId(), ChatColor.RED + "The color: " + color.name() + " is not valid.");
 			return true;
 		}
 		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitChangeGroupColor(player.getUniqueId(), group.getName(), color));

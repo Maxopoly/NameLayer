@@ -313,7 +313,7 @@ public class Group implements Comparable<Group>, JSONSerializable {
 	 * he will be assigned the given one anyway
 	 * 
 	 * @param uuid Player whose rank should be updated
-	 * @param type New rank
+	 * @param rank New rank
 	 */
 	public void updateTracking(UUID uuid, GroupRank rank) {
 		GroupRank oldRank = players.get(uuid);
@@ -456,6 +456,13 @@ public class Group implements Comparable<Group>, JSONSerializable {
 				group.addInvite(uuid, rank);
 			}
 		}
+		JSONObject metaDataObj = json.optJSONObject("meta_data");
+		if (metaDataObj != null) {
+			for (String key : metaDataObj.keySet()) {
+				String value = metaDataObj.getString(key);
+				group.setMetaData(key, value);
+			}
+		}
 		return group;
 	}
 
@@ -534,6 +541,11 @@ public class Group implements Comparable<Group>, JSONSerializable {
 			}
 			json.put("invites", inviteObj);
 		}
+		JSONObject metaDataObj = new JSONObject();
+		for (Entry<String, String> metaDataEntry : metaData.entrySet()) {
+			metaDataObj.put(metaDataEntry.getKey(), metaDataEntry.getValue());
+		}
+		json.put("meta_data", metaDataObj);
 		return json;
 	}
 }

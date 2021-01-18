@@ -39,6 +39,7 @@ import vg.civcraft.mc.namelayer.mc.model.NameLayerPermissionManager;
 import vg.civcraft.mc.namelayer.mc.rabbit.executions.AddInvite;
 import vg.civcraft.mc.namelayer.mc.rabbit.executions.AddMember;
 import vg.civcraft.mc.namelayer.mc.rabbit.executions.AddPermission;
+import vg.civcraft.mc.namelayer.mc.rabbit.executions.GroupMetaDataUpdate;
 import vg.civcraft.mc.namelayer.mc.rabbit.executions.RecacheGroup;
 import vg.civcraft.mc.namelayer.mc.rabbit.executions.RemoveInvite;
 import vg.civcraft.mc.namelayer.mc.rabbit.executions.RemovePermission;
@@ -88,7 +89,8 @@ public class NameLayerPlugin extends ACivMod {
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.RenameRank(),
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.UnlinkGroups(), new UpdateMemberRank(),
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.SendGroupChatMessage(),
-				new vg.civcraft.mc.namelayer.mc.rabbit.executions.SendPrivateMessage(), new SendLocalMessage());
+				new vg.civcraft.mc.namelayer.mc.rabbit.executions.SendPrivateMessage(), new SendLocalMessage(),
+				new GroupMetaDataUpdate());
 		new AikarCommandRegistrar(this);
 		registerListener(new ChatListener(this));
 		registerListener(new LoginAnnouncementListener(this));

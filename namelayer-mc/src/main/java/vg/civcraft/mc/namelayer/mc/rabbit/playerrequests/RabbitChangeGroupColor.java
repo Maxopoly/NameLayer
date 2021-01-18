@@ -19,7 +19,7 @@ public class RabbitChangeGroupColor extends RabbitGroupAction {
 	public void handleReply(JSONObject reply, boolean success) {
 		Group group = getGroup();
 		if (success) {
-			sendMessage(String.format("%s%s%s's color has been set to: %s", ChatColor.GREEN, group.getName(), ChatColor.GREEN, color));
+			sendMessage(String.format("%s%s%s's color has been set to: %s%s", group.getColoredName(), ChatColor.RESET, ChatColor.GREEN, color, color.name()));
 			return;
 		}
 		ChangeGroupColor.FailureReason reason = ChangeGroupColor.FailureReason.valueOf(reply.getString("reason"));
@@ -29,7 +29,7 @@ public class RabbitChangeGroupColor extends RabbitGroupAction {
 				groupDoesNotExistMessage();
 				return;
 			case COLOR_NOT_VALID:
-				sendMessage(String.format("%s%s is not a valid color.", ChatColor.GREEN, color));
+				sendMessage(String.format("%s%s is not a valid color.", ChatColor.GREEN, color.name()));
 				return;
 			case NO_PERMISSION:
 				noPermissionMessage(missingPerm);
@@ -41,7 +41,7 @@ public class RabbitChangeGroupColor extends RabbitGroupAction {
 
 	@Override
 	protected void fillJson(JSONObject json) {
-		json.put("color", color.toString());
+		json.put("color", color.name());
 	}
 
 	@Override

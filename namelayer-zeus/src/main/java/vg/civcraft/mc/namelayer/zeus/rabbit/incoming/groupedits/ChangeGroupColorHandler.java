@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.json.JSONObject;
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.NameLayerMetaData;
 import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.core.requests.ChangeGroupColor;
@@ -27,11 +28,11 @@ public class ChangeGroupColorHandler extends GroupRequestHandler{
 				sendReject(ticket, ChangeGroupColor.REPLY_ID, sendingServer, ChangeGroupColor.FailureReason.NO_PERMISSION, repValues);
 				return;
 			}
-			String colour = data.getString("colour");
-			if (colour == null) {
+			String color = data.getString("color");
+			if (color == null) {
 				sendReject(ticket, ChangeGroupColor.REPLY_ID, sendingServer, ChangeGroupColor.FailureReason.COLOR_NOT_VALID);
 			}
-			getGroupTracker().setMetaDataValue(group, "color", colour);
+			getGroupTracker().setMetaDataValue(group, NameLayerMetaData.CHAT_COLOR_KEY, color);
 			sendAccept(ticket, ChangeGroupColor.REPLY_ID, sendingServer);
 		}
 	}

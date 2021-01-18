@@ -22,6 +22,8 @@ import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.ChangeMemberRankMessage
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.CreateRankMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.DeleteGroupMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.DeleteRankMessage;
+import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.GroupChangeMessage;
+import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.GroupMetaDataChangeMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.MergeGroupMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RecacheGroupMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RemoveInviteMessage;
@@ -29,6 +31,7 @@ import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RemoveMemberMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RemovePermissionMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RenameGroupMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RenameRankMessage;
+import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.ChangeGroupColorHandler;
 
 public class ZeusGroupTracker extends GroupTracker {
 
@@ -103,6 +106,8 @@ public class ZeusGroupTracker extends GroupTracker {
 	public void setMetaDataValue(Group group, String key, String value) {
 		synchronized (group) {
 			super.setMetaDataValue(group, key, value);
+			database.setGroupMetaData(group, key, value);
+			sendGroupUpdate(group, () -> new GroupMetaDataChangeMessage(group.getPrimaryId(), key, value));
 		}
 	}
 
@@ -308,6 +313,13 @@ public class ZeusGroupTracker extends GroupTracker {
 						link.getOriginatingRank().getId(), target.getPrimaryId(), link.getTargetRank().getId()));
 			}
 		}
+	}
+
+	public void registerDefaultMetaData(String key, String value){
+
+
+
+
 	}
 
 }

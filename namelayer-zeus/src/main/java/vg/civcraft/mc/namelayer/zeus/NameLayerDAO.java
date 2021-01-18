@@ -26,8 +26,10 @@ import com.github.maxopoly.zeus.plugin.ZeusPluginDatabase;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupLink;
+import vg.civcraft.mc.namelayer.core.GroupMetaData;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.GroupRankHandler;
+import vg.civcraft.mc.namelayer.core.NameLayerMetaData;
 import vg.civcraft.mc.namelayer.core.PermissionTracker;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupAction;
@@ -93,6 +95,12 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 						+ "CONSTRAINT fk_gid FOREIGN KEY (group_id) REFERENCES nl_groups(group_id) on delete cascade)"
 
 		);
+		registerMigration(2,
+				"CREATE TABLE IF NOT EXISTS nl_meta_data(group_id INT NOT NULL, "
+						+ "meta_data_key VARCHAR(255) NOT NULL , meta_data_value TEXT, "
+						+ "CONSTRAINT fk_gid FOREIGN KEY (group_id) REFERENCES nl_groups(group_id) on delete cascade,"
+						+ "PRIMARY KEY(group_id, meta_data_key))"
+				);
 	}
 
 	public Map<String, Map<Integer, List<LoggedGroupActionPersistence>>> loadAllGroupsLogs() {
@@ -655,6 +663,35 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		} catch (SQLException e) {
 			logger.error("Failed to load group permissions: ", e);
 		}
+		//load meta data
+		try (Connection connection = db.getConnection();
+			 PreparedStatement getTypes = connection
+					 .prepareStatement("select meta_data_key, meta_data_value from nl_meta_data where group_id = ?")) {
+			getTypes.setInt(1, id);
+			try (ResultSet types = getTypes.executeQuery()) {
+				while (types.next()) {
+					String metaDataKey = types.getString(1);
+					String metaDataValue = types.getString(2);
+					group.setMetaData(metaDataKey, metaDataValue);
+				}
+			}
+		} catch (SQLException e) {
+			logger.error("Failed to load group meta data: ", e);
+		}
 		return group;
+	}
+	public void setGroupMetaData(Group group, String key, String value) {
+		try (Connection insertConn = db.getConnection();
+			 PreparedStatement setMetaData = insertConn.prepareStatement(
+					 "insert into nl_meta_data (group_id, meta_data_key, meta_data_value) "
+							 + "values(?,?,?) ON CONFLICT (group_id, meta_data_key) "
+							 + "DO UPDATE SET meta_data_value = EXCLUDED.meta_data_value")) {
+			setMetaData.setInt(1, group.getPrimaryId());
+			setMetaData.setString(2, key);
+			setMetaData.setString(3, value);
+			setMetaData.execute();
+		} catch (SQLException e) {
+			logger.error("Failed to set meta data: ", e);
+		}
 	}
 }

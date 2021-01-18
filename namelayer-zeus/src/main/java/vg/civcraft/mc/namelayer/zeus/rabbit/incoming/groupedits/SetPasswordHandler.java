@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import com.github.maxopoly.zeus.servers.ConnectedServer;
 
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.NameLayerMetaData;
 import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.core.requests.SetPassword;
@@ -34,7 +35,7 @@ public class SetPasswordHandler extends GroupRequestHandler {
 				sendReject(ticket, SetPassword.REPLY_ID, sendingServer, SetPassword.FailureReason.NULL_PASSWORD);
 				return;
 			}
-			getGroupTracker().setMetaDataValue(group, "password", password);
+			getGroupTracker().setMetaDataValue(group, NameLayerMetaData.PASSWORD_KEY, password);
 			sendAccept(ticket, SetPassword.REPLY_ID, sendingServer);
 		}
 		
