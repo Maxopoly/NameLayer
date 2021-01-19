@@ -14,19 +14,19 @@ public class RabbitPromotePlayer extends RabbitGroupAction {
 	
 	private String playerName;
 	private GroupRank targetRank;
-	private GroupRank oldRank;
 
 	public RabbitPromotePlayer(UUID executor, Group group, String playerName, GroupRank targetRank) {
 		super(executor, group.getName());
 		this.playerName = playerName;
 		this.targetRank = targetRank;
-		this.oldRank = group.getRank(executor);
 	}
 
 	@Override
 	public void handleReply(JSONObject reply, boolean success) {
 		Group group = getGroup();
 		if (success) {
+			int oldRankId = reply.getInt("oldRankId");
+			GroupRank oldRank = group.getGroupRankHandler().getRank(oldRankId);
 			sendMessage(String.format("Changed rank of %s%s%s from %s%s%s to %s%s%s in %s%s", ChatColor.GREEN, ChatColor.YELLOW,
 				playerName, ChatColor.GREEN, ChatColor.YELLOW, oldRank.getName(),
 				ChatColor.GREEN, ChatColor.YELLOW, targetRank.getName(), ChatColor.GREEN, group.getColoredName()));
@@ -51,7 +51,7 @@ public class RabbitPromotePlayer extends RabbitGroupAction {
 			return;
 		case SAME_AS_CURRENT_RANK:
 			sendMessage(String.format("%s%s%s already has the rank %s%s%s in %s", ChatColor.YELLOW,
-					playerName, ChatColor.RED, ChatColor.GOLD, oldRank.getName(),
+					playerName, ChatColor.RED, ChatColor.GOLD, targetRank.getName(),
 					ChatColor.RED, group.getColoredName()));
 			return;
 		case CANNOT_CHANGE_YOURSELF:

@@ -1,5 +1,7 @@
 package vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.json.JSONObject;
@@ -10,6 +12,7 @@ import com.github.maxopoly.zeus.servers.ConnectedServer;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.GroupRankHandler;
+import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.core.requests.PromotePlayer;
 
@@ -58,8 +61,11 @@ public class PromotePlayerHandler extends GroupRequestHandler {
 				sendReject(ticket, PromotePlayer.REPLY_ID, sendingServer, PromotePlayer.FailureReason.BLACKLISTED);
 				return;
 			}
+
 			getGroupTracker().updatePlayerRankInGroup(group, targetPlayer, targetType);
-			sendAccept(ticket, PromotePlayer.REPLY_ID, sendingServer);
+			Map<String, Object> repValues = new HashMap<>();
+			repValues.put("oldRankId", currentRank.getId());
+			sendAccept(ticket, PromotePlayer.REPLY_ID, sendingServer, repValues);
 		}
 	}
 
