@@ -4,8 +4,10 @@ import org.bukkit.Bukkit;
 
 import com.github.maxopoly.artemis.ArtemisPlugin;
 
+import net.md_5.bungee.api.ChatColor;
 import vg.civcraft.mc.civmodcore.ACivMod;
 import vg.civcraft.mc.namelayer.core.GroupTracker;
+import vg.civcraft.mc.namelayer.core.NameLayerMetaData;
 import vg.civcraft.mc.namelayer.core.requests.AcceptInvite;
 import vg.civcraft.mc.namelayer.core.requests.BlacklistPlayer;
 import vg.civcraft.mc.namelayer.core.requests.ChangeGroupColor;
@@ -79,6 +81,7 @@ public class NameLayerPlugin extends ACivMod {
 				RevokeInvite.REPLY_ID, SetPassword.REPLY_ID, UnlinkGroups.REPLY_ID, RegisterPermission.REPLY_ID,
 				SendGroupChatMessage.REPLY_ID, SendPrivateMessage.REPLY_ID, ChangeGroupColor.REPLY_ID);
 		settingsManager = new NameLayerSettingManager();
+		GroupAPI.registerMetaDataDefault(NameLayerMetaData.CHAT_COLOR_KEY, ChatColor.WHITE.toString());
 		chatTracker = new ChatTracker(settingsManager);
 		ArtemisPlugin.getInstance().getRabbitInputHandler().registerCommand(new AddInvite(), new AddMember(),
 				new AddPermission(), new vg.civcraft.mc.namelayer.mc.rabbit.executions.CreateRank(),

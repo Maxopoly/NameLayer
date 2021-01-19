@@ -10,6 +10,7 @@ import vg.civcraft.mc.namelayer.core.DefaultPermissionLevel;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.mc.rabbit.outgoing.PermissionCreation;
+import vg.civcraft.mc.namelayer.mc.rabbit.outgoing.RegisterDefaultMetaDataSetting;
 import vg.civcraft.mc.namelayer.mc.rabbit.outgoing.RequestGroupCache;
 
 /**
@@ -98,6 +99,9 @@ public final class GroupAPI {
 	 * @return True if the player has the permission for the group, false otherwise
 	 */
 	public static boolean hasPermission(Player player, Group group, PermissionType perm) {
+		if (player.isOp() || player.hasPermission("namelayer.admin")) {
+			return true;
+		}
 		return hasPermission(player.getUniqueId(), group, perm);
 	}
 
@@ -120,6 +124,18 @@ public final class GroupAPI {
 			return;
 		}
 		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new PermissionCreation(name, defaultPermLevel));
+	}
+	
+	/**
+	 * Registers a metadata settings default values, which will be applied to any new groups created
+	 * @param key Key/Identifier of the setting
+	 * @param value Default value of the setting
+	 */
+	public static void registerMetaDataDefault(String key, String value) {
+		if (key == null) {
+			throw new IllegalArgumentException("Key can not be null");
+		}
+		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RegisterDefaultMetaDataSetting(key, value));
 	}
 	
 	public static Group getDefaultGroup(Player player) {

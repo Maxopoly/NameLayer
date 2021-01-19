@@ -1,8 +1,9 @@
 package vg.civcraft.mc.namelayer.mc.rabbit.playerrequests;
 
 import java.util.UUID;
-import org.bukkit.ChatColor;
 import org.json.JSONObject;
+
+import net.md_5.bungee.api.ChatColor;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.requests.ChangeGroupColor;
 
@@ -41,7 +42,7 @@ public class RabbitChangeGroupColor extends RabbitGroupAction {
 
 	@Override
 	protected void fillJson(JSONObject json) {
-		json.put("color", color.name());
+		json.put("color", color.toString());
 	}
 
 	@Override

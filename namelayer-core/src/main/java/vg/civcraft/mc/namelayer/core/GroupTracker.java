@@ -15,12 +15,14 @@ public class GroupTracker {
 	private final Map<String, Group> groupsByName;
 	private final Map<Integer, Group> groupsById;
 	private final Map<UUID, Set<Group>> groupsByMember;
+	private final Map<UUID, Set<Group>> invitesByPlayer;
 	protected final PermissionTracker permissionTracker;
 
 	public GroupTracker() {
 		this.groupsById = new HashMap<>();
 		this.groupsByName = new HashMap<>();
 		this.groupsByMember = new HashMap<>();
+		this.invitesByPlayer = new HashMap<>();
 		this.permissionTracker = new PermissionTracker();
 	}
 	
@@ -34,6 +36,10 @@ public class GroupTracker {
 
 	public Set<Group> getGroupsForPlayer(UUID player) {
 		return Collections.unmodifiableSet(groupsByMember.computeIfAbsent(player, s -> new HashSet<>()));
+	}
+	
+	public Set<Group> getInvitesForPlayer(UUID player) {
+		return Collections.unmodifiableSet(invitesByPlayer.computeIfAbsent(player, s -> new HashSet<>()));
 	}
 
 	public void renameGroup(Group group, String newName) {

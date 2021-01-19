@@ -92,10 +92,8 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 						+ "time TIMESTAMP NOT NULL, rank varchar(255) default null, name varchar(255) default null, "
 						+ "extra TEXT DEFAULT NULL, PRIMARY KEY(action_id), "
 						+ "CONSTRAINT fk_glo FOREIGN KEY (type_id) REFERENCES nl_global_actions(type_id) on delete cascade,"
-						+ "CONSTRAINT fk_gid FOREIGN KEY (group_id) REFERENCES nl_groups(group_id) on delete cascade)"
-
-		);
-		registerMigration(2,
+						+ "CONSTRAINT fk_gid FOREIGN KEY (group_id) REFERENCES nl_groups(group_id) on delete cascade)",
+						
 				"CREATE TABLE IF NOT EXISTS nl_meta_data(group_id INT NOT NULL, "
 						+ "meta_data_key VARCHAR(255) NOT NULL , meta_data_value TEXT, "
 						+ "CONSTRAINT fk_gid FOREIGN KEY (group_id) REFERENCES nl_groups(group_id) on delete cascade,"

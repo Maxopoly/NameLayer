@@ -1,9 +1,11 @@
 package vg.civcraft.mc.namelayer.mc.commands;
 
 import com.github.maxopoly.artemis.ArtemisPlugin;
+
+import net.md_5.bungee.api.ChatColor;
+
 import java.util.Collections;
 import java.util.List;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import vg.civcraft.mc.civmodcore.command.CivCommand;
@@ -23,12 +25,14 @@ public class ChangeGroupColorCommand extends StandaloneCommand {
 			MsgUtils.sendGroupNotExistMsg(player.getUniqueId(), args[0]);
 			return true;
 		}
-		ChatColor color = ChatColor.valueOf(args[1]);
-		if (color == null) {
-			MsgUtils.sendMsg(player.getUniqueId(), ChatColor.RED + "The color: " + color.name() + " is not valid.");
-			return true;
+		ChatColor color = null;
+		try {
+			color = ChatColor.of(args[1]);
+		} catch (IllegalArgumentException e) {
+			MsgUtils.sendMsg(player.getUniqueId(), ChatColor.RED + "The color: " + args[1] + " is not valid.");
 		}
-		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitChangeGroupColor(player.getUniqueId(), group.getName(), color));
+		ArtemisPlugin.getInstance().getRabbitHandler()
+				.sendMessage(new RabbitChangeGroupColor(player.getUniqueId(), group.getName(), color));
 		return true;
 	}
 

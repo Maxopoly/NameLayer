@@ -2,7 +2,9 @@ package vg.civcraft.mc.namelayer.zeus;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import com.github.maxopoly.zeus.rabbit.RabbitMessage;
@@ -13,6 +15,7 @@ import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.GroupRankHandler;
 import vg.civcraft.mc.namelayer.core.GroupTracker;
 import vg.civcraft.mc.namelayer.core.IllegalGroupStateException;
+import vg.civcraft.mc.namelayer.core.NameLayerMetaData;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddInviteMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddLinkMessage;
@@ -37,11 +40,17 @@ public class ZeusGroupTracker extends GroupTracker {
 
 	private NameLayerDAO database;
 	private Map<Integer, Object> groupsBeingLoaded;
+	private Map<String, String> defaultMetaData;
 
 	public ZeusGroupTracker(NameLayerDAO database) {
 		super();
 		this.database = database;
+		this.defaultMetaData = new ConcurrentHashMap<>();
 		this.groupsBeingLoaded = new HashMap<>();
+	}
+	
+	public void registerDefaultMetaData(String key, String value) {
+		this.defaultMetaData.put(key, value);
 	}
 
 	@Override
@@ -203,10 +212,17 @@ public class ZeusGroupTracker extends GroupTracker {
 		if (group == null) {
 			return null;
 		}
-		addGroup(group);
-		GroupRank owner = group.getGroupRankHandler().getOwnerRank();
-		addPlayerToGroup(group, creator, owner);
-		return group;
+		synchronized (group) {
+			addGroup(group);
+			GroupRank owner = group.getGroupRankHandler().getOwnerRank();
+			addPlayerToGroup(group, creator, owner);
+			for(Entry<String, String> entry : defaultMetaData.entrySet()) {
+				database.setGroupMetaData(group, entry.getKey(), entry.getValue());
+			}
+			database.setGroupMetaData(group, NameLayerMetaData.CREATION_TIME_KEY, String.valueOf(System.currentTimeMillis()));
+			database.setGroupMetaData(group, NameLayerMetaData.CREATOR_KEY,  creator.toString());
+			return group;
+		}
 	}
 
 	public void blacklistPlayer(Group group, UUID player, GroupRank rank) {
@@ -313,13 +329,6 @@ public class ZeusGroupTracker extends GroupTracker {
 						link.getOriginatingRank().getId(), target.getPrimaryId(), link.getTargetRank().getId()));
 			}
 		}
-	}
-
-	public void registerDefaultMetaData(String key, String value){
-
-
-
-
 	}
 
 }
