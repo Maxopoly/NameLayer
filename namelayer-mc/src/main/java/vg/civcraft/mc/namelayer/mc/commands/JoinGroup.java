@@ -31,7 +31,7 @@ public class JoinGroup extends StandaloneCommand {
 			MsgUtils.sendGroupNotExistMsg(player.getUniqueId(), args[0]);
 			return true;
 		}
-		String submittedPassword = args[2];
+		String submittedPassword = args[1];
 		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitJoinGroup(player.getUniqueId(), group, submittedPassword));
 		return true;
 	}
