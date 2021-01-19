@@ -5,7 +5,6 @@ import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.json.JSONObject;
 
-import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.requests.DeleteGroup;
 
 public class RabbitDeleteGroup extends RabbitGroupAction {
@@ -17,9 +16,8 @@ public class RabbitDeleteGroup extends RabbitGroupAction {
 
 	@Override
 	public void handleReply(JSONObject reply, boolean success) {
-		Group group = getGroup();
 		if (success) {
-			sendMessage(String.format("%s%s has been deleted", ChatColor.GREEN, group.getName()));
+			sendMessage(String.format("%s%s has been deleted", ChatColor.GREEN, groupName));
 			return;
 		}
 		DeleteGroup.FailureReason reason = DeleteGroup.FailureReason.valueOf(reply.getString("reason"));
@@ -38,7 +36,7 @@ public class RabbitDeleteGroup extends RabbitGroupAction {
 
 	@Override
 	protected void fillJson(JSONObject json) {
-		//Alrehaandled by super class
+		//Already handled by super class
 		
 	}
 
