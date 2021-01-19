@@ -229,6 +229,11 @@ public class ZeusGroupTracker extends GroupTracker {
 		addPlayerToGroup(group, player, rank);
 	}
 
+	public void unBlacklistPlayer(Group group, UUID player) {
+		removePlayerFromGroup(group, player);
+	}
+
+
 	public GroupRank createRank(Group group, String name, GroupRank parent) {
 		synchronized (group) {
 			int id = -1;

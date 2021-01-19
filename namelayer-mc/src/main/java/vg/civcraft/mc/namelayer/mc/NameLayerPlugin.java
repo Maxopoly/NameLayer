@@ -31,6 +31,7 @@ import vg.civcraft.mc.namelayer.core.requests.RevokeInvite;
 import vg.civcraft.mc.namelayer.core.requests.SendGroupChatMessage;
 import vg.civcraft.mc.namelayer.core.requests.SendPrivateMessage;
 import vg.civcraft.mc.namelayer.core.requests.SetPassword;
+import vg.civcraft.mc.namelayer.core.requests.UnblacklistPlayer;
 import vg.civcraft.mc.namelayer.core.requests.UnlinkGroups;
 import vg.civcraft.mc.namelayer.mc.listeners.ChatListener;
 import vg.civcraft.mc.namelayer.mc.listeners.LoginAnnouncementListener;
@@ -79,7 +80,8 @@ public class NameLayerPlugin extends ACivMod {
 				LeaveGroup.REPLY_ID, LinkGroups.REPLY_ID, MergeGroups.REPLY_ID, PromotePlayer.REPLY_ID,
 				RejectInvite.REPLY_ID, RemoveMember.REPLY_ID, RenameGroup.REPLY_ID, RenameRank.REPLY_ID,
 				RevokeInvite.REPLY_ID, SetPassword.REPLY_ID, UnlinkGroups.REPLY_ID, RegisterPermission.REPLY_ID,
-				SendGroupChatMessage.REPLY_ID, SendPrivateMessage.REPLY_ID, ChangeGroupColor.REPLY_ID);
+				SendGroupChatMessage.REPLY_ID, SendPrivateMessage.REPLY_ID, ChangeGroupColor.REPLY_ID,
+				UnblacklistPlayer.REPLY_ID);
 		settingsManager = new NameLayerSettingManager();
 		GroupAPI.registerMetaDataDefault(NameLayerMetaData.CHAT_COLOR_KEY, ChatColor.WHITE.toString());
 		chatTracker = new ChatTracker(settingsManager);
