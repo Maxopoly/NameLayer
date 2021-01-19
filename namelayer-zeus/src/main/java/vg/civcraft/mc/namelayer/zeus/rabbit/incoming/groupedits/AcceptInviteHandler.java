@@ -10,6 +10,7 @@ import com.github.maxopoly.zeus.servers.ConnectedServer;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.log.impl.AcceptInvitation;
 import vg.civcraft.mc.namelayer.core.requests.AcceptInvite;
 
 public class AcceptInviteHandler extends GroupRequestHandler {
@@ -38,6 +39,7 @@ public class AcceptInviteHandler extends GroupRequestHandler {
 			getGroupTracker().acceptInvite(group, executor);
 			Map<String, Object> repValues = new HashMap<>();
 			repValues.put("rank_id", invitedRank.getId());
+			getGroupTracker().addLogEntry(group, new AcceptInvitation(System.currentTimeMillis(), executor, invitedRank.getName()));
 			sendAccept(ticket, AcceptInvite.REPLY_ID, sendingServer, repValues);
 		}
 	}

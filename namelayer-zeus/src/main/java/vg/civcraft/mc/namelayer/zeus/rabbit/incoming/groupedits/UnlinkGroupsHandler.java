@@ -13,6 +13,8 @@ import vg.civcraft.mc.namelayer.core.GroupLink;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.core.log.impl.RemoveLink;
+import vg.civcraft.mc.namelayer.core.requests.UnblacklistPlayer;
 import vg.civcraft.mc.namelayer.core.requests.UnlinkGroups;
 
 public class UnlinkGroupsHandler extends GroupRequestHandler {
@@ -71,6 +73,9 @@ public class UnlinkGroupsHandler extends GroupRequestHandler {
 					foundLink = link;
 				break;
 			}
+			getGroupTracker().addLogEntry(group, new RemoveLink(System.currentTimeMillis(), executor, originalRank.getName(), targetGroupName, targetRank.getName(), false));
+			getGroupTracker().addLogEntry(targetGroup, new RemoveLink(System.currentTimeMillis(), executor, targetRank.getName(), group.getName(), originalRank.getName(), false));
+			sendAccept(ticket, UnblacklistPlayer.REPLY_ID, sendingServer);
 		}
 	}
 

@@ -41,6 +41,7 @@ public class JoinGroupHandler extends GroupRequestHandler {
 			repValues.put("targetRank", targetType.getId());
 			NameLayerZPlugin.getInstance().getGroupKnowledgeTracker().ensureIsCached(group, (ArtemisServer) sendingServer);
 			getGroupTracker().addPlayerToGroup(group, executor, targetType);
+			getGroupTracker().addLogEntry(group, new vg.civcraft.mc.namelayer.core.log.impl.JoinGroup(System.currentTimeMillis(), executor, targetType.getName()));
 			sendAccept(ticket, JoinGroup.REPLY_ID, sendingServer, repValues);
 		}
 	}

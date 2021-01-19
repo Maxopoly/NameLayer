@@ -29,15 +29,20 @@ public class RevokeInviteHandler extends GroupRequestHandler {
 		synchronized (group) {
 			GroupRank rankInvitedTo = group.getInvite(targetPlayer);
 			if (rankInvitedTo == null) {
-				sendReject(ticket, RevokeInvite.REPLY_ID, sendingServer, RevokeInvite.FailureReason.RANK_DOES_NOT_EXIST);
+				sendReject(ticket, RevokeInvite.REPLY_ID, sendingServer,
+						RevokeInvite.FailureReason.RANK_DOES_NOT_EXIST);
 				return;
 			}
-			PermissionType permNeeded = getGroupTracker().getPermissionTracker().getRemovePermission(rankInvitedTo.getId());
+			PermissionType permNeeded =
+					getGroupTracker().getPermissionTracker().getRemovePermission(rankInvitedTo.getId());
 			if (!getGroupTracker().hasAccess(group, executor, permNeeded)) {
 				sendReject(ticket, RevokeInvite.REPLY_ID, sendingServer, RevokeInvite.FailureReason.NO_PERMISSION);
 				return;
 			}
 			getGroupTracker().deleteInvite(group, targetPlayer);
+			getGroupTracker().addLogEntry(group,
+					new vg.civcraft.mc.namelayer.core.log.impl.RevokeInvite(System.currentTimeMillis(), executor,
+							rankInvitedTo.getName(), targetPlayer));
 			sendAccept(ticket, RevokeInvite.REPLY_ID, sendingServer);
 		}
 	}

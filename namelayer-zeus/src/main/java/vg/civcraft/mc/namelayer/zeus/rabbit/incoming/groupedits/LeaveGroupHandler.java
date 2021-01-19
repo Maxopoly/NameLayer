@@ -29,6 +29,7 @@ public class LeaveGroupHandler extends GroupRequestHandler {
 				return;
 			}
 			getGroupTracker().removePlayerFromGroup(group, executor);
+			getGroupTracker().addLogEntry(group, new vg.civcraft.mc.namelayer.core.log.impl.LeaveGroup(System.currentTimeMillis(), executor, rank.getName()));
 			sendAccept(ticket, LeaveGroup.REPLY_ID, sendingServer);
 		}
 	}

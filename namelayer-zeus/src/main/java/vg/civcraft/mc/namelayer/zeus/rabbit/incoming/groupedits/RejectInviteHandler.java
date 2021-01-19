@@ -25,6 +25,9 @@ public class RejectInviteHandler extends GroupRequestHandler {
 				return;
 			}
 			getGroupTracker().deleteInvite(group, executor);
+			getGroupTracker().addLogEntry(group,
+					new vg.civcraft.mc.namelayer.core.log.impl.RejectInvite(System.currentTimeMillis(), executor,
+							rankInvitedTo.getName()));
 			sendAccept(ticket, RejectInvite.REPLY_ID, sendingServer);
 		}
 	}

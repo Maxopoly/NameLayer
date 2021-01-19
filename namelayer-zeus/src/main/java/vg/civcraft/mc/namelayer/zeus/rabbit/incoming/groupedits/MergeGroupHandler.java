@@ -11,6 +11,7 @@ import com.github.maxopoly.zeus.servers.ConnectedServer;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.core.log.impl.MergeGroup;
 import vg.civcraft.mc.namelayer.core.requests.MergeGroups;
 
 public class MergeGroupHandler extends GroupRequestHandler {
@@ -47,6 +48,7 @@ public class MergeGroupHandler extends GroupRequestHandler {
 				return;
 			}
 			getGroupTracker().mergeGroups(group, targetGroup);
+			getGroupTracker().addLogEntry(group, new MergeGroup(System.currentTimeMillis(), executor, targetGroup.getName()));
 			sendAccept(ticket, MergeGroups.REPLY_ID, sendingServer);
 		}
 	}

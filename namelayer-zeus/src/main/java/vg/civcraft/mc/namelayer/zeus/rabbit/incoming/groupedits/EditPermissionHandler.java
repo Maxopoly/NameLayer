@@ -12,6 +12,8 @@ import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.core.log.impl.AddPermission;
+import vg.civcraft.mc.namelayer.core.log.impl.RemovePermission;
 import vg.civcraft.mc.namelayer.core.requests.EditPermission;
 
 public class EditPermissionHandler extends GroupRequestHandler {
@@ -47,14 +49,16 @@ public class EditPermissionHandler extends GroupRequestHandler {
 					sendReject(ticket, EditPermission.REPLY_ID, sendingServer, EditPermission.FailureReason.RANK_ALREADY_HAS_PERMISSION);
 					return;
 				}
+				getGroupTracker().addLogEntry(group, new AddPermission(System.currentTimeMillis(), executor, rank.getName(), permission.getName()));
 				getGroupTracker().addPermissionToRank(group, rank, permission);
 			} else {
 				if (!rank.hasPermission(permission)) {
 					sendReject(ticket, EditPermission.REPLY_ID, sendingServer, EditPermission.FailureReason.RANK_LACKS_PERMISSION);
 					return;
 				}
+				getGroupTracker().addLogEntry(group, new RemovePermission(System.currentTimeMillis(), executor, rank.getName(), permission.getName()));
 				getGroupTracker().removePermissionFromRank(group, rank, permission);
-			} 
+			};
 			sendAccept(ticket, EditPermission.REPLY_ID, sendingServer);
 		}
 	}

@@ -11,11 +11,9 @@ import com.github.maxopoly.zeus.servers.ConnectedServer;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.PermissionType;
-import vg.civcraft.mc.namelayer.core.requests.InvitePlayer;
 import vg.civcraft.mc.namelayer.core.requests.SendGroupChatMessage;
 import vg.civcraft.mc.namelayer.zeus.NameLayerZPlugin;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.GroupChatMessageMessage;
-import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.LocalChatMessageMessage;
 
 public class SendGroupChatMessageHandler extends GroupRequestHandler {
 

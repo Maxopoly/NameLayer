@@ -14,27 +14,35 @@ public class UnblacklistPlayerHandler extends GroupRequestHandler {
 	public void handle(String ticket, ConnectedServer sendingServer,
 					   JSONObject data, UUID executor, Group group) {
 		if (group == null) {
-			sendReject(ticket, UnblacklistPlayer.REPLY_ID, sendingServer, UnblacklistPlayer.FailureReason.GROUP_DOES_NOT_EXIST);
+			sendReject(ticket, UnblacklistPlayer.REPLY_ID, sendingServer,
+					UnblacklistPlayer.FailureReason.GROUP_DOES_NOT_EXIST);
 			return;
 		}
 		String playerName = data.getString("targetPlayer");
 		UUID targetPlayer = ZeusMain.getInstance().getPlayerManager().getUUID(playerName);
 		if (targetPlayer == null) {
-			sendReject(ticket, UnblacklistPlayer.REPLY_ID, sendingServer, UnblacklistPlayer.FailureReason.PLAYER_DOES_NOT_EXIST);
+			sendReject(ticket, UnblacklistPlayer.REPLY_ID, sendingServer,
+					UnblacklistPlayer.FailureReason.PLAYER_DOES_NOT_EXIST);
 			return;
 		}
 		synchronized (group) {
 			GroupRank blacklistedRank = group.getRank(targetPlayer);
 			if (group.getGroupRankHandler().isBlacklistedRank(blacklistedRank)) {
-				sendReject(ticket, UnblacklistPlayer.REPLY_ID, sendingServer, UnblacklistPlayer.FailureReason.PLAYER_NOT_BLACKLISTED);
+				sendReject(ticket, UnblacklistPlayer.REPLY_ID, sendingServer,
+						UnblacklistPlayer.FailureReason.PLAYER_NOT_BLACKLISTED);
 				return;
 			}
-			PermissionType permNeeded = getGroupTracker().getPermissionTracker().getRemovePermission(blacklistedRank.getId());
+			PermissionType permNeeded =
+					getGroupTracker().getPermissionTracker().getRemovePermission(blacklistedRank.getId());
 			if (!getGroupTracker().hasAccess(group, executor, permNeeded)) {
-				sendReject(ticket, UnblacklistPlayer.REPLY_ID, sendingServer, UnblacklistPlayer.FailureReason.NO_PERMISSION);
+				sendReject(ticket, UnblacklistPlayer.REPLY_ID, sendingServer,
+						UnblacklistPlayer.FailureReason.NO_PERMISSION);
 				return;
 			}
 			getGroupTracker().unBlacklistPlayer(group, targetPlayer);
+			getGroupTracker().addLogEntry(group,
+					new vg.civcraft.mc.namelayer.core.log.impl.UnblacklistPlayer(System.currentTimeMillis(), executor,
+							blacklistedRank.getName(), targetPlayer));
 			sendAccept(ticket, UnblacklistPlayer.REPLY_ID, sendingServer);
 
 		}

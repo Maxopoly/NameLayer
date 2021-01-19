@@ -26,10 +26,8 @@ import com.github.maxopoly.zeus.plugin.ZeusPluginDatabase;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupLink;
-import vg.civcraft.mc.namelayer.core.GroupMetaData;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.GroupRankHandler;
-import vg.civcraft.mc.namelayer.core.NameLayerMetaData;
 import vg.civcraft.mc.namelayer.core.PermissionTracker;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupAction;
@@ -168,7 +166,7 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 						"insert into nl_action_log(type_id, player, group_id, time,rank, name, extra) values(?,?,?,?,?,?,?)")) {
 			LoggedGroupActionPersistence persist = change.getPersistence();
 			addLog.setInt(1, typeID);
-			addLog.setString(2, persist.getPlayer().toString());
+			addLog.setObject(2, persist.getPlayer());
 			addLog.setInt(3, group.getPrimaryId());
 			addLog.setTimestamp(4, new Timestamp(persist.getTimeStamp()));
 			addLog.setString(5, persist.getRank());
@@ -671,6 +669,30 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 					String metaDataKey = types.getString(1);
 					String metaDataValue = types.getString(2);
 					group.setMetaData(metaDataKey, metaDataValue);
+				}
+			}
+		} catch (SQLException e) {
+			logger.error("Failed to load group meta data: ", e);
+		}
+		//load action log
+		try (Connection connection = db.getConnection();
+			 PreparedStatement getTypes = connection
+					 .prepareStatement("select ga.name,al.player, al.time, al.rank, al.name, al.extra"
+									 + " from nl_action_log al inner join nl_group_actions ga on al.type_id = ga.id " +
+							 		   "where group_id = ?")) {
+			getTypes.setInt(1, id);
+			try (ResultSet types = getTypes.executeQuery()) {
+				while (types.next()) {
+					String actionName = types.getString(1);
+					UUID player = (UUID) types.getObject(2);
+					long actionTime = types.getTimestamp(3).getTime();
+					String rank = types.getString(4);
+					String entryName = types.getString(5);
+					String extra = types.getString(6);
+					LoggedGroupActionPersistence groupAction = new LoggedGroupActionPersistence(actionTime, player, rank, entryName, extra);
+					LoggedGroupAction action = null;
+					//TODO
+					group.getActionLog().addAction(action);
 				}
 			}
 		} catch (SQLException e) {

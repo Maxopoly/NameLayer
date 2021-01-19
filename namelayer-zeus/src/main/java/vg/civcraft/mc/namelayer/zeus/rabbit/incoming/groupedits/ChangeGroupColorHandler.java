@@ -9,6 +9,7 @@ import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.NameLayerMetaData;
 import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.core.log.impl.ChangeColor;
 import vg.civcraft.mc.namelayer.core.requests.ChangeGroupColor;
 
 public class ChangeGroupColorHandler extends GroupRequestHandler{
@@ -32,7 +33,9 @@ public class ChangeGroupColorHandler extends GroupRequestHandler{
 			if (color == null) {
 				sendReject(ticket, ChangeGroupColor.REPLY_ID, sendingServer, ChangeGroupColor.FailureReason.COLOR_NOT_VALID);
 			}
+			String oldColour = group.getMetaData(NameLayerMetaData.CHAT_COLOR_KEY);
 			getGroupTracker().setMetaDataValue(group, NameLayerMetaData.CHAT_COLOR_KEY, color);
+			getGroupTracker().addLogEntry(group, new ChangeColor(System.currentTimeMillis(), executor, oldColour, color));
 			sendAccept(ticket, ChangeGroupColor.REPLY_ID, sendingServer);
 		}
 	}

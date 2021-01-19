@@ -31,8 +31,8 @@ public class RemoveMemberHandler extends GroupRequestHandler {
 		}
 		synchronized (group) {
 			if (targetPlayer.equals(executor)) {
-			sendReject(ticket, RemoveMember.REPLY_ID, sendingServer, RemoveMember.FailureReason.CANNOT_KICK_SELF);
-			return;
+				sendReject(ticket, RemoveMember.REPLY_ID, sendingServer, RemoveMember.FailureReason.CANNOT_KICK_SELF);
+				return;
 			}
 			GroupRankHandler handler = group.getGroupRankHandler();
 			GroupRank currentRank = group.getRank(targetPlayer);
@@ -40,16 +40,21 @@ public class RemoveMemberHandler extends GroupRequestHandler {
 				sendReject(ticket, RemoveMember.REPLY_ID, sendingServer, RemoveMember.FailureReason.NOT_A_MEMBER);
 				return;
 			}
-			PermissionType permRequired = getGroupTracker().getPermissionTracker().getRemovePermission(currentRank.getId());
+			PermissionType permRequired =
+					getGroupTracker().getPermissionTracker().getRemovePermission(currentRank.getId());
 			if (!getGroupTracker().hasAccess(group, executor, permRequired)) {
 				Map<String, Object> repValues = new HashMap<>();
 				repValues.put("missing_perm", permRequired);
-				sendReject(ticket, RemoveMember.REPLY_ID, sendingServer, RemoveMember.FailureReason.NO_PERMISSION, repValues);
+				sendReject(ticket, RemoveMember.REPLY_ID, sendingServer, RemoveMember.FailureReason.NO_PERMISSION,
+						repValues);
 				return;
 			}
 			getGroupTracker().removePlayerFromGroup(group, targetPlayer);
 			Map<String, Object> repValues = new HashMap<>();
 			repValues.put("current_rank_id", currentRank.getId());
+			getGroupTracker().addLogEntry(group,
+					new vg.civcraft.mc.namelayer.core.log.impl.RemoveMember(System.currentTimeMillis(), executor,
+							currentRank.getName(), targetPlayer));
 			sendAccept(ticket, RemoveMember.REPLY_ID, sendingServer, repValues);
 		}
 	}

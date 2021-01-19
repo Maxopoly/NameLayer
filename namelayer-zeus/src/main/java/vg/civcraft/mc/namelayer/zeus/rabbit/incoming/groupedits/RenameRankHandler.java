@@ -15,6 +15,7 @@ import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.GroupRankHandler;
 import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.core.log.impl.ChangeRankName;
 import vg.civcraft.mc.namelayer.core.requests.RenameRank;
 
 public class RenameRankHandler extends GroupRequestHandler {
@@ -54,6 +55,7 @@ public class RenameRankHandler extends GroupRequestHandler {
 				return;
 			}
 			getGroupTracker().renameRank(group, rank, newName);
+			getGroupTracker().addLogEntry(group, new ChangeRankName(System.currentTimeMillis(), executor, rank.getName(), newName));
 			sendAccept(ticket, RenameRank.REPLY_ID, sendingServer);
 		}
 	}

@@ -18,6 +18,7 @@ import org.json.JSONObject;
 
 import com.google.common.base.Preconditions;
 
+import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupAction;
 import vg.civcraft.mc.namelayer.core.serial.JSONSerializable;
 
 public class Group implements Comparable<Group>, JSONSerializable {
@@ -463,6 +464,10 @@ public class Group implements Comparable<Group>, JSONSerializable {
 				group.setMetaData(key, value);
 			}
 		}
+		JSONArray groupActionsObj = json.getJSONArray("group_actions");
+			for (int i = 0; i < groupActionsObj.length(); i++ ) {
+				//TODO
+			}
 		return group;
 	}
 
@@ -546,6 +551,11 @@ public class Group implements Comparable<Group>, JSONSerializable {
 			metaDataObj.put(metaDataEntry.getKey(), metaDataEntry.getValue());
 		}
 		json.put("meta_data", metaDataObj);
+		JSONArray groupActionObj = new JSONArray();
+		for (LoggedGroupAction action : getActionLog().getActions()) {
+			groupActionObj.put(action.toJson());
+		}
+		json.put("group_actions", groupActionObj);
 		return json;
 	}
 }

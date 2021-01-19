@@ -30,12 +30,14 @@ public class SetPasswordHandler extends GroupRequestHandler {
 				sendReject(ticket, SetPassword.REPLY_ID, sendingServer, SetPassword.FailureReason.NO_PERMISSION, repValues);
 				return;
 			}
-			String password = group.getMetaData("password");
+			String password = data.getString("password");
 			if (password == null) {
 				sendReject(ticket, SetPassword.REPLY_ID, sendingServer, SetPassword.FailureReason.NULL_PASSWORD);
 				return;
 			}
+			String oldPassword = group.getMetaData(NameLayerMetaData.PASSWORD_KEY);
 			getGroupTracker().setMetaDataValue(group, NameLayerMetaData.PASSWORD_KEY, password);
+			getGroupTracker().addLogEntry(group, new vg.civcraft.mc.namelayer.core.log.impl.SetPassword(System.currentTimeMillis(), executor, oldPassword, password));
 			sendAccept(ticket, SetPassword.REPLY_ID, sendingServer);
 		}
 		

@@ -17,15 +17,18 @@ import vg.civcraft.mc.namelayer.core.GroupTracker;
 import vg.civcraft.mc.namelayer.core.IllegalGroupStateException;
 import vg.civcraft.mc.namelayer.core.NameLayerMetaData;
 import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupAction;
+import vg.civcraft.mc.namelayer.core.log.impl.AcceptInvitation;
+import vg.civcraft.mc.namelayer.core.log.impl.InviteMember;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddInviteMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddLinkMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddMemberMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddPermissionMessage;
+import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddToActionLogMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.ChangeMemberRankMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.CreateRankMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.DeleteGroupMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.DeleteRankMessage;
-import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.GroupChangeMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.GroupMetaDataChangeMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.MergeGroupMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RecacheGroupMessage;
@@ -34,7 +37,6 @@ import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RemoveMemberMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RemovePermissionMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RenameGroupMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.RenameRankMessage;
-import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.ChangeGroupColorHandler;
 
 public class ZeusGroupTracker extends GroupTracker {
 
@@ -162,6 +164,15 @@ public class ZeusGroupTracker extends GroupTracker {
 			super.deleteGroup(group);
 			database.deleteGroup(group);
 			sendGroupUpdate(group, () -> new DeleteGroupMessage(group.getPrimaryId()));
+		}
+	}
+	@Override
+	public void addLogEntry(Group group, LoggedGroupAction action) {
+		synchronized (group) {
+			super.addLogEntry(group, action);
+			//TODO
+			database.insertActionLog(group, -1, action);
+			sendGroupUpdate(group, () -> new AddToActionLogMessage(group.getPrimaryId(), action));
 		}
 	}
 

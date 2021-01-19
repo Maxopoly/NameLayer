@@ -76,6 +76,7 @@ public class DeleteRankHandler extends GroupRequestHandler {
 				}
 			}
 			getGroupTracker().deleteRank(group, rankToDelete);
+			getGroupTracker().addLogEntry(group, new vg.civcraft.mc.namelayer.core.log.impl.DeleteRank(System.currentTimeMillis(), executor, rankToDelete.getName()));
 			sendAccept(ticket, DeleteRank.REPLY_ID, sendingServer);
 		}
 

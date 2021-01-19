@@ -44,25 +44,29 @@ public class CreateRankHandler extends GroupRequestHandler {
 			if (rankHandler.getAllRanks().size() >= GroupRankHandler.MAXIMUM_TYPE_COUNT) {
 				Map<String, Object> repValues = new HashMap<>();
 				repValues.put("max_ranks", GroupRankHandler.MAXIMUM_TYPE_COUNT);
-				sendReject(ticket, CreateRank.REPLY_ID, sendingServer, CreateRank.FailureReason.RANK_LIMIT_REACHED, repValues);
+				sendReject(ticket, CreateRank.REPLY_ID, sendingServer, CreateRank.FailureReason.RANK_LIMIT_REACHED,
+						repValues);
 				return;
 			}
 			int parentRankId = data.getInt("parentRank");
 			GroupRank parentRank = rankHandler.getRank(parentRankId);
 			if (parentRank == null) {
-				sendReject(ticket, CreateRank.REPLY_ID, sendingServer, CreateRank.FailureReason.PARENT_RANK_DOES_NOT_EXIST);
+				sendReject(ticket, CreateRank.REPLY_ID, sendingServer,
+						CreateRank.FailureReason.PARENT_RANK_DOES_NOT_EXIST);
 				return;
 			}
 			getGroupTracker().createRank(group, rankName, parentRank);
+			getGroupTracker().addLogEntry(group,
+					new vg.civcraft.mc.namelayer.core.log.impl.CreateRank(System.currentTimeMillis(), executor,
+							rankName, parentRank.getName()));
 			sendAccept(ticket, CreateRank.REPLY_ID, sendingServer);
-		}		
+		}
 	}
 
 	@Override
 	public String getIdentifier() {
 		return CreateRank.REQUEST_ID;
 	}
-
 
 
 }

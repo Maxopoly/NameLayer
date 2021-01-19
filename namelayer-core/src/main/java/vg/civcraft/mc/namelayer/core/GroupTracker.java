@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.google.common.base.Preconditions;
+import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupAction;
 
 public class GroupTracker {
 
@@ -222,5 +223,15 @@ public class GroupTracker {
 	public void deleteGroupLink(GroupLink link) {
 		link.getOriginatingGroup().removeOutgoingLink(link);
 		link.getTargetGroup().removeIncomingLink(link);
+	}
+
+	/**
+	 * Adds an entry to one groups entire action log
+	 *
+	 * @param group group to add entry to
+	 * @param action action to add to log
+	 */
+	public void addLogEntry(Group group, LoggedGroupAction action) {
+		group.getActionLog().addAction(action);
 	}
 }

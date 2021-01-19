@@ -11,6 +11,7 @@ import com.github.maxopoly.zeus.servers.ConnectedServer;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.core.log.impl.ChangeGroupName;
 import vg.civcraft.mc.namelayer.core.requests.RenameGroup;
 
 public class RenameGroupHandler extends GroupRequestHandler {
@@ -39,6 +40,7 @@ public class RenameGroupHandler extends GroupRequestHandler {
 				return;
 			}
 			getGroupTracker().renameGroup(group, newName);
+			getGroupTracker().addLogEntry(group, new ChangeGroupName(System.currentTimeMillis(), executor, group.getName(), newName));
 			sendAccept(ticket, RenameGroup.REPLY_ID, sendingServer);
 		}
 	}
