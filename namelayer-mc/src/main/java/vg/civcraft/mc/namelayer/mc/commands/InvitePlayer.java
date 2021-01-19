@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -30,13 +31,17 @@ public class InvitePlayer extends NameLayerCommand {
 		GroupRank inviteRank = null;
 		if (args.length == 2) {
 			inviteRank = group.getGroupRankHandler().getDefaultInvitationRank();
+			if (inviteRank == null) {
+				sender.sendMessage(group.getColoredName() + ChatColor.RED + " does not have a default invitation rank set.");
+				return true;
+			}
 		}
 		else {
 			inviteRank = group.getGroupRankHandler().getRank(args [2]);
-		}
-		if (inviteRank == null) {
-			MsgUtils.sendRankNotExistMsg(uuid, group.getColoredName(), args[2]);
-			return true;
+			if (inviteRank == null) {
+				MsgUtils.sendRankNotExistMsg(uuid, group.getColoredName(), args[2]);
+				return true;
+			}
 		}
 		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitInvitePlayer(uuid, group, args [1], inviteRank));
 		return true;
