@@ -14,7 +14,7 @@ public class AddPermission extends AbstractGroupModificationHandler {
 	protected void handle(Group group, JSONObject data) {
 		int rankID = data.getInt("rank_id");
 		GroupRank rank = group.getGroupRankHandler().getRank(rankID);
-		String permID = data.getString("perm_id");
+		int permID = data.getInt("perm_id");
 		PermissionType permission = getGroupTracker().getPermissionTracker().getPermission(permID);
 		if (rank == null) {
 			throw new IllegalGroupStateException();
