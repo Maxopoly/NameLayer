@@ -6,6 +6,7 @@ import org.bukkit.ChatColor;
 import org.json.JSONObject;
 
 import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.requests.RemoveMember;
 
 public class RabbitRemoveMember extends RabbitGroupAction {
@@ -22,9 +23,10 @@ public class RabbitRemoveMember extends RabbitGroupAction {
 	public void handleReply(JSONObject reply, boolean success) {
 		Group group = getGroup();
 		if (success) {
-			String currentRank = reply.getString("currentRank");
+			int currentRankId = reply.getInt("current_rank_id");
+			GroupRank currentRank = group.getGroupRankHandler().getRank(currentRankId);
 			sendMessage(String.format("%s%s%s with the rank %s%s%s was kicked from %s", ChatColor.YELLOW,
-				playerName, ChatColor.GREEN, ChatColor.YELLOW, currentRank,
+				playerName, ChatColor.GREEN, ChatColor.YELLOW, currentRank.getName(),
 				ChatColor.GREEN, group.getColoredName()));
 			return;
 		}

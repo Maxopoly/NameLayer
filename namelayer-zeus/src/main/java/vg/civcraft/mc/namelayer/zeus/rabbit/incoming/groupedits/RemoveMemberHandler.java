@@ -49,7 +49,7 @@ public class RemoveMemberHandler extends GroupRequestHandler {
 			}
 			getGroupTracker().removePlayerFromGroup(group, targetPlayer);
 			Map<String, Object> repValues = new HashMap<>();
-			repValues.put("currentRank", currentRank.getId());
+			repValues.put("current_rank_id", currentRank.getId());
 			sendAccept(ticket, RemoveMember.REPLY_ID, sendingServer, repValues);
 		}
 	}
