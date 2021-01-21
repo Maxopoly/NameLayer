@@ -2,8 +2,6 @@ package vg.civcraft.mc.namelayer.core.log.abstr;
 
 import java.util.UUID;
 
-import org.json.JSONObject;
-
 import com.google.common.base.Preconditions;
 
 public abstract class PermissionEdit extends MemberRankChange {
@@ -23,10 +21,5 @@ public abstract class PermissionEdit extends MemberRankChange {
 	@Override
 	public LoggedGroupActionPersistence getPersistence() {
 		return new LoggedGroupActionPersistence(time, player, rank, permission, null);
-	}
-	
-	protected void fillJson(JSONObject json) {
-		super.fillJson(json);
-		json.put("permission", permission);
 	}
 }

@@ -3,6 +3,8 @@ package vg.civcraft.mc.namelayer.zeus;
 import com.github.maxopoly.zeus.plugin.ZeusLoad;
 import com.github.maxopoly.zeus.plugin.ZeusPlugin;
 
+import vg.civcraft.mc.namelayer.core.Group;
+import vg.civcraft.mc.namelayer.core.log.abstr.GroupActionLogFactory;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.AcceptInviteHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.BlacklistPlayerHandler;
 import vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits.ChangeGroupColorHandler;
@@ -44,16 +46,19 @@ public class NameLayerZPlugin extends ZeusPlugin {
 	private ZeusGroupTracker groupTracker;
 	private ServerGroupKnowledgeTracker groupKnowledgeTracker;
 	private NameLayerDAO dao;
+	private GroupActionLogFactory actionLogFactory;
 
 	@Override
 	public boolean onEnable() {
 		instance = this;
-		dao = new NameLayerDAO(getName(), logger);
-		if (!dao.updateDatabase()) {
+		this.dao = new NameLayerDAO(getName(), logger);
+		if (!this.dao.updateDatabase()) {
 			return false;
 		}
-		groupTracker = new ZeusGroupTracker(dao);
-		groupKnowledgeTracker = new ServerGroupKnowledgeTracker(groupTracker, dao);
+		this.actionLogFactory = new GroupActionLogFactory();
+		Group.setActionLogFactory(this.actionLogFactory);
+		this.groupTracker = new ZeusGroupTracker(dao);
+		this.groupKnowledgeTracker = new ServerGroupKnowledgeTracker(groupTracker, dao);
 		registerRabbitListeners();
 		registerPluginlistener(new NameLayerListener());
 		return true;
@@ -79,6 +84,10 @@ public class NameLayerZPlugin extends ZeusPlugin {
 
 	public NameLayerDAO getDAO() {
 		return dao;
+	}
+	
+	public GroupActionLogFactory getActionLogFactory() {
+		return actionLogFactory;
 	}
 
 	public ServerGroupKnowledgeTracker getGroupKnowledgeTracker() {

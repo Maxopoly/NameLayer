@@ -15,7 +15,8 @@ public class AddToActionLogMessage extends GroupChangeMessage{
 
 	@Override
 	protected void fillJson(JSONObject json) {
-		json.put("action", action.toJson());
+		json.put("key", action.getIdentifier());
+		json.put("action", action.getPersistence().toJson());
 	}
 
 	@Override

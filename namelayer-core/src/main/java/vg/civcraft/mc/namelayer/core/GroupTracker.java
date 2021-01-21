@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.google.common.base.Preconditions;
+
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupAction;
 
 public class GroupTracker {

@@ -30,6 +30,7 @@ import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.GroupRankHandler;
 import vg.civcraft.mc.namelayer.core.PermissionTracker;
 import vg.civcraft.mc.namelayer.core.PermissionType;
+import vg.civcraft.mc.namelayer.core.log.abstr.GroupActionLogFactory;
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupAction;
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupActionPersistence;
 
@@ -97,38 +98,11 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 						+ "CONSTRAINT fk_gid FOREIGN KEY (group_id) REFERENCES nl_groups(group_id) on delete cascade,"
 						+ "PRIMARY KEY(group_id, meta_data_key))"
 				);
+		registerMigration(2,
+				"CREATE INDEX nl_invs_player on nl_invitations (player)");
 	}
 
-	public Map<String, Map<Integer, List<LoggedGroupActionPersistence>>> loadAllGroupsLogs() {
-		Map<String, Map<Integer, List<LoggedGroupActionPersistence>>> result = new HashMap<>();
-		try (Connection insertConn = db.getConnection();
-				PreparedStatement loadLog = insertConn
-						.prepareStatement("select ga.name,al.player, al.group_id, al.time, al.rank, al.name, al.extra"
-								+ " from nl_action_log al inner join nl_group_actions ga on al.type_id = ga.id");
-				ResultSet rs = loadLog.executeQuery()) {
-			while (rs.next()) {
-				String actionName = rs.getString(1);
-				String player = rs.getString(2);
-				int groupId = rs.getInt(3);
-				long time = rs.getTimestamp(4).getTime();
-				String rank = rs.getString(5);
-				String name = rs.getString(6);
-				String extra = rs.getString(7);
-				LoggedGroupActionPersistence persist = new LoggedGroupActionPersistence(time, UUID.fromString(player),
-						rank, name, extra);
-				Map<Integer, List<LoggedGroupActionPersistence>> forType = result.computeIfAbsent(actionName,
-						s -> new HashMap<>());
-				List<LoggedGroupActionPersistence> perGroup = forType.computeIfAbsent(groupId, s -> new ArrayList<>());
-				perGroup.add(persist);
-			}
-		} catch (SQLException e) {
-			logger.error("Failed to load group logs", e);
-			return null;
-		}
-		return result;
-	}
-
-	public int getOrCreateActionID(String name) {
+	public synchronized int getOrCreateActionID(String name) {
 		try (Connection insertConn = db.getConnection();
 				PreparedStatement selectId = insertConn
 						.prepareStatement("select id from nl_global_actions where name = ?;")) {
@@ -160,18 +134,19 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		}
 	}
 
-	public void insertActionLog(Group group, int typeID, LoggedGroupAction change) {
+	public void insertActionLog(Group group, LoggedGroupAction change) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement addLog = connection.prepareStatement(
-						"insert into nl_action_log(type_id, player, group_id, time,rank, name, extra) values(?,?,?,?,?,?,?)")) {
+						"insert into nl_action_log(type_id, player, group_id, time,rank, name, extra) "
+						+ "select type_id,?,?,?,?,?,? from nl_global_actions where type_name = ?")) {
 			LoggedGroupActionPersistence persist = change.getPersistence();
-			addLog.setInt(1, typeID);
-			addLog.setObject(2, persist.getPlayer());
-			addLog.setInt(3, group.getPrimaryId());
-			addLog.setTimestamp(4, new Timestamp(persist.getTimeStamp()));
-			addLog.setString(5, persist.getRank());
-			addLog.setString(6, persist.getName());
-			addLog.setString(7, persist.getExtraText());
+			addLog.setObject(1, persist.getPlayer());
+			addLog.setInt(2, group.getPrimaryId());
+			addLog.setTimestamp(3, new Timestamp(persist.getTimeStamp()));
+			addLog.setString(4, persist.getRank());
+			addLog.setString(5, persist.getName());
+			addLog.setString(6, persist.getExtraText());
+			addLog.setString(7, change.getIdentifier());
 			addLog.execute();
 		} catch (SQLException e) {
 			logger.log(Level.WARN, "Problem inserting log", e);
@@ -258,6 +233,24 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 	}
 
 	public List<Integer> getGroupsByPlayer(UUID player) {
+		try (Connection connection = db.getConnection();
+				PreparedStatement getGroups = connection
+						.prepareStatement("select group_id from nl_members where player = ?")) {
+			getGroups.setObject(1, player);
+			try (ResultSet rs = getGroups.executeQuery()) {
+				List<Integer> result = new ArrayList<>();
+				while (rs.next()) {
+					result.add(rs.getInt(1));
+				}
+				return result;
+			}
+		} catch (SQLException e) {
+			logger.error("Problem adding loading all groups for player " + player, e);
+			return Collections.emptyList();
+		}
+	}
+	
+	public List<Integer> getGroupsInvitedToByPlayer(UUID player) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement getGroups = connection
 						.prepareStatement("select group_id from nl_members where player = ?")) {
@@ -674,11 +667,12 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		} catch (SQLException e) {
 			logger.error("Failed to load group meta data: ", e);
 		}
+		GroupActionLogFactory logFactory = NameLayerZPlugin.getInstance().getActionLogFactory();
 		//load action log
 		try (Connection connection = db.getConnection();
 			 PreparedStatement getTypes = connection
 					 .prepareStatement("select ga.name,al.player, al.time, al.rank, al.name, al.extra"
-									 + " from nl_action_log al inner join nl_group_actions ga on al.type_id = ga.id " +
+									 + " from nl_action_log al inner join nl_global_actions ga on al.type_id = ga.id " +
 							 		   "where group_id = ?")) {
 			getTypes.setInt(1, id);
 			try (ResultSet types = getTypes.executeQuery()) {
@@ -689,14 +683,15 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 					String rank = types.getString(4);
 					String entryName = types.getString(5);
 					String extra = types.getString(6);
-					LoggedGroupActionPersistence groupAction = new LoggedGroupActionPersistence(actionTime, player, rank, entryName, extra);
-					LoggedGroupAction action = null;
-					//TODO
-					group.getActionLog().addAction(action);
+					LoggedGroupActionPersistence persist = new LoggedGroupActionPersistence(actionTime, player, rank, entryName, extra);
+					LoggedGroupAction action = logFactory.instanciate(actionName, persist);
+					if (action != null) {
+						group.getActionLog().addAction(action);
+					}
 				}
 			}
 		} catch (SQLException e) {
-			logger.error("Failed to load group meta data: ", e);
+			logger.error("Failed to load group action log: ", e);
 		}
 		return group;
 	}

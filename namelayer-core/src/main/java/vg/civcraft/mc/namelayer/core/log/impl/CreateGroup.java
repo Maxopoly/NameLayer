@@ -2,8 +2,6 @@ package vg.civcraft.mc.namelayer.core.log.impl;
 
 import java.util.UUID;
 
-import org.json.JSONObject;
-
 import com.google.common.base.Preconditions;
 
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupAction;
@@ -28,11 +26,6 @@ public class CreateGroup extends LoggedGroupAction {
 	@Override
 	public String getIdentifier() {
 		return ID;
-	}
-
-	@Override
-	protected void fillJson(JSONObject json) {
-		json.put("name", name);
 	}
 
 	@Override

@@ -2,8 +2,6 @@ package vg.civcraft.mc.namelayer.core.log.impl;
 
 import java.util.UUID;
 
-import org.json.JSONObject;
-
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupAction;
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupActionPersistence;
 
@@ -25,11 +23,6 @@ public class MergeGroup extends LoggedGroupAction {
 	@Override
 	public String getIdentifier() {
 		return ID;
-	}
-
-	@Override
-	protected void fillJson(JSONObject json) {
-		json.put("group_merged", groupMergedIn);
 	}
 
 	@Override

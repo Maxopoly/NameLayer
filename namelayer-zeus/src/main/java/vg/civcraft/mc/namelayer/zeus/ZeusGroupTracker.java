@@ -50,7 +50,7 @@ public class ZeusGroupTracker extends GroupTracker {
 		this.defaultMetaData = new ConcurrentHashMap<>();
 		this.groupsBeingLoaded = new HashMap<>();
 	}
-	
+
 	public void registerDefaultMetaData(String key, String value) {
 		this.defaultMetaData.put(key, value);
 	}
@@ -106,7 +106,7 @@ public class ZeusGroupTracker extends GroupTracker {
 	@Override
 	public void renameGroup(Group group, String newName) {
 		synchronized (group) {
-			//first db access, because super call will already overwrite old name
+			// first db access, because super call will already overwrite old name
 			database.renameGroup(group, newName);
 			super.renameGroup(group, newName);
 			sendGroupUpdate(group, () -> new RenameGroupMessage(group.getPrimaryId(), newName));
@@ -166,12 +166,12 @@ public class ZeusGroupTracker extends GroupTracker {
 			sendGroupUpdate(group, () -> new DeleteGroupMessage(group.getPrimaryId()));
 		}
 	}
+
 	@Override
 	public void addLogEntry(Group group, LoggedGroupAction action) {
 		synchronized (group) {
 			super.addLogEntry(group, action);
-			//TODO
-			database.insertActionLog(group, -1, action);
+			database.insertActionLog(group, action);
 			sendGroupUpdate(group, () -> new AddToActionLogMessage(group.getPrimaryId(), action));
 		}
 	}
@@ -209,7 +209,7 @@ public class ZeusGroupTracker extends GroupTracker {
 		}
 		return group;
 	}
-	
+
 	public Group loadOrGetGroup(String name) {
 		int id = database.getGroupIdForName(name);
 		if (id == -1) {
@@ -227,11 +227,15 @@ public class ZeusGroupTracker extends GroupTracker {
 			addGroup(group);
 			GroupRank owner = group.getGroupRankHandler().getOwnerRank();
 			addPlayerToGroup(group, creator, owner);
-			for(Entry<String, String> entry : defaultMetaData.entrySet()) {
+			for (Entry<String, String> entry : defaultMetaData.entrySet()) {
+				group.setMetaData(entry.getKey(), entry.getValue());
 				database.setGroupMetaData(group, entry.getKey(), entry.getValue());
 			}
-			database.setGroupMetaData(group, NameLayerMetaData.CREATION_TIME_KEY, String.valueOf(System.currentTimeMillis()));
-			database.setGroupMetaData(group, NameLayerMetaData.CREATOR_KEY,  creator.toString());
+			String now = String.valueOf(System.currentTimeMillis());
+			group.setMetaData(NameLayerMetaData.CREATION_TIME_KEY, now);
+			database.setGroupMetaData(group, NameLayerMetaData.CREATION_TIME_KEY, now);
+			group.setMetaData(NameLayerMetaData.CREATOR_KEY, creator.toString());
+			database.setGroupMetaData(group, NameLayerMetaData.CREATOR_KEY, creator.toString());
 			return group;
 		}
 	}
@@ -243,7 +247,6 @@ public class ZeusGroupTracker extends GroupTracker {
 	public void unBlacklistPlayer(Group group, UUID player) {
 		removePlayerFromGroup(group, player);
 	}
-
 
 	public GroupRank createRank(Group group, String name, GroupRank parent) {
 		synchronized (group) {

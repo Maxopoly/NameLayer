@@ -1,6 +1,7 @@
 package vg.civcraft.mc.namelayer.core.log.impl;
 
 import java.util.UUID;
+
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.core.log.abstr.OtherMemberRankChange;
 

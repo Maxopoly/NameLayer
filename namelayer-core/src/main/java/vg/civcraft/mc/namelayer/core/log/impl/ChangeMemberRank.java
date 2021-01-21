@@ -2,8 +2,6 @@ package vg.civcraft.mc.namelayer.core.log.impl;
 
 import java.util.UUID;
 
-import org.json.JSONObject;
-
 import com.google.common.base.Preconditions;
 
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupActionPersistence;
@@ -19,11 +17,6 @@ public class ChangeMemberRank extends OtherMemberRankChange {
 		super(time, player, rank, affectedPlayer);
 		Preconditions.checkNotNull(oldRank, "Previous rank may not be null");
 		this.oldRank = oldRank;
-	}
-	
-	protected void fillJson(JSONObject json) {
-		super.fillJson(json);
-		json.put("old_rank", oldRank);
 	}
 
 	public String getOldRank() {

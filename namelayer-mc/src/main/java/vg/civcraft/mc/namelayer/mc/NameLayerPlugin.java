@@ -6,8 +6,10 @@ import com.github.maxopoly.artemis.ArtemisPlugin;
 
 import net.md_5.bungee.api.ChatColor;
 import vg.civcraft.mc.civmodcore.ACivMod;
+import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupTracker;
 import vg.civcraft.mc.namelayer.core.NameLayerMetaData;
+import vg.civcraft.mc.namelayer.core.log.abstr.GroupActionLogFactory;
 import vg.civcraft.mc.namelayer.core.requests.AcceptInvite;
 import vg.civcraft.mc.namelayer.core.requests.BlacklistPlayer;
 import vg.civcraft.mc.namelayer.core.requests.ChangeGroupColor;
@@ -64,6 +66,7 @@ public class NameLayerPlugin extends ACivMod {
 	private NameLayerSettingManager settingsManager;
 	private ChatTracker chatTracker;
 	private NameLayerConfig nlConfig;
+	private GroupActionLogFactory actionLogFactory;
 
 	public void onEnable() {
 		instance = this;
@@ -74,6 +77,8 @@ public class NameLayerPlugin extends ACivMod {
 			return;
 		}
 		groupTracker = new GroupTracker();
+		this.actionLogFactory = new GroupActionLogFactory();
+		Group.setActionLogFactory(this.actionLogFactory);
 		nameLayerPermManager = new NameLayerPermissionManager(groupTracker.getPermissionTracker());
 		ArtemisPlugin.getInstance().getRabbitInputHandler().deferCommandToStandardRequest(AcceptInvite.REPLY_ID,
 				BlacklistPlayer.REPLY_ID, CreateGroup.REPLY_ID, CreateRank.REPLY_ID, DeleteGroup.REPLY_ID,
@@ -113,6 +118,10 @@ public class NameLayerPlugin extends ACivMod {
 
 	public NameLayerConfig getNameLayerConfig() {
 		return nlConfig;
+	}
+	
+	public GroupActionLogFactory getActionLogFactory() {
+		return actionLogFactory;
 	}
 
 	public ChatTracker getChatTracker() {

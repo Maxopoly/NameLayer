@@ -31,52 +31,56 @@ public class LinkGroupsHandler extends GroupRequestHandler {
 					LinkGroups.FailureReason.TARGET_GROUP_DOES_NOT_EXIST);
 			return;
 		}
-		synchronized (group) {
-			if (group.equals(targetGroup)) {
-				sendReject(ticket, LinkGroups.REPLY_ID, sendingServer, LinkGroups.FailureReason.CANNOT_LINK_TO_SELF);
-				return;
+		// Acquire locks in id order to avoid deadlocks
+		Group lowerID = targetGroup.getPrimaryId() < group.getPrimaryId() ? targetGroup : group;
+		Group upperID = targetGroup.getPrimaryId() < group.getPrimaryId() ? group : targetGroup;
+		synchronized (lowerID) {
+			synchronized (upperID) {
+				if (group.equals(targetGroup)) {
+					sendReject(ticket, LinkGroups.REPLY_ID, sendingServer,
+							LinkGroups.FailureReason.CANNOT_LINK_TO_SELF);
+					return;
+				}
+				PermissionType permNeeded = getGroupTracker().getPermissionTracker()
+						.getPermission(NameLayerPermissions.LINK_GROUP);
+				if (!getGroupTracker().hasAccess(group, executor, permNeeded)) {
+					Map<String, Object> repValues = new HashMap<>();
+					repValues.put("missing_perm", NameLayerPermissions.LINK_GROUP);
+					sendReject(ticket, LinkGroups.REPLY_ID, sendingServer,
+							LinkGroups.FailureReason.NO_PERMISSION_ORIG_GROUP, repValues);
+					return;
+				}
+				if (!getGroupTracker().hasAccess(targetGroup, executor, permNeeded)) {
+					Map<String, Object> repValues = new HashMap<>();
+					repValues.put("missing_perm", NameLayerPermissions.LINK_GROUP);
+					sendReject(ticket, LinkGroups.REPLY_ID, sendingServer,
+							LinkGroups.FailureReason.NO_PERMISSION_TARGET_GROUP, repValues);
+					return;
+				}
+				GroupRank origRank = group.getGroupRankHandler().getRank(data.getString("originatingRank"));
+				GroupRank tarRank = group.getGroupRankHandler().getRank(data.getString("targetRank"));
+				if (origRank == null) {
+					sendReject(ticket, LinkGroups.REPLY_ID, sendingServer,
+							LinkGroups.FailureReason.ORIGINAL_GROUP_RANK_DOES_NOT_EXIST);
+					return;
+				}
+				if (tarRank == null) {
+					sendReject(ticket, LinkGroups.REPLY_ID, sendingServer,
+							LinkGroups.FailureReason.TARGET_GROUP_RANK_DOES_NOT_EXIST);
+					return;
+				}
+				GroupLink link = getGroupTracker().linkGroups(group, origRank, targetGroup, tarRank);
+				if (link == null) {
+					sendReject(ticket, LinkGroups.REPLY_ID, sendingServer,
+							LinkGroups.FailureReason.ATTEMPTED_GROUP_CYCLING);
+					return;
+				}
+				getGroupTracker().addLogEntry(group, new AddLink(System.currentTimeMillis(), executor,
+						origRank.getName(), targetGroup.getName(), tarRank.getName(), true));
+				getGroupTracker().addLogEntry(targetGroup, new AddLink(System.currentTimeMillis(), executor,
+						tarRank.getName(), group.getName(), origRank.getName(), false));
+				sendAccept(ticket, LinkGroups.REPLY_ID, sendingServer);
 			}
-			PermissionType permNeeded =
-					getGroupTracker().getPermissionTracker().getPermission(NameLayerPermissions.LINK_GROUP);
-			if (!getGroupTracker().hasAccess(group, executor, permNeeded)) {
-				Map<String, Object> repValues = new HashMap<>();
-				repValues.put("missing_perm", NameLayerPermissions.LINK_GROUP);
-				sendReject(ticket, LinkGroups.REPLY_ID, sendingServer,
-						LinkGroups.FailureReason.NO_PERMISSION_ORIG_GROUP, repValues);
-				return;
-			}
-			if (!getGroupTracker().hasAccess(targetGroup, executor, permNeeded)) {
-				Map<String, Object> repValues = new HashMap<>();
-				repValues.put("missing_perm", NameLayerPermissions.LINK_GROUP);
-				sendReject(ticket, LinkGroups.REPLY_ID, sendingServer,
-						LinkGroups.FailureReason.NO_PERMISSION_TARGET_GROUP, repValues);
-				return;
-			}
-			GroupRank origRank = group.getGroupRankHandler().getRank(data.getString("originatingRank"));
-			GroupRank tarRank = group.getGroupRankHandler().getRank(data.getString("targetRank"));
-			if (origRank == null) {
-				sendReject(ticket, LinkGroups.REPLY_ID, sendingServer,
-						LinkGroups.FailureReason.ORIGINAL_GROUP_RANK_DOES_NOT_EXIST);
-				return;
-			}
-			if (tarRank == null) {
-				sendReject(ticket, LinkGroups.REPLY_ID, sendingServer,
-						LinkGroups.FailureReason.TARGET_GROUP_RANK_DOES_NOT_EXIST);
-				return;
-			}
-			GroupLink link = getGroupTracker().linkGroups(group, origRank, targetGroup, tarRank);
-			if (link == null) {
-				sendReject(ticket, LinkGroups.REPLY_ID, sendingServer,
-						LinkGroups.FailureReason.ATTEMPTED_GROUP_CYCLING);
-				return;
-			}
-			getGroupTracker().addLogEntry(group,
-					new AddLink(System.currentTimeMillis(), executor, origRank.getName(), targetGroup.getName(),
-							tarRank.getName(), true));
-			getGroupTracker().addLogEntry(targetGroup,
-					new AddLink(System.currentTimeMillis(), executor, tarRank.getName(), group.getName(),
-							origRank.getName(), false));
-			sendAccept(ticket, LinkGroups.REPLY_ID, sendingServer);
 		}
 	}
 

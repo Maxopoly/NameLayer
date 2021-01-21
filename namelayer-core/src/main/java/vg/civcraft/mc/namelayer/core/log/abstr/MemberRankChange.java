@@ -2,8 +2,6 @@ package vg.civcraft.mc.namelayer.core.log.abstr;
 
 import java.util.UUID;
 
-import org.json.JSONObject;
-
 import com.google.common.base.Preconditions;
 
 public abstract class MemberRankChange extends LoggedGroupAction {
@@ -18,10 +16,6 @@ public abstract class MemberRankChange extends LoggedGroupAction {
 	
 	public String getRank() {
 		return rank;
-	}
-	
-	protected void fillJson(JSONObject json) {
-		json.put("rank", rank);
 	}
 	
 	@Override

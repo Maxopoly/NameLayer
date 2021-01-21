@@ -2,8 +2,6 @@ package vg.civcraft.mc.namelayer.core.log.abstr;
 
 import java.util.UUID;
 
-import org.json.JSONObject;
-
 import com.google.common.base.Preconditions;
 
 public abstract class LinkStateChange extends LoggedGroupAction {
@@ -22,13 +20,6 @@ public abstract class LinkStateChange extends LoggedGroupAction {
 		this.otherGroup = otherGroup;
 		this.otherGroupRank = otherGroup;
 		this.isSelfOrigin = isSelfOrigin;
-	}
-
-	protected void fillJson(JSONObject json) {
-		json.put("own_rank", ownRankLinked);
-		json.put("other_group", otherGroup);
-		json.put("other_rank", otherGroupRank);
-		json.put("self_origin", isSelfOrigin);
 	}
 
 	public String getOwnRankLinked() {

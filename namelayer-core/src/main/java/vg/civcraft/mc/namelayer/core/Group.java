@@ -18,10 +18,18 @@ import org.json.JSONObject;
 
 import com.google.common.base.Preconditions;
 
+import vg.civcraft.mc.namelayer.core.log.abstr.GroupActionLogFactory;
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupAction;
+import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupActionPersistence;
 import vg.civcraft.mc.namelayer.core.serial.JSONSerializable;
 
 public class Group implements Comparable<Group>, JSONSerializable {
+
+	private static GroupActionLogFactory actionLogFactory;
+
+	public static void setActionLogFactory(GroupActionLogFactory actionLogFactory) {
+		Group.actionLogFactory = actionLogFactory;
+	}
 
 	private String name;
 	private final int id;
@@ -183,7 +191,7 @@ public class Group implements Comparable<Group>, JSONSerializable {
 	public Set<UUID> getAllTracked() {
 		return Collections.unmodifiableSet(players.keySet());
 	}
-	
+
 	/**
 	 * @return Read only mapping of all players with an assigned rank in this group
 	 */
@@ -441,6 +449,14 @@ public class Group implements Comparable<Group>, JSONSerializable {
 			parent.addChild(rank);
 			rankHandler.putRank(rank);
 		}
+		if (json.has("default_inv_rank")) {
+			int defaultInvId = json.getInt("default_inv_rank");
+			rankHandler.setDefaultInvitationRank(rankHandler.getRank(defaultInvId));
+		}
+		if (json.has("default_join_rank")) {
+			int defaultJoinId = json.getInt("default_join_rank");
+			rankHandler.setDefaultPasswordJoinRank(rankHandler.getRank(defaultJoinId));
+		}
 		JSONObject memberObj = json.getJSONObject("members");
 		for (String key : memberObj.keySet()) {
 			UUID member = UUID.fromString(key);
@@ -465,9 +481,17 @@ public class Group implements Comparable<Group>, JSONSerializable {
 			}
 		}
 		JSONArray groupActionsObj = json.getJSONArray("group_actions");
-			for (int i = 0; i < groupActionsObj.length(); i++ ) {
-				//TODO
+		for (int i = 0; i < groupActionsObj.length(); i++) {
+			JSONObject logObj = groupActionsObj.getJSONObject(i);
+			String key = logObj.getString("key");
+			LoggedGroupActionPersistence persist = LoggedGroupActionPersistence
+					.fromJSON(logObj.getJSONObject("action"));
+			LoggedGroupAction log = Group.actionLogFactory.instanciate(key, persist);
+			if (log != null) {
+				group.getActionLog().addAction(log);
 			}
+		}
+		group.getActionLog().sortLog();
 		return group;
 	}
 
@@ -527,7 +551,7 @@ public class Group implements Comparable<Group>, JSONSerializable {
 				currentJson.put("parent_id", current.getParent().getId());
 			}
 			JSONArray permArray = new JSONArray();
-			for(int id : current.getAllPermissions()) {
+			for (int id : current.getAllPermissions()) {
 				permArray.put(id);
 			}
 			currentJson.put("perms", permArray);
@@ -537,6 +561,14 @@ public class Group implements Comparable<Group>, JSONSerializable {
 		JSONObject memberObj = new JSONObject();
 		for (Entry<UUID, GroupRank> memberEntry : players.entrySet()) {
 			memberObj.put(memberEntry.getKey().toString(), memberEntry.getValue().getId());
+		}
+		GroupRank defaultInvRank = rankHandler.getDefaultInvitationRank();
+		if (defaultInvRank != null) {
+			json.put("default_inv_rank", defaultInvRank.getId());
+		}
+		GroupRank defaultJoinRank = rankHandler.getDefaultPasswordJoinRank();
+		if (defaultJoinRank != null) {
+			json.put("default_join_rank", defaultJoinRank.getId());
 		}
 		json.put("members", memberObj);
 		if (!invites.isEmpty()) {
@@ -553,7 +585,10 @@ public class Group implements Comparable<Group>, JSONSerializable {
 		json.put("meta_data", metaDataObj);
 		JSONArray groupActionObj = new JSONArray();
 		for (LoggedGroupAction action : getActionLog().getActions()) {
-			groupActionObj.put(action.toJson());
+			JSONObject actionObj = new JSONObject();
+			actionObj.put("key", action.getIdentifier());
+			actionObj.put("action", action.getPersistence().toJson());
+			groupActionObj.put(actionObj);
 		}
 		json.put("group_actions", groupActionObj);
 		return json;
