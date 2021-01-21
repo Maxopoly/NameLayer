@@ -11,6 +11,7 @@ import com.github.maxopoly.zeus.servers.ConnectedServer;
 
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.NameLayerMetaData;
 import vg.civcraft.mc.namelayer.core.requests.JoinGroup;
 import vg.civcraft.mc.namelayer.zeus.NameLayerZPlugin;
 
@@ -23,7 +24,7 @@ public class JoinGroupHandler extends GroupRequestHandler {
 			return;
 		}
 		synchronized (group) {
-			String password = group.getMetaData("password");
+			String password = group.getMetaData(NameLayerMetaData.PASSWORD_KEY);
 			if (password == null) {
 				sendReject(ticket, JoinGroup.REPLY_ID, sendingServer, JoinGroup.FailureReason.GROUP_HAS_NO_PASSWORD);
 				return;
