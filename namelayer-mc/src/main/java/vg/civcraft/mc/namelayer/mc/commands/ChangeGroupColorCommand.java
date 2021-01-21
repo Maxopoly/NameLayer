@@ -30,6 +30,7 @@ public class ChangeGroupColorCommand extends StandaloneCommand {
 			color = ChatColor.of(args[1]);
 		} catch (IllegalArgumentException e) {
 			MsgUtils.sendMsg(player.getUniqueId(), ChatColor.RED + "The color: " + args[1] + " is not valid.");
+			return true;
 		}
 		ArtemisPlugin.getInstance().getRabbitHandler()
 				.sendMessage(new RabbitChangeGroupColor(player.getUniqueId(), group.getName(), color));
