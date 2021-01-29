@@ -298,7 +298,7 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		try (Connection connection = db.getConnection();
 				PreparedStatement removeMember = connection
 						.prepareStatement("delete from nl_members where player = ? and group_id = ?")) {
-			removeMember.setString(1, member.toString());
+			removeMember.setObject(1, member);
 			removeMember.setInt(2, group.getPrimaryId());
 			removeMember.execute();
 		} catch (SQLException e) {

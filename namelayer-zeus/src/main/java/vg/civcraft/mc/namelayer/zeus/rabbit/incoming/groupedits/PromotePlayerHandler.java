@@ -40,7 +40,7 @@ public class PromotePlayerHandler extends GroupRequestHandler {
 				return;
 			}
 			GroupRankHandler handler = group.getGroupRankHandler();
-			GroupRank targetType = handler.getRank(data.getInt("targetRank"));
+			GroupRank targetType = handler.getRank(data.getInt("target_rank_id"));
 			if (targetType == null) {
 				sendReject(ticket, PromotePlayer.REPLY_ID, sendingServer,
 						PromotePlayer.FailureReason.RANK_DOES_NOT_EXIST);

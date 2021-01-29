@@ -40,12 +40,12 @@ public class IgnoreGroupCommand extends AikarCommand {
 		// Group removed from the list
 		if (ignoredGroupsSetting.contains(ignorerUUID, target)) {
 			ignoredGroupsSetting.removeElement(ignorerUUID, target);
-			sender.sendMessage(ChatColor.GREEN + "You are now ignoring " + target + ".");
+			sender.sendMessage(ChatColor.GREEN + "You stopped ignoring " + target + ".");
 		}
 		// Group added to the list
 		else {
 			ignoredGroupsSetting.addElement(ignorerUUID, target);
-			sender.sendMessage(ChatColor.GREEN + "You stopped ignoring " + target + ".");
+			sender.sendMessage(ChatColor.GREEN + "You are now ignoring " + target + ".");
 		}
 	}
 

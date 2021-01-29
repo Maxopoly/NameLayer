@@ -27,7 +27,7 @@ public class RabbitPromotePlayer extends RabbitGroupAction {
 		if (success) {
 			int oldRankId = reply.getInt("oldRankId");
 			GroupRank oldRank = group.getGroupRankHandler().getRank(oldRankId);
-			sendMessage(String.format("Changed rank of %s%s%s from %s%s%s to %s%s%s in %s%s", ChatColor.GREEN, ChatColor.YELLOW,
+			sendMessage(String.format("%sChanged rank of %s%s%s from %s%s%s to %s%s%s in %s%s", ChatColor.GREEN, ChatColor.YELLOW,
 				playerName, ChatColor.GREEN, ChatColor.YELLOW, oldRank.getName(),
 				ChatColor.GREEN, ChatColor.YELLOW, targetRank.getName(), ChatColor.GREEN, group.getColoredName()));
 			return;	
@@ -70,7 +70,7 @@ public class RabbitPromotePlayer extends RabbitGroupAction {
 	@Override
 	protected void fillJson(JSONObject json) {
 		json.put("playerName", playerName);
-		json.put("targetRank", targetRank.getId());
+		json.put("target_rank_id", targetRank.getId());
 	}
 	
 	@Override
