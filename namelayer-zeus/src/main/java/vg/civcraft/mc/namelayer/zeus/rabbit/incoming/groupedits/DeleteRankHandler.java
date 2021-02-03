@@ -58,8 +58,9 @@ public class DeleteRankHandler extends GroupRequestHandler {
 			}
 			Set<UUID> members = group.getAllTrackedByType(rankToDelete);
 			if (!members.isEmpty()) {
-				sendReject(ticket, DeleteRank.REPLY_ID, sendingServer, DeleteRank.FailureReason.STILL_HAS_MEMBERS,
-						new HashMap<>());
+				Map<String, Object> repValues = new HashMap<>();
+				repValues.put("amountOfMembers", members.size());
+				sendReject(ticket, DeleteRank.REPLY_ID, sendingServer, DeleteRank.FailureReason.STILL_HAS_MEMBERS, repValues);
 			}
 			for (GroupLink link : group.getOutgoingLinks()) {
 				if (link.getOriginatingRank().equals(rankToDelete)) {
