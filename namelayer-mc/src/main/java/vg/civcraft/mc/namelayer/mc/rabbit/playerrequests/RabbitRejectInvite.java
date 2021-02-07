@@ -19,7 +19,7 @@ public class RabbitRejectInvite extends RabbitGroupAction {
 	public void handleReply(JSONObject reply, boolean success) {
 		Group group = getGroup();
 		if (success) {
-			GroupRank rankInvitedTo = group.getInvite(executor);
+			GroupRank rankInvitedTo = group.getGroupRankHandler().getRank(reply.getString("rank_invited_to"));
 			sendMessage(String.format("%sYou rejected the invite to %s%s as %s%s", ChatColor.GREEN, group.getColoredName(),
 				ChatColor.GREEN, ChatColor.GOLD, rankInvitedTo.getName()));
 			return;

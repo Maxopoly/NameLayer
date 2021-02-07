@@ -1,5 +1,7 @@
 package vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.json.JSONObject;
@@ -28,7 +30,9 @@ public class RejectInviteHandler extends GroupRequestHandler {
 			getGroupTracker().addLogEntry(group,
 					new vg.civcraft.mc.namelayer.core.log.impl.RejectInvite(System.currentTimeMillis(), executor,
 							rankInvitedTo.getName()));
-			sendAccept(ticket, RejectInvite.REPLY_ID, sendingServer);
+			Map<String, Object> repValues = new HashMap<>();
+			repValues.put("rank_invited_to", rankInvitedTo.getName());
+			sendAccept(ticket, RejectInvite.REPLY_ID, sendingServer, repValues);
 		}
 	}
 
