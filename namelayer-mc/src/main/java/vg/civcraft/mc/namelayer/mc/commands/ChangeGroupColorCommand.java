@@ -28,6 +28,9 @@ public class ChangeGroupColorCommand extends StandaloneCommand {
 		ChatColor color = null;
 		try {
 			color = ChatColor.of(args[1]);
+			if (color == null) {
+				throw new IllegalArgumentException();
+			}
 		} catch (IllegalArgumentException e) {
 			MsgUtils.sendMsg(player.getUniqueId(), ChatColor.RED + "The color: " + args[1] + " is not valid.");
 			return true;
