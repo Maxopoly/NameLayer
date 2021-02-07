@@ -329,7 +329,7 @@ public class Group implements Comparable<Group>, JSONSerializable {
 		if (oldRank != null) {
 			playersByRank.get(oldRank).remove(uuid);
 		}
-		playersByRank.get(rank).add(uuid);
+		playersByRank.computeIfAbsent(rank, r -> new HashSet<>()).add(uuid);
 		players.put(uuid, rank);
 	}
 

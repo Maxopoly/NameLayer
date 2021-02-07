@@ -27,7 +27,7 @@ public class RabbitPromotePlayer extends RabbitGroupAction {
 		if (success) {
 			int oldRankId = reply.getInt("oldRankId");
 			GroupRank oldRank = group.getGroupRankHandler().getRank(oldRankId);
-			sendMessage(String.format("%sChanged rank of %s%s%s from %s%s%s to %s%s%s in %s%s", ChatColor.GREEN, ChatColor.YELLOW,
+			sendMessage(String.format("%sChanged rank of %s%s%s from %s%s%s to %s%s%s in %s", ChatColor.GREEN, ChatColor.YELLOW,
 				playerName, ChatColor.GREEN, ChatColor.YELLOW, oldRank.getName(),
 				ChatColor.GREEN, ChatColor.YELLOW, targetRank.getName(), ChatColor.GREEN, group.getColoredName()));
 			return;	
