@@ -28,7 +28,7 @@ public class ListPermissions extends NameLayerCommand {
 		}
 		GroupRank rank = group.getRank(player.getUniqueId());
 		if (!group.getGroupRankHandler().isMemberRank(rank)) {
-			sender.sendMessage(String.format("%sYou are not a member of ", ChatColor.RED, group.getColoredName()));
+			sender.sendMessage(String.format("%sYou are not a member of %s", ChatColor.RED, group.getColoredName()));
 			return true;
 		}
 		StringBuilder sb = new StringBuilder();

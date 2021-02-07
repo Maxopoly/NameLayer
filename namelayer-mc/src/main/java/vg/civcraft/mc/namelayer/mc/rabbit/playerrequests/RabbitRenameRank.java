@@ -59,8 +59,8 @@ public class RabbitRenameRank extends RabbitGroupAction {
 
 	@Override
 	protected void fillJson(JSONObject json) {
-		json.put("oldRankName", oldRankName);
-		json.put("newRankName", newRankName);
+		json.put("old_rank_name", oldRankName);
+		json.put("new_rank_name", newRankName);
 		
 	}
 	

@@ -321,12 +321,12 @@ commands:
     min-args: 1
     max-args: 50
     player-only: true
-  nlub:
+  nlubl:
     aliases:
       - removeblacklist
       - unblacklist
-      - nlubl 
-    usage: /nlub [group] [player]
+      - nlub
+    usage: /nlubl [group] [player]
     description: Removes a player from a blacklist rank
     min-args: 2
     max-args: 2

@@ -34,13 +34,14 @@ public class RenameRankHandler extends GroupRequestHandler {
 				sendReject(ticket, RenameRank.REPLY_ID, sendingServer, RenameRank.FailureReason.NO_PERMISSION, repValues);
 				return;
 			}
-			String newName = data.getString("newRankName");
+			String newName = data.getString("new_rank_name");
 			if (!isConformName(newName)) {
 				sendReject(ticket, RenameRank.REPLY_ID, sendingServer, RenameRank.FailureReason.BAD_NAME);
 				return;
 			}
 			GroupRankHandler typeHandler = group.getGroupRankHandler();
-			GroupRank rank = group.getRank(executor);
+			String oldRankName = data.getString("old_rank_name");
+			GroupRank rank = typeHandler.getRank(oldRankName);
 			if (rank == null) {
 				sendReject(ticket, RenameRank.REPLY_ID, sendingServer, RenameRank.FailureReason.RANK_DOES_NOT_EXIST);
 				return;
@@ -55,7 +56,7 @@ public class RenameRankHandler extends GroupRequestHandler {
 				return;
 			}
 			getGroupTracker().renameRank(group, rank, newName);
-			getGroupTracker().addLogEntry(group, new ChangeRankName(System.currentTimeMillis(), executor, rank.getName(), newName));
+			getGroupTracker().addLogEntry(group, new ChangeRankName(System.currentTimeMillis(), executor, oldRankName, newName));
 			sendAccept(ticket, RenameRank.REPLY_ID, sendingServer);
 		}
 	}

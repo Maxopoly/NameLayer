@@ -6,15 +6,14 @@ import java.util.List;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import vg.civcraft.mc.civmodcore.command.CivCommand;
+import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
 import vg.civcraft.mc.namelayer.mc.rabbit.playerrequests.RabbitUnblacklistPlayer;
 import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
-
-//nlubl <group> <player>
 @CivCommand(id = "nlubl")
-public class UnblacklistPlayer extends NameLayerCommand {
+public class UnblacklistPlayer extends StandaloneCommand {
 	@Override
 	public boolean execute(CommandSender sender, String[] args) {
 		Player executor = (Player) sender;

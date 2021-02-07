@@ -472,7 +472,7 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 	public void updateRankName(Group g, GroupRank type) {
 		try (Connection connection = db.getConnection();
 				PreparedStatement renameType = connection
-						.prepareStatement("update nl_ranks set type_name = ? where group_id = ? and rank_id = ?");) {
+						.prepareStatement("update nl_ranks set rank_name = ? where group_id = ? and rank_id = ?");) {
 			renameType.setString(1, type.getName());
 			renameType.setInt(2, g.getPrimaryId());
 			renameType.setInt(3, type.getId());
