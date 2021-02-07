@@ -53,6 +53,11 @@ public class BlacklistPlayerHandler extends GroupRequestHandler {
 						BlacklistPlayer.FailureReason.NOT_BLACKLISTED_RANK);
 				return;
 			}
+			if (group.isTracked(targetPlayer)) {
+				sendReject(ticket, BlacklistPlayer.REPLY_ID, sendingServer,
+						BlacklistPlayer.FailureReason.IS_A_MEMBER);
+				return;
+			}
 			NameLayerZPlugin.getInstance().getGroupKnowledgeTracker().ensureServerOfCaches(group, targetPlayer);
 			getGroupTracker().addPlayerToGroup(group, targetPlayer, rank);
 			getGroupTracker().addLogEntry(group,

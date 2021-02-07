@@ -1,10 +1,8 @@
 package vg.civcraft.mc.namelayer.mc.rabbit.playerrequests;
 
 import java.util.UUID;
-
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 import org.json.JSONObject;
-
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.requests.BlacklistPlayer;
@@ -45,7 +43,11 @@ public class RabbitBlacklistPlayer extends RabbitGroupAction {
 		case NOT_BLACKLISTED_RANK:
 			sendMessage(String.format("%s%s%s is not a blacklist rank in %s", ChatColor.YELLOW, rank.getName(),
 					ChatColor.RED, getGroup().getColoredName()));
-			return;	
+			return;
+		case IS_A_MEMBER:
+			sendMessage(String.format("%sYou must remove %s%s%s from the group before blacklisting them",
+					ChatColor.RED, ChatColor.YELLOW , targetPlayer, ChatColor.RED));
+			return;
 		default:
 			break;
 			
