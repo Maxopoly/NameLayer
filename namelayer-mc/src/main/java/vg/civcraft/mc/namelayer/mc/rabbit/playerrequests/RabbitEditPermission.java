@@ -74,7 +74,7 @@ public class RabbitEditPermission extends RabbitGroupAction {
 	@Override
 	protected void fillJson(JSONObject json) {
 		json.put("adding", adding);
-		json.put("rankName", rankName.getId());
+		json.put("target_rank_id", rankName.getId());
 		json.put("permissionName", permissionName.getName());
 	}
 		

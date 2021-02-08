@@ -32,7 +32,7 @@ public class EditPermissionHandler extends GroupRequestHandler {
 				sendReject(ticket, EditPermission.REPLY_ID, sendingServer, EditPermission.FailureReason.NO_PERMISSION, repValues);
 				return;
 			}
-			GroupRank rank = group.getRank(executor);
+			GroupRank rank = group.getGroupRankHandler().getRank(data.getInt("target_rank_id"));
 			if (rank == null) {
 				sendReject(ticket, EditPermission.REPLY_ID, sendingServer, EditPermission.FailureReason.RANK_DOES_NOT_EXIST);
 				return;
