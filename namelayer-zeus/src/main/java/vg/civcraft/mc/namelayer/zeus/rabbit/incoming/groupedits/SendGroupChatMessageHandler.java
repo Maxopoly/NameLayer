@@ -1,5 +1,7 @@
 package vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.json.JSONObject;
@@ -30,11 +32,11 @@ public class SendGroupChatMessageHandler extends GroupRequestHandler {
 			return;
 		}
 		String message = data.getString("message");
-		PermissionType permRequired = getGroupTracker().getPermissionTracker()
-				.getPermission(NameLayerPermissions.WRITE_CHAT);
+		PermissionType permRequired = getGroupTracker().getPermissionTracker().getPermission(NameLayerPermissions.WRITE_CHAT);
 		if (!getGroupTracker().hasAccess(group, executor, permRequired)) {
-			sendReject(ticket, SendGroupChatMessage.REPLY_ID, sendingServer,
-					SendGroupChatMessage.FailureReason.NO_PERMISSION);
+			Map<String, Object> repValues = new HashMap<>();
+			repValues.put("missing_perm", permRequired.getName());
+			sendReject(ticket, SendGroupChatMessage.REPLY_ID, sendingServer, SendGroupChatMessage.FailureReason.NO_PERMISSION, repValues);
 			return;
 		}
 		for (ConnectedServer server : ZeusMain.getInstance().getServerManager().getAllServer()) {

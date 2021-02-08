@@ -28,7 +28,8 @@ public class RabbitSendGroupChatMessage extends RabbitGroupAction {
 			groupDoesNotExistMessage();
 			break;
 		case NO_PERMISSION:
-			noPermissionMessage("");
+			String missingPerm = reply.getString("missing_perm");
+			noPermissionMessage(missingPerm);
 			break;
 		default:
 			break;
