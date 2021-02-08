@@ -1,13 +1,11 @@
 package vg.civcraft.mc.namelayer.mc.commands;
 
+import com.github.maxopoly.artemis.ArtemisPlugin;
 import java.util.Collections;
 import java.util.List;
-
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import com.github.maxopoly.artemis.ArtemisPlugin;
-
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.civmodcore.command.StandaloneCommand;
 import vg.civcraft.mc.namelayer.core.Group;
@@ -24,6 +22,10 @@ public class SetPassword extends StandaloneCommand {
 		Group group = GroupAPI.getGroup(args[0]);
 		if (group == null) {
 			MsgUtils.sendGroupNotExistMsg(player.getUniqueId(), args[0]);
+			return true;
+		}
+		if (args.length == 1) {
+			player.sendMessage(ChatColor.RED + "You cannot set a blank password");
 			return true;
 		}
 		String password = args[1];
