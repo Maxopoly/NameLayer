@@ -10,10 +10,12 @@ import org.bukkit.entity.Player;
 import vg.civcraft.mc.civmodcore.command.CivCommand;
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
+import vg.civcraft.mc.namelayer.core.NameLayerPermissions;
 import vg.civcraft.mc.namelayer.core.PermissionTracker;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.mc.GroupAPI;
 import vg.civcraft.mc.namelayer.mc.NameLayerPlugin;
+import vg.civcraft.mc.namelayer.mc.util.MsgUtils;
 
 @CivCommand(id = "nllp")
 public class ListPermissions extends NameLayerCommand {
@@ -29,6 +31,12 @@ public class ListPermissions extends NameLayerCommand {
 		GroupRank rank = group.getRank(player.getUniqueId());
 		if (!group.getGroupRankHandler().isMemberRank(rank)) {
 			sender.sendMessage(String.format("%sYou are not a member of %s", ChatColor.RED, group.getColoredName()));
+			return true;
+		}
+		PermissionType permNeeded = NameLayerPlugin.getInstance().getGroupTracker().getPermissionTracker().getPermission(
+				NameLayerPermissions.LIST_PERMS);
+		if (!GroupAPI.hasPermission(player, group, permNeeded)) {
+			MsgUtils.sendNoPermissionMsg(player.getUniqueId(), permNeeded.getName(), group.getName());
 			return true;
 		}
 		StringBuilder sb = new StringBuilder();

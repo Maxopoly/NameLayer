@@ -97,7 +97,7 @@ public class NameLayerPlugin extends ACivMod {
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.DeleteRank(),
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.LinkGroups(), new RecacheGroup(), new RemoveInvite(),
 				new RemovePermission(), new vg.civcraft.mc.namelayer.mc.rabbit.executions.RemoveMember(), new vg.civcraft.mc.namelayer.mc.rabbit.executions.RenameGroup(),
-				new vg.civcraft.mc.namelayer.mc.rabbit.executions.RenameRank(),
+				new vg.civcraft.mc.namelayer.mc.rabbit.executions.RenameRank(), new vg.civcraft.mc.namelayer.mc.rabbit.executions.MergeGroups(),
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.UnlinkGroups(), new UpdateMemberRank(),
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.SendGroupChatMessage(),
 				new vg.civcraft.mc.namelayer.mc.rabbit.executions.SendPrivateMessage(), new SendLocalMessage(),
