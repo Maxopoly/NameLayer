@@ -43,7 +43,7 @@ public class BlacklistPlayerHandler extends GroupRequestHandler {
 					getGroupTracker().getPermissionTracker().getInvitePermission(rank.getId());
 			if (!getGroupTracker().hasAccess(group, executor, requiredPermission)) {
 				Map<String, Object> repValues = new HashMap<>();
-				repValues.put("missing_perm", requiredPermission);
+				repValues.put("missing_perm", requiredPermission.getName());
 				sendReject(ticket, BlacklistPlayer.REPLY_ID, sendingServer, BlacklistPlayer.FailureReason.NO_PERMISSION,
 						repValues);
 				return;

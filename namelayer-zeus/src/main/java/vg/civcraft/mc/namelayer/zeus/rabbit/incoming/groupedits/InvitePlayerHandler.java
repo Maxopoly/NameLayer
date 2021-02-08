@@ -42,7 +42,7 @@ public class InvitePlayerHandler extends GroupRequestHandler {
 			PermissionType permRequired = getGroupTracker().getPermissionTracker().getInvitePermission(targetType.getId());
 			if (!getGroupTracker().hasAccess(group, executor, permRequired)) {
 				Map<String, Object> repValues = new HashMap<>();
-				repValues.put("missing_perm", permRequired);
+				repValues.put("missing_perm", permRequired.getName());
 				sendReject(ticket, InvitePlayer.REPLY_ID, sendingServer, InvitePlayer.FailureReason.NO_PERMISSION, repValues);
 				return;
 			}

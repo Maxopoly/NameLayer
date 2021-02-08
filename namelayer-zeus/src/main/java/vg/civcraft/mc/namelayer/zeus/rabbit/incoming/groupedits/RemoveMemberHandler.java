@@ -40,11 +40,10 @@ public class RemoveMemberHandler extends GroupRequestHandler {
 				sendReject(ticket, RemoveMember.REPLY_ID, sendingServer, RemoveMember.FailureReason.NOT_A_MEMBER);
 				return;
 			}
-			PermissionType permRequired =
-					getGroupTracker().getPermissionTracker().getRemovePermission(currentRank.getId());
+			PermissionType permRequired = getGroupTracker().getPermissionTracker().getRemovePermission(currentRank.getId());
 			if (!getGroupTracker().hasAccess(group, executor, permRequired)) {
 				Map<String, Object> repValues = new HashMap<>();
-				repValues.put("missing_perm", permRequired);
+				repValues.put("missing_perm", permRequired.getName());
 				sendReject(ticket, RemoveMember.REPLY_ID, sendingServer, RemoveMember.FailureReason.NO_PERMISSION,
 						repValues);
 				return;

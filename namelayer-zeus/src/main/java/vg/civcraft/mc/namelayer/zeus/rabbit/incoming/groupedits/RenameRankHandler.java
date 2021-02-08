@@ -30,7 +30,7 @@ public class RenameRankHandler extends GroupRequestHandler {
 			PermissionType permNeeded = getGroupTracker().getPermissionTracker().getPermission(NameLayerPermissions.RENAME_RANK);
 			if (!getGroupTracker().hasAccess(group, executor, permNeeded)) {
 				Map<String, Object> repValues = new HashMap<>();
-				repValues.put("missing_perm", permNeeded);
+				repValues.put("missing_perm", permNeeded.getName());
 				sendReject(ticket, RenameRank.REPLY_ID, sendingServer, RenameRank.FailureReason.NO_PERMISSION, repValues);
 				return;
 			}

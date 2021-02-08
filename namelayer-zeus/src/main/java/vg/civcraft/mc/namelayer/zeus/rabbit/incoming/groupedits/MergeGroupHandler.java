@@ -42,7 +42,7 @@ public class MergeGroupHandler extends GroupRequestHandler {
 				PermissionType permNeeded = getGroupTracker().getPermissionTracker()
 						.getPermission(NameLayerPermissions.MERGE_GROUP);
 				Map<String, Object> repValues = new HashMap<>();
-				repValues.put("missing_perm", permNeeded);
+				repValues.put("missing_perm", permNeeded.getName());
 				if (!getGroupTracker().hasAccess(group, executor, permNeeded)) {
 					sendReject(ticket, MergeGroups.REPLY_ID, sendingServer,
 							MergeGroups.FailureReason.NO_PERMISSION_ORIG_GROUP, repValues);

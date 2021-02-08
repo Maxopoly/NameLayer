@@ -43,18 +43,17 @@ public class UnlinkGroupsHandler extends GroupRequestHandler {
 							UnlinkGroups.FailureReason.CANNOT_UNLINK_SELF);
 					return;
 				}
-				PermissionType permNeeded = getGroupTracker().getPermissionTracker()
-						.getPermission(NameLayerPermissions.LINK_GROUP);
+				PermissionType permNeeded = getGroupTracker().getPermissionTracker().getPermission(NameLayerPermissions.LINK_GROUP);
 				if (!getGroupTracker().hasAccess(group, executor, permNeeded)) {
 					Map<String, Object> repValues = new HashMap<>();
-					repValues.put("missing_perm", NameLayerPermissions.LINK_GROUP);
+					repValues.put("missing_perm", permNeeded.getName());
 					sendReject(ticket, UnlinkGroups.REPLY_ID, sendingServer,
 							UnlinkGroups.FailureReason.NO_PERMISSION_ORIGINAL_GROUP, repValues);
 					return;
 				}
 				if (!getGroupTracker().hasAccess(targetGroup, executor, permNeeded)) {
 					Map<String, Object> repValues = new HashMap<>();
-					repValues.put("missing_perm", NameLayerPermissions.LINK_GROUP);
+					repValues.put("missing_perm", permNeeded.getName());
 					sendReject(ticket, UnlinkGroups.REPLY_ID, sendingServer,
 							UnlinkGroups.FailureReason.NO_PERMISSION_TARGET_GROUP, repValues);
 					return;

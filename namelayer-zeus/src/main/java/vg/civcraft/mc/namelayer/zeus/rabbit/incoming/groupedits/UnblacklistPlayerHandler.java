@@ -2,6 +2,8 @@ package vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits;
 
 import com.github.maxopoly.zeus.ZeusMain;
 import com.github.maxopoly.zeus.servers.ConnectedServer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.json.JSONObject;
 import vg.civcraft.mc.namelayer.core.Group;
@@ -32,11 +34,11 @@ public class UnblacklistPlayerHandler extends GroupRequestHandler {
 						UnblacklistPlayer.FailureReason.PLAYER_NOT_BLACKLISTED);
 				return;
 			}
-			PermissionType permNeeded =
-					getGroupTracker().getPermissionTracker().getRemovePermission(blacklistedRank.getId());
+			PermissionType permNeeded = getGroupTracker().getPermissionTracker().getRemovePermission(blacklistedRank.getId());
 			if (!getGroupTracker().hasAccess(group, executor, permNeeded)) {
-				sendReject(ticket, UnblacklistPlayer.REPLY_ID, sendingServer,
-						UnblacklistPlayer.FailureReason.NO_PERMISSION);
+				Map<String, Object> repValues = new HashMap<>();
+				repValues.put("missing_perm", permNeeded.getName());
+				sendReject(ticket, UnblacklistPlayer.REPLY_ID, sendingServer, UnblacklistPlayer.FailureReason.NO_PERMISSION, repValues);
 				return;
 			}
 			getGroupTracker().unBlacklistPlayer(group, targetPlayer);

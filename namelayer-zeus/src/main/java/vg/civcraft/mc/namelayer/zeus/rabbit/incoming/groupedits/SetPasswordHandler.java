@@ -26,7 +26,7 @@ public class SetPasswordHandler extends GroupRequestHandler {
 			PermissionType permNeeded = getGroupTracker().getPermissionTracker().getPermission(NameLayerPermissions.PASSWORD);
 			if (!getGroupTracker().hasAccess(group, executor, permNeeded)) {
 				Map<String, Object> repValues = new HashMap<>();
-				repValues.put("missing_perm", permNeeded);
+				repValues.put("missing_perm", permNeeded.getName());
 				sendReject(ticket, SetPassword.REPLY_ID, sendingServer, SetPassword.FailureReason.NO_PERMISSION, repValues);
 				return;
 			}

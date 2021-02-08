@@ -28,7 +28,7 @@ public class EditPermissionHandler extends GroupRequestHandler {
 			PermissionType permNeeded = getGroupTracker().getPermissionTracker().getPermission(NameLayerPermissions.MODIFY_PERMS);
 			if (!getGroupTracker().hasAccess(group, executor, permNeeded)) {
 				Map<String, Object> repValues = new HashMap<>();
-				repValues.put("missing_perm", permNeeded);
+				repValues.put("missing_perm", permNeeded.getName());
 				sendReject(ticket, EditPermission.REPLY_ID, sendingServer, EditPermission.FailureReason.NO_PERMISSION, repValues);
 				return;
 			}

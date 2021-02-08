@@ -45,14 +45,14 @@ public class LinkGroupsHandler extends GroupRequestHandler {
 						.getPermission(NameLayerPermissions.LINK_GROUP);
 				if (!getGroupTracker().hasAccess(group, executor, permNeeded)) {
 					Map<String, Object> repValues = new HashMap<>();
-					repValues.put("missing_perm", NameLayerPermissions.LINK_GROUP);
+					repValues.put("missing_perm", permNeeded.getName());
 					sendReject(ticket, LinkGroups.REPLY_ID, sendingServer,
 							LinkGroups.FailureReason.NO_PERMISSION_ORIG_GROUP, repValues);
 					return;
 				}
 				if (!getGroupTracker().hasAccess(targetGroup, executor, permNeeded)) {
 					Map<String, Object> repValues = new HashMap<>();
-					repValues.put("missing_perm", NameLayerPermissions.LINK_GROUP);
+					repValues.put("missing_perm", permNeeded.getName());
 					sendReject(ticket, LinkGroups.REPLY_ID, sendingServer,
 							LinkGroups.FailureReason.NO_PERMISSION_TARGET_GROUP, repValues);
 					return;

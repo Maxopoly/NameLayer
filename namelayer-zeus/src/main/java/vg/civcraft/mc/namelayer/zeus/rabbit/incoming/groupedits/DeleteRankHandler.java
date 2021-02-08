@@ -31,7 +31,7 @@ public class DeleteRankHandler extends GroupRequestHandler {
 					.getPermission(NameLayerPermissions.DELETE_RANK);
 			if (!getGroupTracker().hasAccess(group, executor, perm)) {
 				Map<String, Object> repValues = new HashMap<>();
-				repValues.put("missing_perm", perm);
+				repValues.put("missing_perm", perm.getName());
 				sendReject(ticket, DeleteRank.REPLY_ID, sendingServer, DeleteRank.FailureReason.NO_PERMISSION,
 						repValues);
 				return;

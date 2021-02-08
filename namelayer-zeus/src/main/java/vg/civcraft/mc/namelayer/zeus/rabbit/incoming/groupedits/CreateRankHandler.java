@@ -26,7 +26,7 @@ public class CreateRankHandler extends GroupRequestHandler {
 		PermissionType perm = getGroupTracker().getPermissionTracker().getPermission(NameLayerPermissions.CREATE_RANK);
 		if (!getGroupTracker().hasAccess(group, executor, perm)) {
 			Map<String, Object> repValues = new HashMap<>();
-			repValues.put("missing_perm", perm);
+			repValues.put("missing_perm", perm.getName());
 			sendReject(ticket, CreateRank.REPLY_ID, sendingServer, CreateRank.FailureReason.NO_PERMISSION, repValues);
 			return;
 		}

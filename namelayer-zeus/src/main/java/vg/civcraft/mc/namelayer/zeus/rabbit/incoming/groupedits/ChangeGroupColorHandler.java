@@ -25,7 +25,7 @@ public class ChangeGroupColorHandler extends GroupRequestHandler{
 					NameLayerPermissions.EDIT_GROUP_COLOR);
 			if (!getGroupTracker().hasAccess(group, executor, requiredPermission)) {
 				Map<String, Object> repValues = new HashMap<>();
-				repValues.put("missing_perm", requiredPermission);
+				repValues.put("missing_perm", requiredPermission.getName());
 				sendReject(ticket, ChangeGroupColor.REPLY_ID, sendingServer, ChangeGroupColor.FailureReason.NO_PERMISSION, repValues);
 				return;
 			}
