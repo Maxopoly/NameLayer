@@ -36,7 +36,7 @@ public class ListPermissions extends NameLayerCommand {
 		PermissionType permNeeded = NameLayerPlugin.getInstance().getGroupTracker().getPermissionTracker().getPermission(
 				NameLayerPermissions.LIST_PERMS);
 		if (!GroupAPI.hasPermission(player, group, permNeeded)) {
-			MsgUtils.sendNoPermissionMsg(player.getUniqueId(), permNeeded.getName(), group.getName());
+			MsgUtils.sendNoPermissionMsg(player.getUniqueId(), permNeeded.getName(), group.getColoredName());
 			return true;
 		}
 		StringBuilder sb = new StringBuilder();
