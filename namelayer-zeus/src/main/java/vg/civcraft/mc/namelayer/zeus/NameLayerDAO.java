@@ -212,6 +212,29 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		addAllPermissions(groupID, permsToSave);
 		return group;
 	}
+	
+	public void mergeGroups(int newGroupId, int oldGroupId) {
+		try (Connection connection = db.getConnection();
+				PreparedStatement updateExistingMappings = connection.prepareStatement(
+						"update nl_merged_groups set new_group_id = ? where new_group_id = ?")) {
+			updateExistingMappings.setInt(1, newGroupId);
+			updateExistingMappings.setInt(2, oldGroupId);
+			updateExistingMappings.execute();
+		} catch (SQLException e) {
+			logger.log(Level.WARN, "Problem updating group remappings", e);
+		}
+		try (Connection connection = db.getConnection();
+				PreparedStatement insNewMapping = connection.prepareStatement(
+						"insert into nl_merged_groups (old_group_id, new_group_id) values(?,?)")) {
+			insNewMapping.setInt(1, oldGroupId);
+			insNewMapping.setInt(2, newGroupId);
+			insNewMapping.execute();
+		} catch (SQLException e) {
+			logger.log(Level.WARN, "Problem insert group remapping", e);
+		}
+		
+		
+	}
 
 	public void deleteGroup(Group group) {
 		try (Connection connection = db.getConnection();
@@ -339,27 +362,6 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 		} catch (SQLException e) {
 			logger.error("Problem adding " + type + " with " + perm + " to group " + group.getName(), e);
 		}
-	}
-
-	public Map<GroupRank, List<Integer>> getPermissions(Group group) {
-		Map<GroupRank, List<Integer>> perms = new HashMap<>();
-		try (Connection connection = db.getConnection();
-				PreparedStatement getPermission = connection
-						.prepareStatement("select rank_id, perm_id from nl_group_permissions where group_id = ?")) {
-			getPermission.setInt(1, group.getPrimaryId());
-			GroupRankHandler handler = group.getGroupRankHandler();
-			try (ResultSet set = getPermission.executeQuery();) {
-				while (set.next()) {
-					GroupRank type = handler.getRank(set.getInt(1));
-					List<Integer> listPerm = perms.computeIfAbsent(type, r -> new ArrayList<>());
-					int id = set.getInt(2);
-					listPerm.add(id);
-				}
-			}
-		} catch (SQLException e) {
-			logger.error("Problem getting permissions for group " + group, e);
-		}
-		return perms;
 	}
 
 	public void removePermission(Group group, GroupRank pType, PermissionType perm) {

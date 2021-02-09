@@ -7,15 +7,15 @@ import vg.civcraft.mc.namelayer.core.requests.GroupModifications;
 
 public class MergeGroupMessage extends GroupChangeMessage {
 
-	private int groupMergedInto;
+	private Group finalGroup;
 	
-	public MergeGroupMessage(int groupID, Group groupMergedInto) {
-		super(groupID);
+	public MergeGroupMessage(int groupDeletedID, Group finalGroup) {
+		super(groupDeletedID);
 	}
 
 	@Override
 	protected void fillJson(JSONObject json) {
-		json.put("group_merged_into", groupMergedInto);
+		json.put("final_group_state", finalGroup.serialize());
 	}
 
 	@Override

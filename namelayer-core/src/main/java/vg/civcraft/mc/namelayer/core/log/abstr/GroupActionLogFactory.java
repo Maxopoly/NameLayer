@@ -10,6 +10,7 @@ import vg.civcraft.mc.namelayer.core.log.impl.AddPermission;
 import vg.civcraft.mc.namelayer.core.log.impl.BlacklistPlayer;
 import vg.civcraft.mc.namelayer.core.log.impl.ChangeColor;
 import vg.civcraft.mc.namelayer.core.log.impl.ChangeGroupName;
+import vg.civcraft.mc.namelayer.core.log.impl.ChangeMemberRank;
 import vg.civcraft.mc.namelayer.core.log.impl.CreateGroup;
 import vg.civcraft.mc.namelayer.core.log.impl.CreateRank;
 import vg.civcraft.mc.namelayer.core.log.impl.DeleteRank;
@@ -53,6 +54,7 @@ public class GroupActionLogFactory {
 		registerInstanciator(BlacklistPlayer.ID, BlacklistPlayer::load);
 		registerInstanciator(ChangeColor.ID, ChangeColor::load);
 		registerInstanciator(ChangeGroupName.ID, ChangeGroupName::load);
+		registerInstanciator(ChangeMemberRank.ID, ChangeMemberRank::load);
 		registerInstanciator(CreateGroup.ID, CreateGroup::load);
 		registerInstanciator(CreateRank.ID, CreateRank::load);
 		registerInstanciator(DeleteRank.ID, DeleteRank::load);

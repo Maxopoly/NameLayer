@@ -280,10 +280,18 @@ public class ZeusGroupTracker extends GroupTracker {
 				if (!toRemove.getOutgoingLinks().isEmpty()) {
 					throw new IllegalGroupStateException();
 				}
-				deleteGroup(toRemove);
+				database.mergeGroups(toKeep.getPrimaryId(), toRemove.getPrimaryId());
 				// ensure both groups exist on all clients that have one or the other
 				sendGroupUpdate(toRemove, () -> new RecacheGroupMessage(toKeep));
 				sendGroupUpdate(toKeep, () -> new RecacheGroupMessage(toRemove));
+				//add ids of group being deleted to group kept
+				toKeep.addSecondaryId(toRemove.getPrimaryId());
+				for(int secondaryID : toRemove.getSecondaryIds()) {
+					toKeep.addSecondaryId(secondaryID);
+				}
+				//delete group removed but dont sent rabbit update for deletion, merge message will handle it
+				super.deleteGroup(toRemove);
+				database.deleteGroup(toRemove);
 				// Clients will issue delete based on the merge message and add the appropriate
 				// secondary id, we do not send it explicitly
 				sendGroupUpdate(toRemove, () -> new MergeGroupMessage(toRemove.getPrimaryId(), toKeep));
