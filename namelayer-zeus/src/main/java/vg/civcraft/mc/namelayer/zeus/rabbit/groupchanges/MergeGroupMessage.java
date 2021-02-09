@@ -11,6 +11,7 @@ public class MergeGroupMessage extends GroupChangeMessage {
 	
 	public MergeGroupMessage(int groupDeletedID, Group finalGroup) {
 		super(groupDeletedID);
+		this.finalGroup = finalGroup;
 	}
 
 	@Override
