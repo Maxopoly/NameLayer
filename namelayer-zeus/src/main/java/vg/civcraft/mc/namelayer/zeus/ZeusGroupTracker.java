@@ -1,14 +1,12 @@
 package vg.civcraft.mc.namelayer.zeus;
 
+import com.github.maxopoly.zeus.rabbit.RabbitMessage;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
-
-import com.github.maxopoly.zeus.rabbit.RabbitMessage;
-
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupLink;
 import vg.civcraft.mc.namelayer.core.GroupRank;
@@ -18,8 +16,6 @@ import vg.civcraft.mc.namelayer.core.IllegalGroupStateException;
 import vg.civcraft.mc.namelayer.core.NameLayerMetaData;
 import vg.civcraft.mc.namelayer.core.PermissionType;
 import vg.civcraft.mc.namelayer.core.log.abstr.LoggedGroupAction;
-import vg.civcraft.mc.namelayer.core.log.impl.AcceptInvitation;
-import vg.civcraft.mc.namelayer.core.log.impl.InviteMember;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddInviteMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddLinkMessage;
 import vg.civcraft.mc.namelayer.zeus.rabbit.groupchanges.AddMemberMessage;
@@ -290,7 +286,7 @@ public class ZeusGroupTracker extends GroupTracker {
 				sendGroupUpdate(toKeep, () -> new RecacheGroupMessage(toRemove));
 				// Clients will issue delete based on the merge message and add the appropriate
 				// secondary id, we do not send it explicitly
-				sendGroupUpdate(toRemove, () -> new MergeGroupMessage(toRemove.getPrimaryId(), toKeep.getPrimaryId()));
+				sendGroupUpdate(toRemove, () -> new MergeGroupMessage(toRemove.getPrimaryId(), toKeep));
 			}
 		}
 	}
