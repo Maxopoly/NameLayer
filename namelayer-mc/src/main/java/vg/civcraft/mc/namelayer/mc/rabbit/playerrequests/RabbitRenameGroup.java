@@ -1,12 +1,9 @@
 package vg.civcraft.mc.namelayer.mc.rabbit.playerrequests;
 
 import java.util.UUID;
-
 import org.bukkit.ChatColor;
 import org.json.JSONObject;
-
 import vg.civcraft.mc.namelayer.core.Group;
-import vg.civcraft.mc.namelayer.core.NameLayerMetaData;
 import vg.civcraft.mc.namelayer.core.requests.RenameGroup;
 
 public class RabbitRenameGroup extends RabbitGroupAction {
@@ -24,9 +21,8 @@ public class RabbitRenameGroup extends RabbitGroupAction {
 	@Override
 	public void handleReply(JSONObject reply, boolean success) {
 		Group group = getGroup();
-		NameLayerMetaData meta = new NameLayerMetaData(group);
 		if (success) {
-			sendMessage(String.format("%sThe group %s%s%s was renamed to %s", ChatColor.GREEN, meta.getChatColor(), oldName,
+			sendMessage(String.format("%sThe group %s%s was renamed to %s", ChatColor.GREEN, oldName,
 				ChatColor.GREEN, newName));
 			return;	
 		}

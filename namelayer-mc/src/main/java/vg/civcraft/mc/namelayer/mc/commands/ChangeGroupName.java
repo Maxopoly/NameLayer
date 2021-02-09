@@ -25,6 +25,7 @@ public class ChangeGroupName extends StandaloneCommand {
 		String newName = args[1];
 		if (group == null) {
 			MsgUtils.sendGroupNotExistMsg(player.getUniqueId(), args[0]);
+			return true;
 		}
 		ArtemisPlugin.getInstance().getRabbitHandler().sendMessage(new RabbitRenameGroup(player.getUniqueId(), group, newName));
 		return true;
