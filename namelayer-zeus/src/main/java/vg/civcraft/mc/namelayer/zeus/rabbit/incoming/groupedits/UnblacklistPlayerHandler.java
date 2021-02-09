@@ -29,7 +29,7 @@ public class UnblacklistPlayerHandler extends GroupRequestHandler {
 		}
 		synchronized (group) {
 			GroupRank blacklistedRank = group.getRank(targetPlayer);
-			if (group.getGroupRankHandler().isBlacklistedRank(blacklistedRank)) {
+			if (!group.getGroupRankHandler().isBlacklistedRank(blacklistedRank)) {
 				sendReject(ticket, UnblacklistPlayer.REPLY_ID, sendingServer,
 						UnblacklistPlayer.FailureReason.PLAYER_NOT_BLACKLISTED);
 				return;
