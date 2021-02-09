@@ -15,8 +15,8 @@ public class RabbitJoinGroup extends RabbitGroupAction {
 	
 	private String submittedPassword;
 
-	public RabbitJoinGroup(UUID executor, Group group, String submittedPassword) {
-		super(executor, group.getName());
+	public RabbitJoinGroup(UUID executor, String groupName, String submittedPassword) {
+		super(executor, groupName);
 		this.submittedPassword = submittedPassword;
 	}
 

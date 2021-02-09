@@ -1,14 +1,11 @@
 package vg.civcraft.mc.namelayer.zeus.rabbit.incoming.groupedits;
 
+import com.github.maxopoly.zeus.servers.ArtemisServer;
+import com.github.maxopoly.zeus.servers.ConnectedServer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
 import org.json.JSONObject;
-
-import com.github.maxopoly.zeus.servers.ArtemisServer;
-import com.github.maxopoly.zeus.servers.ConnectedServer;
-
 import vg.civcraft.mc.namelayer.core.Group;
 import vg.civcraft.mc.namelayer.core.GroupRank;
 import vg.civcraft.mc.namelayer.core.NameLayerMetaData;
@@ -24,6 +21,7 @@ public class JoinGroupHandler extends GroupRequestHandler {
 			return;
 		}
 		synchronized (group) {
+			NameLayerZPlugin.getInstance().getGroupKnowledgeTracker().ensureIsCached(group, (ArtemisServer) sendingServer);
 			String password = group.getMetaData(NameLayerMetaData.PASSWORD_KEY);
 			if (password == null) {
 				sendReject(ticket, JoinGroup.REPLY_ID, sendingServer, JoinGroup.FailureReason.GROUP_HAS_NO_PASSWORD);
@@ -40,7 +38,6 @@ public class JoinGroupHandler extends GroupRequestHandler {
 			GroupRank targetType = group.getGroupRankHandler().getDefaultPasswordJoinRank();
 			Map<String, Object> repValues = new HashMap<>();
 			repValues.put("targetRank", targetType.getId());
-			NameLayerZPlugin.getInstance().getGroupKnowledgeTracker().ensureIsCached(group, (ArtemisServer) sendingServer);
 			getGroupTracker().addPlayerToGroup(group, executor, targetType);
 			getGroupTracker().addLogEntry(group, new vg.civcraft.mc.namelayer.core.log.impl.JoinGroup(System.currentTimeMillis(), executor, targetType.getName()));
 			sendAccept(ticket, JoinGroup.REPLY_ID, sendingServer, repValues);
