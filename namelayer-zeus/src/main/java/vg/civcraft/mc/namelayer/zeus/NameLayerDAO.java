@@ -202,6 +202,11 @@ public class NameLayerDAO extends ZeusPluginDatabase {
 					permList.add(perm);
 				}
 			}
+			List<PermissionType> specialPerms = NameLayerZPlugin.getInstance().getGroupTracker().getPermissionTracker().getDefaultRankEditingPerms(rank);
+			for (PermissionType perm : specialPerms) {
+				rank.addPermission(perm);
+				permList.add(perm);
+			}
 			permsToSave.put(rank, permList);
 		}
 		handler.setDefaultPasswordJoinRank(member);
